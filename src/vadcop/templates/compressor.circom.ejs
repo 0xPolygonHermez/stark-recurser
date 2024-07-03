@@ -1,0 +1,25 @@
+pragma circom 2.1.0;
+pragma custom_templates;
+
+include "<%- verifierCircuitName %>.verifier.circom";
+
+<%- include('src/vadcop/helpers/templates/calculate_hashes.circom.ejs', { starkInfo, vadcopInfo }); %>
+
+template Main() {
+
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo }); %>
+
+    signal input aggregationTypes[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>];
+
+    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
+    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length  + 1 %>][3];
+   
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo }); %>
+
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo }); %>
+
+<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", circuitType, starkInfo, vadcopInfo }); %>
+
+}
+
+component main {public [publics, challenges, challengesFRISteps]} = Main();

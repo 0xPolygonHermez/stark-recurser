@@ -1,0 +1,22 @@
+{
+    "nPublics": 44,
+    "definitions": [
+        { "name": "oldStateRoot", "initialPos": 0, "prevSource": true, "chunks": [8, 32], "lessThanGL": true },
+        { "name": "oldBatchAccInputHash", "initialPos": 8, "prevSource": true, "chunks": [8, 32] },
+        { "name": "oldBatchNum", "initialPos": 16, "prevSource": true, "chunks": [1, 64], "avoidAlias": true },
+        { "name": "chainId", "initialPos": 17, "prevSource": true, "chunks": [1, 64], "avoidAlias": true },
+        { "name": "forkId", "initialPos": 18, "prevSource": true, "chunks": [1, 64], "avoidAlias": true },
+        { "name": "newStateRoot", "initialPos": 19, "prevSource": false, "chunks": [8, 32], "lessThanGL": true },
+        { "name": "newBatchAccInputHash", "initialPos": 27, "prevSource": false, "chunks": [8, 32] },
+        { "name": "newLocalExitRoot", "initialPos": 35, "prevSource": false, "chunks": [8, 32] },
+        { "name": "newBatchNum", "initialPos": 43, "prevSource": false, "chunks": [1, 64], "avoidAlias": true }
+    ],
+    "checks": [
+        ["newStateRoot", "oldStateRoot"],
+        ["newBatchAccInputHash", "oldBatchAccInputHash"],
+        ["chainId", "chainId"],
+        ["forkId", "forkId"],
+        ["newBatchNum", "oldBatchNum"]
+    ],
+    "verificationKey": ["oldBatchNum", "newBatchNum"]
+}

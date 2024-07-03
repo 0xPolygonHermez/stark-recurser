@@ -1,0 +1,18 @@
+pragma circom 2.1.0;
+pragma custom_templates;
+
+include "<%- verifierName %>.verifier.circom";
+
+template Main() {
+<%  if(options.setAggregatedVK) { -%>
+    signal input rootCAgg[4];
+<%  } -%>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { starkInfo, prefix: "" }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", publics, starkInfo, setEnableInput: options.setEnableInput }); %>
+}
+
+<%  if(options.setAggregatedVK) { -%>
+component main {public [publics, rootCAgg]}= Main();
+<%  } else { -%>
+component main {public [publics]}= Main();
+<%  } -%>

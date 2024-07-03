@@ -1,0 +1,27 @@
+{
+    "nPublics": 70,
+    "definitions": [
+        { "name": "oldBlobStateRoot", "initialPos": 0, "prevSource": true},
+        { "name": "oldBlobAccInputHash", "initialPos": 8, "prevSource": true},
+        { "name": "oldBlobNum", "initialPos": 16, "prevSource": true},
+        { "name": "oldStateRoot", "initialPos": 17, "prevSource": true},
+        { "name": "forkId", "initialPos": 25, "prevSource": true},
+        { "name": "newBlobStateRoot", "initialPos": 26, "prevSource": false},
+        { "name": "newBlobAccInputHash", "initialPos": 34, "prevSource": false},
+        { "name": "newBlobNum", "initialPos": 42, "prevSource": false},
+        { "name": "finalAccBatchHashData", "initialPos": 43, "prevSource": false},
+        { "name": "localExitRootFromBlob", "initialPos": 51, "prevSource": false},
+        { "name": "isInvalid", "initialPos": 59, "prevSource": false},
+        { "name": "timestampLimit", "initialPos": 60, "prevSource": false},
+        { "name": "lastL1InfoTreeRoot", "initialPos": 61, "prevSource": false},
+        { "name": "lastL1InfoTreeIndex", "initialPos": 69, "prevSource": false}
+    ],
+    "checks": [
+        ["newStateRoot", "oldStateRoot"],
+        ["newBlobStateRoot", "oldBlobStateRoot"],
+        ["newBlobAccInputHash", "oldBlobAccInputHash"],
+        ["chainId", "chainId"],
+        ["forkId", "forkId"],
+        ["newBlobNum", "oldBlobNum"]
+    ]
+}

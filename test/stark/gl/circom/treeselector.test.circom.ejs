@@ -1,0 +1,16 @@
+pragma circom 2.1.0;
+pragma custom_templates;
+
+include "<%- dirName %>/../../../../src/pil2circom/circuits.gl/treeselector.circom";
+
+template TreeSelect(nLevels, eSize) {
+    var n = 1 << nLevels;
+    signal input values[n][eSize];
+    signal input key[nLevels];
+    signal output out[eSize];
+
+    signal {binary} keyTags[nLevels] <== key;
+    
+    out <== TreeSelector(nLevels, eSize)(values, keyTags);
+}
+component main = TreeSelect(<%- nBits %>, 3);

@@ -1,0 +1,5 @@
+pragma circom 2.1.0;
+
+include "<%- dirName %>/../../../../src/pil2circom/circuits.bn128/custom/linearhash.circom";
+
+component main = LinearHash(<%- n %>, 3, <%- arity %>);

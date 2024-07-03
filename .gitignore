@@ -1,0 +1,7 @@
+node_modules
+dist
+tmp/*
+
+test/circom2pil/verifier*
+!test/circom2pil/verifier.circom
+!test/circom2pil/verifier.proof.zkin.json

@@ -1,0 +1,25 @@
+{
+    "nPublics": 60,
+    "definitions": [
+        { "name": "oldStateRoot", "initialPos": 0, "prevSource": true, "chunks": [8, 32], "lessThanGL": true },
+        { "name": "oldBlobStateRoot", "initialPos": 8, "prevSource": true, "chunks": [8, 32], "lessThanGL": true },
+        { "name": "oldBlobAccInputHash", "initialPos": 16, "prevSource": true, "chunks": [8, 32] },
+        { "name": "oldBlobNum", "initialPos": 24, "prevSource": true, "chunks": [1, 64], "avoidAlias": true },
+        { "name": "chainId", "initialPos": 25, "prevSource": true, "chunks": [1, 64], "avoidAlias": true },
+        { "name": "forkId", "initialPos": 26, "prevSource": true, "chunks": [1, 64], "avoidAlias": true },
+        { "name": "newStateRoot", "initialPos": 27, "prevSource": false, "chunks": [8, 32], "lessThanGL": true },
+        { "name": "newBlobStateRoot", "initialPos": 35, "prevSource": false, "chunks": [8, 32], "lessThanGL": true },
+        { "name": "newBlobAccInputHash", "initialPos": 43, "prevSource": false, "chunks": [8, 32] },
+        { "name": "newBlobNum", "initialPos": 51, "prevSource": false, "chunks": [1, 64], "avoidAlias": true },
+        { "name": "newLocalExitRoot", "initialPos": 52, "prevSource": false, "chunks": [8, 32] }
+    ],
+    "checks": [
+        ["newStateRoot", "oldStateRoot"],
+        ["newBlobStateRoot", "oldBlobStateRoot"],
+        ["newBlobAccInputHash", "oldBlobAccInputHash"],
+        ["chainId", "chainId"],
+        ["forkId", "forkId"],
+        ["newBlobNum", "oldBlobNum"]
+    ],
+    "verificationKey": ["oldBlobNum", "newBlobNum"]
+}

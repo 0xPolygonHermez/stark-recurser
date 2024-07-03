@@ -1,0 +1,31 @@
+pragma circom 2.1.0;
+pragma custom_templates;
+
+include "<%- verifierName %>.verifier.circom";
+
+<%- include('src/recursion/helpers/select_vk.circom.ejs', { publics, isTest: false }); %>
+
+template Main() {
+<%  if(options.selectCircuitInput) { -%> 
+    signal input isAggregatedCircuit;
+<%  } -%>
+
+    var rootCBasic[4] = [<%- basicVK.join(",") %>];
+    var rootCAgg[4] = [<%- aggregatedVK.join(",") %>];
+
+    <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo }); %>
+
+    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo, setEnableInput: options.setEnableInput }); %>
+
+    for (var i=0; i<4; i++) {
+        vA.publics[<%- nPublics %> + i] <== rootCAgg[i];
+    }
+
+<%  if(options.selectCircuitInput) { -%> 
+    sV.rootC <== SelectVerificationKey(publics, rootCBasic, rootCAgg);
+<%  } else { -%>
+    sV.rootC <== SelectVerificationKey(isAggregatedCircuit, rootCBasic, rootCAgg);
+<%  } -%>
+}
+
+component main {public [ publics ]}= Main();

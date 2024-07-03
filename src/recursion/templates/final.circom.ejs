@@ -1,0 +1,20 @@
+pragma circom 2.1.0;
+
+include "<%- verifierName %>.verifier.circom";
+
+<%- include('src/recursion/final/get_sha256_inputs.circom.ejs', { publics, isTest: false }); %>
+
+template Main() {
+    signal output publicsHash;
+
+    signal input aggregatorAddr;
+
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo }); %>
+
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo }); %>
+
+    publicsHash <== getSha256Inputs()(aggregatorAddr, publics);
+
+}
+
+component main = Main();

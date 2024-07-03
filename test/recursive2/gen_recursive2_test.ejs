@@ -1,0 +1,55 @@
+const path = require("path");
+const tmp = require('temporary');
+const fs = require("fs");
+const ejs = require("ejs");
+
+const { assert } = require("chai");
+
+const { generatePublicsAggregation, preparePublics, generateRandomHex } = require(path.join(process.cwd(), "test/helpers"));
+
+const wasm_tester = require("circom_tester").wasm;
+
+const publics = require(path.join(process.cwd(), "<%- publicsPath %>"));
+
+describe("Recursive 2 test", function () {
+    this.timeout(10000000);
+
+    let circuit;
+
+    beforeEach( async() => {
+        const template = await fs.promises.readFile(path.join(process.cwd(), "src", "recursion", "helpers", "templates", "verify_recursive2.circom.ejs"), "utf8");
+        const options = { publics, isTest: true}
+        const content = ejs.render(template, options);
+        const circuitFile = path.join("tmp/recursive2.circom");
+        await fs.promises.writeFile(circuitFile, content);
+        circuit = await wasm_tester(circuitFile, {O:1, prime: "goldilocks", include: "src/pil2circom/circuits.gl"});
+    });
+
+    it("Check that correct recursive2 publics are generated in the happy path", async () => {
+        const { publicsA, publicsB, publicsAggregated } = generatePublicsAggregation(publics);
+        const circomPublicsA = preparePublics(publicsA, publics);
+        const circomPublicsB = preparePublics(publicsB, publics);
+        const circomPublicsAggregated = preparePublics(publicsAggregated, publics);
+
+        const witness = await circuit.calculateWitness({ publicsAggregated: circomPublicsAggregated, a_publics: circomPublicsA, b_publics: circomPublicsB}, true);
+        
+        await circuit.assertOut(witness, {});
+    });
+
+<%  for(let i = 0; i < publics.checks.length; ++i) { -%>
+    it("Fails if <%- publics.checks[i][0] %> from first publics doesn't match with <%- publics.checks[i][1] %> from the second one", async () => {
+        const { publicsA, publicsB, publicsAggregated } = generatePublicsAggregation(publics);
+        publicsB.<%- publics.checks[i][1] %> = generateRandomHex(63, publicsA.<%- publics.checks[i][0] %>); 
+        const circomPublicsA = preparePublics(publicsA, publics);
+        const circomPublicsB = preparePublics(publicsB, publics);
+        const circomPublicsAggregated = preparePublics(publicsAggregated, publics);
+
+        try {
+            await circuit.calculateWitness({ publicsAggregated: circomPublicsAggregated, a_publics: circomPublicsA, b_publics: circomPublicsB}, true);
+            assert(false);
+        } catch(err) {
+            assert(err.message.includes("Error: Assert Failed."));
+        }
+    });
+<%  } -%>
+});

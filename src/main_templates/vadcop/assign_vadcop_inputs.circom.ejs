@@ -1,0 +1,76 @@
+<%  let nPublicsInps = 0; -%>
+
+<%  if(vadcopInfo.aggTypes[subproofId].length  > 0) { -%>
+    for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length  %>; i++) {
+        nSubproofValues.publics[<%- nPublicsInps %> + i] <== aggregationTypes[i];
+    }
+<%  nPublicsInps += vadcopInfo.aggTypes[subproofId].length ; -%>
+
+    for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length  %>; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== <%- prefix_ %>subproofValues[i][0];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 1] <== <%- prefix_ %>subproofValues[i][1];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 2] <== <%- prefix_ %>subproofValues[i][2];
+    }
+<%  nPublicsInps += 3*vadcopInfo.aggTypes[subproofId].length ; -%>
+<%  } -%>
+
+
+    for(var i = 0; i < 4; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>rootC[i];
+    }
+<%  nPublicsInps += 4 -%>
+
+<%  for (let i = 0; i < vadcopInfo.nStages + 1; i++) { -%>
+    for(var i = 0; i < 4; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>root<%- i+1 %>[i];
+    }
+
+<%  nPublicsInps += 4 -%>
+<%  } -%>
+
+    for(var i = 0; i < 4; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>root<%- vadcopInfo.nStages + 1%>[i];
+    }
+<%  nPublicsInps += 4 -%>
+
+    for(var i = 0; i < 4; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>evalsHash[i];
+    }
+<%  nPublicsInps += 4 -%>
+
+<%  for(let i = 1; i < vadcopInfo.stepsFRI.length + 1; i++) { -%>
+    for(var i = 0; i < 4; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>s<%- i %>_root[i];
+    }
+<%  nPublicsInps += 4 -%>
+<%  } -%>
+
+    for(var i = 0; i < 4; i++) {
+        sv<%- c %>.publics[<%- nPublicsInps %> + i] <== s<%- c %>_sv_finalPolHash[i];
+    }
+<%  nPublicsInps += 4 -%>
+
+    for(var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== publics[i];
+    }
+<%  nPublicsInps += vadcopInfo.nPublics -%>
+
+    for(var i = 0; i < <%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== challenges[i][0];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+1] <== challenges[i][1];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+2] <== challenges[i][2];
+    }
+<%  nPublicsInps += 3*(vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4); -%>
+
+    for(var i = 0; i < <%- vadcopInfo.stepsFRI.length + 1 %>; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== challengesFRISteps[i][0];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+1] <== challengesFRISteps[i][1];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+2] <== challengesFRISteps[i][2];
+    }
+<%  nPublicsInps += 3*(vadcopInfo.stepsFRI.length + 1); -%>
+
+<%  if(vadcopInfo.nSubproofs > 1) { -%>
+    signal {binary} <%- prefix_ %>isNull <== IsZero()(circuitType);
+
+    <%- componentName %>.enable <== 1 - <%- prefix_ %>isNull;
+<%  } -%>

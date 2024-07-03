@@ -1,0 +1,25 @@
+{
+    "nPublics": 61,
+    "definitions": [
+        { "name": "oldStateRoot", "initialPos": 0, "prevSource": true},
+        { "name": "oldBatchAccInputHash", "initialPos": 8, "prevSource": true},
+        { "name": "previousL1InfoTreeRoot", "initialPos": 16, "prevSource": true},
+        { "name": "previousL1InfoTreeIndex", "initialPos": 24, "prevSource": true},
+        { "name": "chainId", "initialPos": 25, "prevSource": true},
+        { "name": "forkId", "initialPos": 26, "prevSource": true},
+        { "name": "newStateRoot", "initialPos": 27, "prevSource": false},
+        { "name": "newBatchAccInputHash", "initialPos": 35, "prevSource": false},
+        { "name": "currentL1InfoTreeRoot", "initialPos": 43, "prevSource": false},
+        { "name": "currentL1InfoTreeIndex", "initialPos": 51, "prevSource": false},
+        { "name": "newLocalExitRoot", "initialPos": 52, "prevSource": false},
+        { "name": "newLastTimestamp", "initialPos": 60, "prevSource": false}
+    ],
+    "checks": [
+        ["newStateRoot", "oldStateRoot"],
+        ["newBatchAccInputHash", "oldBatchAccInputHash"],
+        ["currentL1InfoTreeRoot", "previousL1InfoTreeRoot"],
+        ["currentL1InfoTreeIndex", "previousL1InfoTreeIndex"],
+        ["chainId", "chainId"],
+        ["forkId", "forkId"]
+    ]
+}

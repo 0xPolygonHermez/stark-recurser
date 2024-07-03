@@ -1,0 +1,59 @@
+pragma circom 2.1.0;
+pragma custom_templates;
+
+include "<%- verifierCircuitName %>.verifier.circom";
+include "iszero.circom";
+
+template Main() {
+
+    signal input publics[<%- starkInfo.nPublics %>];
+
+    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
+    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
+
+<%  for(let i = 0; i < vadcop.nSubproofs; ++i) { -%>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `sv${i}`, starkInfo }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `sv${i}`, vadcopInfo }); %>
+<%  } -%>
+
+<%  for(let i = 0; i < vadcop.nSubproofs; ++i) { -%>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, vadcopInfo }); %>
+
+    var sv<%- i %>_rootCAgg[4] = [<%- /* TODO */ %>];
+    var sv<%- i %>_rootCBasics[<%- vadcopInfo.nAirs[i] %>][4];
+
+    <% for(let j = 0; j < vadcopInfo.nAirs[i]; j++) { -%>
+    sv<%- i %>_rootCBasics[<%- j %>] = [<%- /* TODO */ %>];
+    <% } -%>
+
+    sV<%- i %>.rootC <== SelectVerificationKey()(sv<%- i %>_circuitType, sv<%- i %>_rootCBasics, sv<%- i %>_rootCAgg);
+<%  } -%>
+
+    // Calculate transcript and check that matches with the global challenges
+    component verifyChallenges = VerifyGlobalChallenges();
+    verifyChallenges.challenges <== challenges;
+    verifyChallenges.challengesFRISteps <== challengesFRISteps;
+    verifyChallenges.publics <== publics;
+<%  for(let i = 0; i < vadcopInfo.nSubproofs; ++i) { -%>
+    verifyChallenges.rootC[<%- i %>] <== s<%- i %>_sv_rootC;
+<%      for (let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) { -%>
+    verifyChallenges.root<%- j + 1 %>[<%- i %>] <== s<%- i %>_sv_root<%- j+1 %>;
+<%      } -%>
+    verifyChallenges.evalsHash[<%- i %>] <== s<%- i %>_sv_evalsHash;
+<%      for (let j = 1; j < vadcopInfo.stepsFRI.length; ++j) { -%>
+    verifyChallenges.s<%- j %>_root[<%- i %>] <== s<%- i %>_sv_s<%- j %>_root;
+<%      } -%>
+    verifyChallenges.finalPolHash[<%- i %>] <== s<%- i %>_sv_finalPolHash;
+<%  } -%>
+
+    // Verify global constraints
+<% for(let i = 0; i < vadcopInfo.globalConstraints.length; i++) { -%>
+<% const c = unrollCode(vadcopInfo.globalConstraints[i].code) -%>
+    <%- c %>[0] === 0;
+    <%- c %>[1] === 0;
+    <%- c %>[2] === 0;
+<% } -%>
+}
+
+component main {public [publics]} = Main();

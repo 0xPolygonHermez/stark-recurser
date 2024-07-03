@@ -1,0 +1,60 @@
+const path = require("path");
+const tmp = require('temporary');
+const fs = require("fs");
+const ejs = require("ejs");
+const { FrSNARK } = require("@0xpolygonhermez/zkevm-commonjs/src/constants");
+const { Scalar } = require("ffjavascript");
+const { assert } = require("chai");
+const { solidityPackedSha256 } = require("ethers");
+
+const wasm_tester = require("circom_tester").wasm;
+
+const { preparePublics, generatePublics } = require(path.join(process.cwd(), "test/helpers"));
+
+const publicsInfo = require(path.join(process.cwd(), "<%- publicsPath %>"));
+
+describe("Sha256 Inputs Circuit Test", function () {
+    let aggregatorAddress = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
+
+    this.timeout(10000000);
+
+    let circuit;
+
+    beforeEach( async() => {
+        const template = await fs.promises.readFile(path.join(process.cwd(), "src", "recursion", "helpers", "templates", "get_sha256_inputs.circom.ejs"), "utf8");
+
+        const options = { publics: publicsInfo, isTest: true}
+        const content = ejs.render(template, options);
+        const circuitFile = path.join("tmp/final.circom");
+        await fs.promises.writeFile(circuitFile, content);
+        circuit = await wasm_tester(circuitFile, {O:1, include: ["node_modules/circomlib/circuits", "src/pil2circom/circuits.bn128"]});
+    });
+
+    it("Test that solidity hash matches circom hash", async () => {
+        const { publics, publicsSolidity, publicsSolidityTypes } = generatePublics(aggregatorAddress, publicsInfo);
+        const publicsCircom = preparePublics(publics, publicsInfo);
+
+        const sha256Solidity = Scalar.mod(Scalar.fromString(solidityPackedSha256(publicsSolidityTypes, publicsSolidity), 16), FrSNARK);
+
+        const witness = await circuit.calculateWitness({aggregatorAddr: aggregatorAddress, publics: publicsCircom}, true);
+        
+        await circuit.assertOut(witness, { publicsHash: sha256Solidity });
+    });
+
+<%  for(let i = 0; i < publics.definitions.length; ++i) { -%>
+<%      if(publics.definitions[i].lessThanGL) { -%>
+    it("Fails if <%- publics.definitions[i].name %> is higher than GL", async () => {
+        const { publics } = generatePublics(aggregatorAddress, publicsInfo);
+        publics.<%- publics.definitions[i].name %> = 0xFFFFFFFF00000001n + 1n;
+
+        const publicsCircom = preparePublics(publics, publicsInfo);
+        try {
+            await circuit.calculateWitness({aggregatorAddr: aggregatorAddress, publics: publicsCircom}, true);
+            assert(false);
+        } catch(err) {
+            assert(err.message.includes("Error in template LessThanGoldilocks"));
+        }
+    });
+<%      } -%>
+<%  } -%> 
+}); 
