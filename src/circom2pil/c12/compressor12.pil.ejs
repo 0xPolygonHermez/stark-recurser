@@ -9,7 +9,7 @@ namespace Global(%N);
 <% } -%>
 
 namespace Compressor(%N);
-    pol constant S[<%- committedPols %>];
+    pol constant S[12];
     pol constant C[12];
     pol constant POSEIDONM;
     pol constant POSEIDONCUSTFIRST;
@@ -22,7 +22,7 @@ namespace Compressor(%N);
     pol constant EVPOL4;
     pol constant FFT4;
     pol constant TREESELECTOR4;
-    pol commit a[<%- committedPols %>];
+    pol commit a[12];
 
 <% for (let i=0; i<nPublics; i++) { -%>
     public pub<%- i%> = a[<%- i%12 %>](<%- Math.floor(i/12) %>);
@@ -344,7 +344,7 @@ namespace Compressor(%N);
 <% 
     let a = [];
     let S = [];
-    for(let i = 0; i < committedPols; ++i) {
+    for(let i = 0; i < 12; ++i) {
         a.push(`a[${i}]`);
         S.push(`S[${i}]`);
     }

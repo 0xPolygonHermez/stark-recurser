@@ -28,7 +28,9 @@ async function run() {
         forceNBits: argv.forceNBits
     };
     
-    const {exec, pilStr, constPols} = await compressorSetup(F, r1csFile, cols, options);
+    const pil2 = argv.pil2 || false;
+    
+    const {exec, pilStr, constPols} = await compressorSetup(F, r1csFile, cols, pil2, options);
 
     const fd =await fs.promises.open(execFile, "w+");
     await fd.write(exec);

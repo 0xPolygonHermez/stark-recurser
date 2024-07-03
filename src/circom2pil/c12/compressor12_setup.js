@@ -13,7 +13,7 @@ const { generateFixedCols } = require("pil2-stark-js/src/witness/witnessCalculat
 /*
     Compress plonk constraints and verifies custom gates using 12 committed polynomials
 */
-module.exports = async function plonkSetup(F, r1cs, options) {
+module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     const committedPols = 12;
 
     const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(F, r1cs, committedPols);
@@ -49,8 +49,27 @@ module.exports = async function plonkSetup(F, r1cs, options) {
     const pilStr = ejs.render(template ,  obj);
     const pilFile = await tmpName();
     await fs.promises.writeFile(pilFile, pilStr, "utf8");
-    const pil = await compile(F, pilFile);
-    const constPols =  generateFixedCols(pil.references, Object.values(pil.references)[0].polDeg, false);
+
+    let constPols;
+
+    if(pil2) {
+        const tmpPath = path.resolve(__dirname, '../tmp');
+        if(!fs.existsSync(tmpPath)) fs.mkdirSync(tmpPath);
+        let piloutPath = path.join(tmpPath, "pilout.ptb");
+        let pilConfig = { outputFile: piloutPath};
+        compilePil2(F, pilFile, null, pilConfig);
+        
+        const piloutEncoded = fs.readFileSync(piloutPath);
+        const pilOutProtoPath = path.resolve(__dirname, '../node_modules/pil2-compiler/src/pilout.proto');
+        const PilOut = protobuf.loadSync(pilOutProtoPath).lookupType("PilOut");
+        let pilout = PilOut.toObject(PilOut.decode(piloutEncoded));
+        
+        constPols = generateFixedCols(pilout.symbols, pil.subproofs[0].airs[0].numRows);
+    } else {
+        const pil = await compile(F, pilFile);
+        constPols = generateFixedCols(pil.references, Object.values(pil.references)[0].polDeg, false);
+    }
+
 
     fs.promises.unlink(pilFile);
 

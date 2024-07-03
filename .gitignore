@@ -4,4 +4,5 @@ tmp/*
 
 test/circom2pil/verifier*
 !test/circom2pil/verifier.circom
+!test/circom2pil/verifier.publics.json
 !test/circom2pil/verifier.proof.zkin.json

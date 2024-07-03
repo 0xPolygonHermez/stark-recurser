@@ -28,11 +28,11 @@
     "verifier_C12_setup": "NODE_OPTIONS=--max-old-space-size=32000 node src/circom2pil/main_compressor_setup.js -r test/circom2pil/verifier.r1cs -p tmp/test.c12.pil -c tmp/test.c12.const -e tmp/test.c12.exec --cols=12",
     "verifier_C12_exec": "NODE_OPTIONS=--max-old-space-size=32000 node src/circom2pil/main_compressor_exec.js -i test/circom2pil/verifier.proof.zkin.json -w test/circom2pil/verifier_js/verifier.wasm -p tmp/test.c12.pil -e tmp/test.c12.exec -m tmp/test.c12.commit",
     "verifier_C12_buildstarkinfo": "NODE_OPTIONS=--max-old-space-size=32000 node node_modules/pil2-stark-js/src/main_genstarkinfo.js --debug -p tmp/test.c12.pil -i tmp/test.c12.starkinfo.json -e tmp/test.c12.expressionsinfo.json -v tmp/test.c12.verifierinfo.json --skipimpols",
-    "verifier_C12_pil_verify": "NODE_OPTIONS=--max-old-space-size=32000 node node_modules/pil2-stark-js/src/main_pilverifier.js -m tmp/test.c12.exec -i test/circom2pil/verifier.publics.json -p tmp/test.c12.pil -c tmp/test.c12.const -s tmp/test.c12.starkinfo.json -e tmp/test.c12.expressionsinfo.json",
+    "verifier_C12_pil_verify": "NODE_OPTIONS=--max-old-space-size=32000 node node_modules/pil2-stark-js/src/main_pilverifier.js -m tmp/test.c12.commit -i test/circom2pil/verifier.publics.json -p tmp/test.c12.pil -c tmp/test.c12.const -s tmp/test.c12.starkinfo.json -e tmp/test.c12.expressionsinfo.json",
     "verifier_C18_setup": "NODE_OPTIONS=--max-old-space-size=32000 node src/circom2pil/main_compressor_setup.js -r test/circom2pil/verifier.r1cs -p tmp/test.c18.pil -c tmp/test.c18.const -e tmp/test.c18.exec --cols=18",
     "verifier_C18_exec": "NODE_OPTIONS=--max-old-space-size=32000 node src/circom2pil/main_compressor_exec.js -i test/circom2pil/verifier.proof.zkin.json -w test/circom2pil/verifier_js/verifier.wasm -p tmp/test.c18.pil -e tmp/test.c18.exec -m tmp/test.c18.commit",
-    "verifier_C18_buildstarkinfo": "NODE_OPTIONS=--max-old-space-size=32000 node node node_modules/pil2-stark-js/src/main_genstarkinfo.js --debug -p tmp/test.c18.pil -i tmp/test.c18.starkinfo.json -e tmp/test.c18.expressionsinfo.json -v tmp/test.c18.verifierinfo.json --skipimpols",
-    "verifier_C18_pil_verify": "NODE_OPTIONS=--max-old-space-size=32000 node node_modules/pil2-stark-js/src/main_pilverifier.js -m tmp/test.c18.exec -i test/circom2pil/verifier.publics.json -p tmp/test.c18.pil -c tmp/test.c18.const -s tmp/test.c18.starkinfo.json -e tmp/test.c18.expressionsinfo.json"
+    "verifier_C18_buildstarkinfo": "NODE_OPTIONS=--max-old-space-size=32000 node node_modules/pil2-stark-js/src/main_genstarkinfo.js --debug -p tmp/test.c18.pil -i tmp/test.c18.starkinfo.json -e tmp/test.c18.expressionsinfo.json -v tmp/test.c18.verifierinfo.json --skipimpols",
+    "verifier_C18_pil_verify": "NODE_OPTIONS=--max-old-space-size=32000 node node_modules/pil2-stark-js/src/main_pilverifier.js -m tmp/test.c18.commit -i test/circom2pil/verifier.publics.json -p tmp/test.c18.pil -c tmp/test.c18.const -s tmp/test.c18.starkinfo.json -e tmp/test.c18.expressionsinfo.json"
   },
   "dependencies": {
     "@0xpolygonhermez/zkevm-commonjs": "github:0xpolygonhermez/zkevm-commonjs#v6.0.0-fork.9",
@@ -41,8 +41,10 @@
     "circomlibjs": "^0.1.7",
     "ethers": "^6.8.1",
     "json-bigint": "^1.0.0",
+    "pil2-compiler": "https://github.com/0xPolygonHermez/pil2-compiler.git#develop",
     "pil2-stark-js": "https://github.com/0xPolygonHermez/pil2-stark-js.git",
     "pilcom": "^0.0.24",
+    "protobufjs": "^7.3.2",
     "r1csfile": "^0.0.47"
   },
   "devDependencies": {

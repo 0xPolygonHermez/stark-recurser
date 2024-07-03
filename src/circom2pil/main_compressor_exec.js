@@ -2,12 +2,16 @@ const fs = require("fs");
 const version = require("../../package").version;
 
 const { compile } = require("pilcom");
+const compilePil2 = require("pil2-compiler/src/compiler.js");
+
+const protobuf = require('protobufjs');
+
 const F3g = require("pil2-stark-js/src/helpers/f3g.js");
 const { compressorExec, readExecFile } = require("./compressor_exec");
 const JSONbig = require('json-bigint')({ useNativeBigInt: true, alwaysParseAsBig: true });
 
 
-const argv = require("yargs")
+const argv = require("yargs")   
     .version(version)
     .usage("node main_compressor_exec.js -r <r1cs.circom> -p <pil.json> [-P <pilconfig.json] -v <verification_key.json>")
     .alias("i", "input")
@@ -30,8 +34,28 @@ async function run() {
 
     const input = JSONbig.parse(await fs.promises.readFile(inputFile, "utf8"));
 
-    const pil = await compile(F, pilFile, null, pilConfig);
+    const pil2 = argv.pil2 || false;
+    
+    let pil;
 
+    if(pil2) {
+        const tmpPath = path.resolve(__dirname, '../tmp');
+        if(!fs.existsSync(tmpPath)) fs.mkdirSync(tmpPath);
+        let piloutPath = path.join(tmpPath, "pilout.ptb");
+        let pilConfig = { outputFile: piloutPath};
+        compilePil2(F, pilFile, null, pilConfig);
+        
+        const piloutEncoded = fs.readFileSync(piloutPath);
+        const pilOutProtoPath = path.resolve(__dirname, '../node_modules/pil2-compiler/src/pilout.proto');
+        const PilOut = protobuf.loadSync(pilOutProtoPath).lookupType("PilOut");
+        let pilout = PilOut.toObject(PilOut.decode(piloutEncoded));
+        
+        const pil = pilout.subproofs[0].airs[0];
+        pil.symbols = pilout.symbols;
+    } else {
+        pil = await compile(F, pilFile, null, pilConfig);
+    }
+    
     
     const exec = await readExecFile(execFile, pil.references["Compressor.a"].len);
 

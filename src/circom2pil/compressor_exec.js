@@ -2,8 +2,10 @@ const { generateWtnsCols } = require("pil2-stark-js/src/witness/witnessCalculato
 const { WitnessCalculatorBuilder } = require("circom_runtime");
 const fs = require("fs");
 
-module.exports.compressorExec = async function compressorExec(F, pil, wasm, input, exec) {
-    const cmPols = generateWtnsCols(pil.references, Object.values(pil.references)[0].polDeg, false);
+module.exports.compressorExec = async function compressorExec(F, pil, wasm, input, exec, pil2 = false) {
+    const cmPols = pil2 
+        ? generateWtnsCols(pil.symbols, pil.numRows, true)
+        : generateWtnsCols(pil.references, Object.values(pil.references)[0].polDeg, false);
 
     const nCommittedPols =cmPols.Compressor.a.length;
     
