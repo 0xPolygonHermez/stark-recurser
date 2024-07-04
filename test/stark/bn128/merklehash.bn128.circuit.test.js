@@ -1,8 +1,8 @@
 const chai = require("chai");
 const path = require("path");
 const { buildPoseidon } = require("circomlibjs");
-const MerkleHash = require("pil2-stark-js/src/helpers/hash/merklehash/merklehash_bn128.js");
-const { log2 } = require("../../../src/utils");
+const MerkleHash = require("../../../src/utils/hash/merklehash/merklehash_bn128.js");
+const { log2 } = require("../../../src/utils/utils.js");
 
 const assert = chai.assert;
 

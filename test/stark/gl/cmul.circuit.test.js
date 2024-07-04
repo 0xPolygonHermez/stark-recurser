@@ -1,5 +1,5 @@
 const path = require("path");
-const F3g = require("pil2-stark-js/src/helpers/f3g.js");
+const F3g = require("../../../src/utils/f3g.js");
 
 const wasm_tester = require("circom_tester").wasm;
 

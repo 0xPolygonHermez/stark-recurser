@@ -14,7 +14,7 @@ https://eprint.iacr.org/2020/500.pdf
 
 */
 
-const F3g = require('../../f3g');
+const F3g = require("../../f3g.js");
 const poseidonConstants = require('./poseidon_constants_opt');
 
 let poseidon;

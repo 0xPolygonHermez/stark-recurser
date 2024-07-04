@@ -1,9 +1,9 @@
 const path = require("path");
-const {evalPol} = require("pil2-stark-js/src/helpers/polutils");
-const F3g = require("pil2-stark-js/src/helpers/f3g");
+const F3g = require("../../../src/utils/f3g.js");
 const tmp = require('temporary');
 const fs = require("fs");
 const ejs = require("ejs");
+const { evalPol } = require("../../../src/utils/utils");
 
 const wasm_tester = require("circom_tester").wasm;
 

@@ -5,8 +5,7 @@ chai.use(chaiAsPromised);
 
 const starkInfo = require("./verifyEvals.starkInfo.json");
 
-const F3g = require("pil2-stark-js/src/helpers/f3g");
-
+const F3g = require("../../../src/utils/f3g.js");
 const wasm_tester = require("circom_tester").wasm;
 
 describe("Verify Evals Goldilocks Circuit Test", function () {

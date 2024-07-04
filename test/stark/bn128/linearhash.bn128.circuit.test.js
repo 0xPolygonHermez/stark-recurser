@@ -1,6 +1,6 @@
 const path = require("path");
 const { buildPoseidon } = require("circomlibjs");
-const LinearHash = require("pil2-stark-js/src/helpers/hash/linearhash/linearhash.bn128");
+const LinearHash = require("../../../src/utils/hash/linearhash/linearhash.bn128");
 
 const tmp = require('temporary');
 const fs = require("fs");

@@ -1,7 +1,7 @@
 const chai = require("chai");
 const path = require("path");
-const MerkleHash = require("pil2-stark-js/src/helpers/hash/merklehash/merklehash.js");
-const buildPoseidon = require("pil2-stark-js/src/helpers/hash/poseidon/poseidon");
+const MerkleHash = require("../../../src/utils/hash/merklehash/merklehash.js");
+const buildPoseidon = require("../../../src/utils/hash/poseidon/poseidon");
 
 const tmp = require('temporary');
 const fs = require("fs");

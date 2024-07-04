@@ -1,4 +1,4 @@
-const F3g = require("pil2-stark-js/src/helpers/f3g");
+const F3g = require("../utils/f3g.js");
 const { readR1cs } = require("r1csfile");
 const { getCompressorConstraints } = require("../circom2pil/compressor_constraints.js");
 const { log2 } = require("../utils.js");

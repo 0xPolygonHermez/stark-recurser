@@ -1,7 +1,7 @@
 const fs = require("fs");
 const version = require("../../package").version;
 
-const F3g = require("pil2-stark-js/src/helpers/f3g.js");
+const F3g = require("../utils/f3g.js");
 const { compressorSetup } = require("./compressor_setup");
 
 const argv = require("yargs")

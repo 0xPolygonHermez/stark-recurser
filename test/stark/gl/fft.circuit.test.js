@@ -1,6 +1,6 @@
 const chai = require("chai");
 const path = require("path");
-const F3g = require("pil2-stark-js/src/helpers/f3g");
+const F3g = require("../../../src/utils/f3g.js");
 const tmp = require('temporary');
 const fs = require("fs");
 const ejs = require("ejs");

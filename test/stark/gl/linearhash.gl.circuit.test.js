@@ -1,7 +1,7 @@
 const path = require("path");
-const buildPoseidon = require("pil2-stark-js/src/helpers/hash/poseidon/poseidon");
-const LinearHash = require("pil2-stark-js/src/helpers/hash/linearhash/linearhash");
-const LinearHashGPU = require("pil2-stark-js/src/helpers/hash/linearhash/linearhash_gpu");
+const buildPoseidon = require("../../../src/utils/hash/poseidon/poseidon");
+const LinearHash = require("../../../src/utils/hash/linearhash/linearhash");
+const LinearHashGPU = require("../../../src/utils/hash/linearhash/linearhash_gpu");
 
 const tmp = require('temporary');
 const fs = require("fs");

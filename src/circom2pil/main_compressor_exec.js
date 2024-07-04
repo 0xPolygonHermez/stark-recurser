@@ -6,7 +6,7 @@ const compilePil2 = require("pil2-compiler/src/compiler.js");
 
 const protobuf = require('protobufjs');
 
-const F3g = require("pil2-stark-js/src/helpers/f3g.js");
+const F3g = require("../utils/f3g.js");
 const { compressorExec, readExecFile } = require("./compressor_exec");
 const JSONbig = require('json-bigint')({ useNativeBigInt: true, alwaysParseAsBig: true });
 

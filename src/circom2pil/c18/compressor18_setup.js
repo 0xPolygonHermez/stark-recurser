@@ -4,10 +4,9 @@ const path = require("path");
 const {tmpName} = require("tmp-promise");
 const { compile } = require("pilcom");
 const ejs = require("ejs");
-const {M, P, S, C} = require("../helpers/poseidon/poseidon_constants_opt.js");
-const { connect } = require("pil2-stark-js/src/helpers/polutils");
+const {M, P, S, C} = require("../../utils/hash/poseidon/poseidon_constants_opt.js");
 const { getCompressorConstraints } = require("../compressor_constraints.js");
-const { log2, getKs } = require("../../utils.js");
+const { connect, log2, getKs } = require("../../utils/utils.js");
 const { generateFixedCols } = require("pil2-stark-js/src/witness/witnessCalculator");
 
 

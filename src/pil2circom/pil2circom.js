@@ -2,7 +2,7 @@ const ejs = require("ejs");
 const fs = require("fs");
 const path = require("path");
 
-const F3g = require("pil2-stark-js/src/helpers/f3g.js");
+const F3g = require("../utils/f3g.js");
 const { log2 } = require("../utils");
 
 module.exports = async function pil2circom(constRoot, starkInfo, verifierInfo, options) {

@@ -1,7 +1,7 @@
 pragma circom 2.1.0;
 pragma custom_templates;
 
-include "poseidon.circom";
+include "custom/poseidon.circom";
 
 // Given a list on inputs over GL³, compute the linear hash of the list, mapping from GL³ to BN
 // via the map (x,y,z) |-> x + y·2⁶⁴ + z·2¹²⁸, which is injective but not surjective;
