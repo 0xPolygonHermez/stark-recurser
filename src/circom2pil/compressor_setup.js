@@ -1,7 +1,7 @@
 const {readR1cs} = require("r1csfile");
 const plonkSetupC18 = require("./c18/compressor18_setup.js");
 const plonkSetupC12 = require("./c12/compressor12_setup.js");
-const { writeExecFile } = require("./exec_helpers");
+const { writeExecFile } = require("./compressor_exec.js");
 
 module.exports.compressorSetup = async function compressorSetup(F, r1csFile, cols, pil2, options = {}) {
     const r1cs = await readR1cs(r1csFile, {F: F, logger:console });
