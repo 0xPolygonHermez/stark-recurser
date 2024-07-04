@@ -1,8 +1,9 @@
 pragma circom 2.1.0;
 pragma custom_templates;
 
-<% let verifierNameBatch = verifierName[0]; -%>
-<% let verifierNameBlob = verifierName[1]; -%>
+<% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
+include "<%- verifierFilenames[i] %>";
+<% } -%>
 
 <% let batchPublics = publics[0]; -%>
 <% let blobInnerPublics = publics[1]; -%>
@@ -11,8 +12,6 @@ pragma custom_templates;
 <% let starkInfoBatch = starkInfo[0]; -%>
 <% let starkInfoBlob = starkInfo[1]; -%>
 
-include "<%- verifierNameBatch %>.verifier.circom";
-include "<%- verifierNameBlob %>.verifier.circom";
 
 <%- include('src/recursion/helpers/templates/select_vk.circom.ejs', { publics: batchPublics }); %>
 

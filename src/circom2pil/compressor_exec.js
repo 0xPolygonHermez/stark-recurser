@@ -1,4 +1,4 @@
-const { generateWtnsCols } = require("pil2-stark-js/src/witness/witnessCalculator");
+const { generateWtnsCols } = require("pil2-stark-js/src/setup/witness/witnessCalculator");
 const { WitnessCalculatorBuilder } = require("circom_runtime");
 const fs = require("fs");
 

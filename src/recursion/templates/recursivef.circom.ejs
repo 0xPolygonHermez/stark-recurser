@@ -1,7 +1,9 @@
 pragma circom 2.1.0;
 pragma custom_templates;
 
-include "<%- verifierName %>.verifier.circom";
+<% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
+include "<%- verifierFilenames[i] %>";
+<% } -%>
 
 <%- include('src/recursion/helpers/select_vk.circom.ejs', { publics, isTest: false }); %>
 

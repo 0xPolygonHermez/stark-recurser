@@ -1,6 +1,8 @@
 pragma circom 2.1.0;
 
-include "<%- verifierName %>.verifier.circom";
+<% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
+    include "<%- verifierFilenames[i] %>";
+    <% } -%>
 
 <%- include('src/recursion/final/get_sha256_inputs.circom.ejs', { publics, isTest: false }); %>
 

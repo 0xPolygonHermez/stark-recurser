@@ -8,7 +8,7 @@ const argv = require("yargs")
     .array("s").alias("s", "starkinfo")
     .array("a").alias("a", "aggverkey")
     .array("b").alias("b", "basicverkey")
-    .array("n").alias("n", "verifiernames")
+    .array("n").alias("n", "verifierfile")
     .array("p").alias("p", "publics")
     .alias("v", "vadcopinfo")
     .alias("t", "template")
@@ -21,7 +21,7 @@ async function run() {
     const starkInfos = [];
     const aggVerificationKeys = [];
     const basicVerificationKeys = [];
-    const verifierNames = [];
+    const verifierFilenames = [];
     const publics = [];
 
     const outputFile = argv.outputfile;
@@ -54,9 +54,9 @@ async function run() {
         }
     }
 
-    for(let i = 0; i < argv.verifiernames.length; ++i) {
-        if(typeof (argv.verifiernames[i]) !== "string") throw new Error("A valid verification file name must be provided!");
-        verifierNames.push(argv.verifiernames[i]);
+    for(let i = 0; i < argv.verifierfile.length; ++i) {
+        if(typeof (argv.verifierfile[i]) !== "string") throw new Error("A valid verification file name must be provided!");
+        verifierFilenames.push(argv.verifierfile[i]);
     }
 
     
@@ -76,7 +76,7 @@ async function run() {
     
     //TODO: ADD OPTIONS
 
-    const circomVerifier = await genCircom(templateFile, starkInfos, vadcopInfo, publics, verifierNames, basicVerificationKeys, aggVerificationKeys, options);
+    const circomVerifier = await genCircom(templateFile, starkInfos, vadcopInfo, publics, verifierFilenames, basicVerificationKeys, aggVerificationKeys, options);
     
     await fs.promises.writeFile(outputFile, circomVerifier, "utf8");
 

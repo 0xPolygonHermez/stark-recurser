@@ -1,7 +1,9 @@
 pragma circom 2.1.0;
 pragma custom_templates;
 
-include "<%- verifierCircuitName %>.verifier.circom";
+<% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
+include "<%- verifierFilenames[i] %>";
+<% } -%>
 include "iszero.circom";
 
 template Main() {

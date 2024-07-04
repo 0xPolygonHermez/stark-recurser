@@ -3,7 +3,9 @@ pragma custom_templates;
 
 include "iszero.circom";
 include "mux1.circom";
-include "<%- verifierName %>.verifier.circom";
+<% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
+include "<%- verifierFilenames[i] %>";
+<% } -%>
 
 <%- include('src/recursion/helpers/templates/verify_recursive2.circom.ejs', { publics, isTest: false }); %>
 <%- include('src/recursion/helpers/templates/select_vk.circom.ejs', { publics, isTest: false }); %>

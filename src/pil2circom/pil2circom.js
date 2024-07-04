@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 const F3g = require("../utils/f3g.js");
-const { log2 } = require("../utils");
+const { log2 } = require("../utils/utils");
 
 module.exports = async function pil2circom(constRoot, starkInfo, verifierInfo, options) {
 

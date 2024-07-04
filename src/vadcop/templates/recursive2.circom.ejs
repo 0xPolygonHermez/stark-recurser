@@ -8,7 +8,11 @@ include "vadcop/helpers/nullable/agg_values.circom";
 include "vadcop/helpers/select_vk.circom";
 include "vadcop/helpers/agg_values.circom";
 <% } -%>
-include "<%- verifierCircuitName %>.verifier.circom";
+
+<% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
+    include "<%- verifierFilenames[i] %>";
+<% } -%>
+
 
 template Main() {
     signal input publics[<%- starkInfo.nPublics %>];

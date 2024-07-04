@@ -7,7 +7,7 @@ const ejs = require("ejs");
 const {M, P, S, C} = require("../../utils/hash/poseidon/poseidon_constants_opt.js");
 const { getCompressorConstraints } = require("../compressor_constraints.js");
 const { connect, log2, getKs } = require("../../utils/utils.js");
-const { generateFixedCols } = require("pil2-stark-js/src/witness/witnessCalculator");
+const { generateFixedCols } = require("pil2-stark-js/src/setup/witness/witnessCalculator");
 
 
 /*
