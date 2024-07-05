@@ -1,3 +1,4 @@
+<%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 <%  let nPublicsInps = 0; -%>
 
 <%  if(vadcopInfo.aggTypes[starkInfo.subproofId].length  > 0) { -%>
@@ -29,16 +30,11 @@
 <%  } -%>
 
     for(var i = 0; i < 4; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>root<%- vadcopInfo.numChallenges.length + 1%>[i];
-    }
-<%  nPublicsInps += 4 -%>
-
-    for(var i = 0; i < 4; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>evalsHash[i];
     }
 <%  nPublicsInps += 4 -%>
 
-<%  for(let i = 1; i < vadcopInfo.stepsFRI.length + 1; i++) { -%>
+<%  for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
     for(var i = 0; i < 4; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>s<%- i %>_root[i];
     }
@@ -46,7 +42,7 @@
 <%  } -%>
 
     for(var i = 0; i < 4; i++) {
-        sv<%- c %>.publics[<%- nPublicsInps %> + i] <== s<%- c %>_sv_finalPolHash[i];
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>finalPolHash[i];
     }
 <%  nPublicsInps += 4 -%>
 
@@ -67,7 +63,7 @@
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+1] <== challengesFRISteps[i][1];
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+2] <== challengesFRISteps[i][2];
     }
-<%  nPublicsInps += 3*(vadcopInfo.stepsFRI.length + 1); -%>
+<%  nPublicsInps += 3*(vadcopInfo.stepsFRI.length); -%>
 
 <%  if(vadcopInfo.aggTypes.length > 1) { -%>
     signal {binary} <%- prefix_ %>isNull <== IsZero()(circuitType);

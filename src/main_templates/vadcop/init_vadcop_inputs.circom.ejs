@@ -48,8 +48,8 @@
     <%- componentName %>.challengesFRI[0] <== challenges[<%- c++ %>];
     <%- componentName %>.challengesFRI[1] <== challenges[<%- c++  %>];
 
-<%  c = 1; %>
-<%  for(let i = 0; i < vadcopInfo.stepsFRI.length + 1; ++i) { -%>
+<%  c = 0; %>
+<%  for(let i = 0; i < vadcopInfo.stepsFRI.length; ++i) { -%>
 <%      if(c < starkInfo.starkStruct.steps.length && starkInfo.starkStruct.steps[c].nBits === vadcopInfo.stepsFRI[i].nBits) { -%>
     <%- componentName %>.challengesFRISteps[<%- c++ %>] <== challengesFRISteps[<%- i %>];
 <%      } -%>

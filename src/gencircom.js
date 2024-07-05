@@ -2,9 +2,9 @@ const fs = require("fs");
 const ejs = require("ejs");
 const path = require("path");
 
-module.exports.genCircom = async function genCircom(templateFile, starkInfos = [], vadcopInfo = {}, verifierFilenames = [], basicVerificationKeys = [], aggVerificationKeys = [], publics = [], options) {    
+module.exports.genCircom = async function genCircom(templateFile, starkInfos = [], vadcopInfo = {}, verifierFilenames = [], basicVerificationKeys = [], aggVerificationKeys = [], publics = [], options = {}) {    
     const optionsCircom = {
-        options: {}
+        options
     };
 
     if(starkInfos.length === 1) {

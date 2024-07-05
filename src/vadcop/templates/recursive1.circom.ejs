@@ -1,40 +1,39 @@
 pragma circom 2.1.0;
 pragma custom_templates;
 
+include "iszero.circom";
 <% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
-    include "<%- verifierFilenames[i] %>";
+include "<%- verifierFilenames[i] %>";
 <% } -%>
 
 
-<%  if(!hasCompressor) { -%>
+<%  if(!options.hasCompressor) { -%>
 <%-   include('src/vadcop/helpers/templates/calculate_hashes.circom.ejs', { starkInfo, vadcopInfo }); %>
 <%  } -%>
 
 <%  let publicsNames = []; -%>
 template Main() {
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "sv", starkInfo, nPublics: starkInfo.nPublics }); %>
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
    
     signal input rootCAgg[4];
 
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, options: { ...options, publicsNames, isInput: hasCompressor ? true : false  } }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, prefix: options.hasCompressor ? "" : "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: starkInfo.nPublics }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, nPublics: starkInfo.nPublics }); %>
 
-<%  if(!hasCompressor) { -%>
-<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", circuitType, starkInfo, vadcopInfo }); %>
-<%  } else { -%>
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo }); %>
+<%  if(!options.hasCompressor) { -%>
+<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, vadcopInfo }); %>
 <%  } -%>
 }
 
-<%  if(!hasCompressor) { -%> 
-    component main {public [publics, challenges, challengesFRISteps, rootCAgg]} = Main();
+<%  if(!options.hasCompressor) { -%> 
+    component main {public [sv_publics, challenges, challengesFRISteps, rootCAgg]} = Main();
 <%  } else { -%>
-<%    publicsNames.push(...["publics", "challenges", "challengesFRISteps", "rootCAgg"]); -%>
+<%    publicsNames.push(...["sv_publics", "challenges", "challengesFRISteps", "rootCAgg"]); -%>
 component main {public [<%- publicsNames.join(", ") %>]} = Main();
 
 <%  } -%>
