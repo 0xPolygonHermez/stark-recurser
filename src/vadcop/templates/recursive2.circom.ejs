@@ -31,7 +31,7 @@ template Main() {
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "a_sv", vadcopInfo, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "b_sv", vadcopInfo, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
 
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "", vadcopInfo, starkInfo, options: {...options, isInput: false} }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "sv", vadcopInfo, starkInfo, options: {...options, isInput: false} }); %>
 
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vA", prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics }); %>
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vB", prefix: "b", starkInfo, nPublics: vadcopInfo.nPublics }); %>
@@ -47,7 +47,7 @@ template Main() {
     vB.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.nAirs[starkInfo.subproofId] %>)(b_sv_circuitType, rootCBasics, rootCAgg);
 <%  } -%>
 
-<%- include('src/main_templates/vadcop/agg_vadcop_inputs.circom.ejs', { vadcopInfo, prefix1: "a_sv", prefix2: "b_sv" }); %>
+<%- include('src/main_templates/vadcop/agg_vadcop_inputs.circom.ejs', { vadcopInfo, prefix1: "a_sv", prefix2: "b_sv", prefix: "sv" }); %>
 
 }
 
