@@ -39,7 +39,7 @@ template Main() {
 <%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "vA", vadcopInfo, prefix: "a_sv", prefixStark: "a" }); %>
 <%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "vB", vadcopInfo, prefix: "b_sv", prefixStark: "b" }); %>
 
-<% if(vadcopInfo.nAirs[starkInfo.subproofId] === 1) { -%>
+<% if(vadcopInfo.aggTypes.length === 1) { -%>
     vA.rootC <== SelectVerificationKey(<%- vadcopInfo.nAirs[starkInfo.subproofId] %>)(a_sv_circuitType, rootCBasics, rootCAgg);
     vB.rootC <== SelectVerificationKey(<%- vadcopInfo.nAirs[starkInfo.subproofId] %>)(b_sv_circuitType, rootCBasics, rootCAgg);
 <%  } else { -%>

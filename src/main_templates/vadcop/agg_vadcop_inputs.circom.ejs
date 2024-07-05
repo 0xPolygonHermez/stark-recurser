@@ -4,7 +4,7 @@
         <%- prefix %>_aggregationTypes[i] * (<%- prefix %>_aggregationTypes[i] - 1) === 0;
         aggTypes[i] <== <%- prefix %>_aggregationTypes[i];
     }
-<%  if(vadcopInfo.nAirs[starkInfo.subproofId] > 1) { -%>
+<%  if(vadcopInfo.aggTypes.length > 1) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[starkInfo.subproofId].length %>; i++) {
         <%- prefix %>_subproofValues[i] <== AggregateSubproofValuesNull()(<%- prefix1 %>_subproofValues[i], <%- prefix2 %>_subproofValues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
     }

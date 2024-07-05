@@ -95,7 +95,7 @@ template SelectVerificationKey(nBasic) {
     signal verificationKeys[nBasic + 1][4];
     verificationKeys[0] <== rootCAggregated;
     for(var i = 0; i < nBasic; i++) {
-        verificationKeys[i + 2] <== rootCBasics[i];
+        verificationKeys[i + 1] <== rootCBasics[i];
     }
 
     signal accVK[nBasic + 1][4];
@@ -112,5 +112,5 @@ template SelectVerificationKey(nBasic) {
         }
     }
 
-    verificationKey <== accVK[nBasic + 1];
+    verificationKey <== accVK[nBasic];
 }
