@@ -4,7 +4,7 @@ const {tmpName} = require("tmp-promise");
 const { compile } = require("pilcom");
 const ejs = require("ejs");
 const r1cs2plonk = require("../../src/circom2pil/r1cs2plonk");
-const { generateFixedCols } = require("pil2-stark-js/src/setup/witness/witnessCalculator");
+const { generateFixedCols } = require("pil2-stark-js/src/witness/witnessCalculator");
 const { getKs, log2 } = require("../../src/utils/utils");
 
 module.exports = async function plonkSetup(F, r1cs) {

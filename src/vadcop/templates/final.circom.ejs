@@ -13,12 +13,12 @@ template Main() {
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
 
-<%  for(let i = 0; i < vadcop.nSubproofs; ++i) { -%>
+<%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `sv${i}`, starkInfo, nPublics: starkInfo.nPublics }); %>
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `sv${i}`, vadcopInfo, starkInfo, options }); %>
 <%  } -%>
 
-<%  for(let i = 0; i < vadcop.nSubproofs; ++i) { -%>
+<%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo, nPublics: starkInfo.nPublics }); %>
 <%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, vadcopInfo }); %>
 
@@ -37,7 +37,7 @@ template Main() {
     verifyChallenges.challenges <== challenges;
     verifyChallenges.challengesFRISteps <== challengesFRISteps;
     verifyChallenges.publics <== publics;
-<%  for(let i = 0; i < vadcopInfo.nSubproofs; ++i) { -%>
+<%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
     verifyChallenges.rootC[<%- i %>] <== s<%- i %>_sv_rootC;
 <%      for (let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) { -%>
     verifyChallenges.root<%- j + 1 %>[<%- i %>] <== s<%- i %>_sv_root<%- j+1 %>;

@@ -125,17 +125,17 @@ class Transcript {
 template VerifyGlobalChallenges() {
 
     signal input publics[<%- vadcopInfo.nPublics %>];
-    signal input rootC[<%- vadcopInfo.nSubproofs %>][4];
+    signal input rootC[<%- vadcopInfo.aggTypes.length %>][4];
 <% for(let i=0; i < nChallengesStages.length; i++) {  -%>
 <%  const stage = i + 1; -%>
-    signal input root<%- stage %>[<%- vadcopInfo.nSubproofs %>][4];
+    signal input root<%- stage %>[<%- vadcopInfo.aggTypes.length %>][4];
 <% } -%>                  
-    signal input root<%- nChallengesStages.length + 1 %>[<%- vadcopInfo.nSubproofs %>][4];
-    signal input evalsHash[<%- vadcopInfo.nSubproofs %>][4]; 
+    signal input root<%- nChallengesStages.length + 1 %>[<%- vadcopInfo.aggTypes.length %>][4];
+    signal input evalsHash[<%- vadcopInfo.aggTypes.length %>][4]; 
 <% for (let s=1; s<stepsFRI.length; s++) {   -%>
-    signal input s<%- s %>_root[<%- vadcopInfo.nSubproofs %>][4];
+    signal input s<%- s %>_root[<%- vadcopInfo.aggTypes.length %>][4];
 <% }                                                     -%>
-    signal input finalPolHash[<%- vadcopInfo.nSubproofs %>][4];
+    signal input finalPolHash[<%- vadcopInfo.aggTypes.length %>][4];
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
@@ -145,7 +145,7 @@ template VerifyGlobalChallenges() {
     
 
 <%   let transcript = new Transcript(); -%>
-<%   for(let i = 0; i < vadcopInfo.nSubproofs; ++i) { -%>
+<%   for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%      transcript.put("rootC[" + i + "]", 4); -%>
 <%   } -%>
 <%   transcript.put("publics", vadcopInfo.nPublics); -%>
@@ -155,23 +155,23 @@ template VerifyGlobalChallenges() {
         for(let j = 0; j < vadcopInfo.numChallenges[i]; ++j) {
             transcript.getField("calculatedChallenges[" + (c++) + "]");
         }
-        for(let k = 0; k < vadcopInfo.nSubproofs; ++k) {
+        for(let k = 0; k < vadcopInfo.aggTypes.length; ++k) {
             transcript.put("root" + stage + "[" + k + "]", 4);
         }
 } -%>
 <%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
-<%   for(let i = 0; i < vadcopInfo.nSubproofs; ++i) { -%>
+<%   for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%      transcript.put("root" + (nStages + 1) + "[" + i + "]", 4); -%>
 <%   } -%>
 <%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
-<%   for(let i = 0; i < vadcopInfo.nSubproofs; ++i) { -%>
+<%   for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%      transcript.put("evalsHash[" + i + "]", 4); -%>
 <%   } -%>
 <%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
 <%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
 <%  for (let si=0; si<stepsFRI.length; si++) { -%>
 <%      transcript.getField(`calculatedChallengesFRISteps[${si}]`); -%>
-<%      for(let k = 0; k < vadcopInfo.nSubproofs; ++k) { -%>
+<%      for(let k = 0; k < vadcopInfo.aggTypes.length; ++k) { -%>
 <%          if (si < stepsFRI.length-1) { -%>
 <%              transcript.put(`s${si+1}_root[${k}]`, 4); -%>
 <%          } else { -%>

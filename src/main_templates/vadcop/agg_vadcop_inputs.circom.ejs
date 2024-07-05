@@ -6,17 +6,17 @@
 
     aggregationTypes <== aggTypes;
     for(var i = 0; i < <%- vadcopInfo.aggTypes[starkInfo.subproofId].length %>; i++) {
-        subproofValues[i] <== AggregateSubproofValues()(<%- prefix1 %>_subproofValues[i], <%- prefix2 %>_subproofValues[i], aggTypes[i]<%- vadcopInfo.nSubproofs > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
+        subproofValues[i] <== AggregateSubproofValues()(<%- prefix1 %>_subproofValues[i], <%- prefix2 %>_subproofValues[i], aggTypes[i]<%- vadcopInfo.aggTypes.length > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
     }
 
-    rootC <== AggregateValues()(<%- prefix1 %>_rootC, <%- prefix2 %>_rootC<%- vadcopInfo.nSubproofs > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
+    rootC <== AggregateValues()(<%- prefix1 %>_rootC, <%- prefix2 %>_rootC<%- vadcopInfo.aggTypes.length > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
 
-    <%  for (let i = 0; i < vadcopInfo.nStages + 1; ++i) { -%>
-    root<%- i+1 %> <== AggregateValues()(<%- prefix1 %>_root<%- i+1 %>, <%- prefix2 %>_root<%- i+1 %><%- vadcopInfo.nSubproofs > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
+    <%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) { -%>
+    root<%- i+1 %> <== AggregateValues()(<%- prefix1 %>_root<%- i+1 %>, <%- prefix2 %>_root<%- i+1 %><%- vadcopInfo.aggTypes.length > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
     <%  } -%>
 
-    evalsHash <== AggregateValues()(<%- prefix1 %>_evalsHash, <%- prefix2 %>_evalsHash<%- vadcopInfo.nSubproofs > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
+    evalsHash <== AggregateValues()(<%- prefix1 %>_evalsHash, <%- prefix2 %>_evalsHash<%- vadcopInfo.aggTypes.length > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
     <%      for(let i = 1; i < vadcopInfo.stepsFRI.length + 1 ; i++) { -%>
-    s<%- i %>_root <== AggregateValues()(<%- prefix1 %>_s<%- i %>_root, <%- prefix2 %>_s<%- i %>_root<%- vadcopInfo.nSubproofs > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
+    s<%- i %>_root <== AggregateValues()(<%- prefix1 %>_s<%- i %>_root, <%- prefix2 %>_s<%- i %>_root<%- vadcopInfo.aggTypes.length > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
     <%  } -%>
-    finalPolHash <== AggregateValues()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash<%- vadcopInfo.nSubproofs > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);
+    finalPolHash <== AggregateValues()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash<%- vadcopInfo.aggTypes.length > 1 ? `, ${prefix1}_isNull, ${prefix2}_isNull`: "" %>);

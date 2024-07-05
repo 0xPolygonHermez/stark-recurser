@@ -1,7 +1,7 @@
 pragma circom 2.1.0;
 pragma custom_templates;
 
-<% if(vadcopInfo.nSubproofs > 1) { -%>
+<% if(vadcopInfo.aggTypes.length > 1) { -%>
 include "vadcop/helpers/nullable/select_vk.circom";
 include "vadcop/helpers/nullable/agg_values.circom";
 <% } else { -%>
@@ -16,8 +16,6 @@ include "vadcop/helpers/agg_values.circom";
 
 template Main() {
     signal input publics[<%- starkInfo.nPublics %>];
-
-    signal input aggregationTypes[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>];
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];

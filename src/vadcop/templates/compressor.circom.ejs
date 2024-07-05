@@ -9,19 +9,17 @@ pragma custom_templates;
 
 template Main() {
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics }); %>
-
-    signal input aggregationTypes[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>];
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "sv", starkInfo, nPublics: starkInfo.nPublics }); %>
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length  + 1 %>][3];
    
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "", options: {...options, isInput: true} }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "", options: {...options, isInput: false} }); %>
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo, nPublics: starkInfo.nPublics }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, nPublics: starkInfo.nPublics }); %>
 
-<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", starkInfo, vadcopInfo }); %>
+<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, vadcopInfo }); %>
 
 }
 
-component main {public [publics, challenges, challengesFRISteps]} = Main();
+component main {public [sv_publics, challenges, challengesFRISteps]} = Main();

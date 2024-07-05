@@ -2,7 +2,7 @@
 
 <%  if(vadcopInfo.aggTypes[starkInfo.subproofId].length  > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>; i++) {
-        nSubproofValues.publics[<%- nPublicsInps %> + i] <== aggregationTypes[i];
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== aggregationTypes[i];
     }
 <%  nPublicsInps += vadcopInfo.aggTypes[starkInfo.subproofId].length ; -%>
 
@@ -20,7 +20,7 @@
     }
 <%  nPublicsInps += 4 -%>
 
-<%  for (let i = 0; i < vadcopInfo.nStages + 1; i++) { -%>
+<%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; i++) { -%>
     for(var i = 0; i < 4; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>root<%- i+1 %>[i];
     }
@@ -29,7 +29,7 @@
 <%  } -%>
 
     for(var i = 0; i < 4; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>root<%- vadcopInfo.nStages + 1%>[i];
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>root<%- vadcopInfo.numChallenges.length + 1%>[i];
     }
 <%  nPublicsInps += 4 -%>
 
@@ -69,7 +69,7 @@
     }
 <%  nPublicsInps += 3*(vadcopInfo.stepsFRI.length + 1); -%>
 
-<%  if(vadcopInfo.nSubproofs > 1) { -%>
+<%  if(vadcopInfo.aggTypes.length > 1) { -%>
     signal {binary} <%- prefix_ %>isNull <== IsZero()(circuitType);
 
     <%- componentName %>.enable <== 1 - <%- prefix_ %>isNull;

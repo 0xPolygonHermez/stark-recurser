@@ -1,10 +1,10 @@
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 
-<%  let circuitType = vadcop.aggTypes.length > 1 ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
+<%  let circuitType = vadcopInfo.aggTypes.length > 1 ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
     circuitType <== <%- circuitType %>;
 
 <%  if(vadcopInfo.aggTypes[starkInfo.subproofId].length  > 0) { -%>
-        aggregationTypes <== [<%- vadcopInfo.aggregationTypes.map(a => a.aggType).join(",") %>];
+        aggregationTypes <== [<%- vadcopInfo.aggTypes[starkInfo.subproofId].map(a => a.aggType).join(",") %>];
 <%      for (let i = 0; i < vadcopInfo.aggTypes[starkInfo.subproofId].length; ++i) { -%>
     subproofValues[<%- i %>] <== <%- prefix_ %>subproofValues[<%- i %>];
 <%      } -%>
@@ -13,7 +13,7 @@
 <%  for (let i = 0; i < starkInfo.nStages; ++i) { -%>
     root<%- i+1 %> <== <%- prefix_ %>root<%- i+1 %>;
 <%  } -%>
-<%  for (let i = starkInfo.nStages; i < vadcopInfo.nStages; ++i) { -%>
+<%  for (let i = starkInfo.nStages; i < vadcopInfo.numChallenges.length; ++i) { -%>
     root<%- i+1 %> <== [0,0,0,0];
 <%  } -%>
 
@@ -21,12 +21,12 @@
 
     evalsHash <== CalculateEvalsHash()(<%- prefix_ %>evals);
 
-<%  let friCounter = 0; -%>
+<%  let friCounter = 1; -%>
 <%  for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
-<%     if(starkInfo.starkStruct.steps[friCounter].nBits === stepsFRI[i - 1].nBits) { -%>
-    sv_s<%- i %>_root <== <%- prefix_ %>s<%- ++friCounter %>_root;
+<%     if(friCounter < starkInfo.starkStruct.steps.length && starkInfo.starkStruct.steps[friCounter].nBits === vadcopInfo.stepsFRI[i - 1].nBits) { -%>
+    s<%- i %>_root <== <%- prefix_ %>s<%- ++friCounter %>_root;
 <%     } else { -%>
-    sv_s<%- i %>_root <== [0,0,0,0];
+    s<%- i %>_root <== [0,0,0,0];
 <%     } -%>
 <%  } -%>
     
@@ -48,9 +48,9 @@
     <%- componentName %>.challengesFRI[0] <== challenges[<%- c++ %>];
     <%- componentName %>.challengesFRI[1] <== challenges[<%- c++  %>];
 
-<%  c = 0; %>
+<%  c = 1; %>
 <%  for(let i = 0; i < vadcopInfo.stepsFRI.length + 1; ++i) { -%>
-<%      if(starkInfo.starkStruct.steps[c].nBits === stepsFRI[i].nBits) { -%>
+<%      if(c < starkInfo.starkStruct.steps.length && starkInfo.starkStruct.steps[c].nBits === vadcopInfo.stepsFRI[i].nBits) { -%>
     <%- componentName %>.challengesFRISteps[<%- c++ %>] <== challengesFRISteps[<%- i %>];
 <%      } -%>
 <%  } -%>

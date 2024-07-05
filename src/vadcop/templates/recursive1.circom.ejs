@@ -15,8 +15,6 @@ template Main() {
 
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics }); %>
 
-    signal input aggregationTypes[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>];
-
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
    

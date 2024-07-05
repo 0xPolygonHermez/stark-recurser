@@ -15,6 +15,10 @@
         <%- componentName %>.publics[i] <== <%- prefix_ %>publics[i];
     }
 
+<%  if(starkInfo.subproofValuesMap.length > 0) { -%>
+    <%- componentName %>.subproofValues <== <%- prefix_ %>subproofValues;
+<%  } -%>
+
 <%  for (let s=1; s<=starkInfo.nStages + 1; ++s) { -%>
     <%- componentName %>.root<%- s %> <== <%- prefix_ %>root<%- s %>;
 <% } -%>
