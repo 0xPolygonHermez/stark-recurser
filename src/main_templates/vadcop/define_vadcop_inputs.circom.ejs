@@ -2,7 +2,9 @@
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 
     signal <%- signalType %> <%- prefix_ %>circuitType;
+<%  if(!options.isAggregation) { -%>
     signal <%- signalType %> <%- prefix_ %>aggregationTypes[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>];
+<%  } -%>
     signal <%- signalType %> <%- prefix_ %>subproofValues[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>][3];
 
     signal <%- signalType %> <%- prefix_ %>rootC[4];

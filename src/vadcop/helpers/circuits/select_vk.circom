@@ -14,12 +14,12 @@ template SelectVerificationKeyNull(nBasics) {
     // ...
     signal input circuitType;
 
-    // Aggregated verification key. It needs to be provided as input because it is not known at compile time
-    signal input rootCAggregated[4];
-    
     // Basic verification keys;
     signal input rootCBasics[nBasics][4];
 
+    // Aggregated verification key. It needs to be provided as input because it is not known at compile time
+    signal input rootCAggregated[4];
+    
     // Verification key corresponding to the circuit type
     signal output verificationKey[4];
 
@@ -69,12 +69,12 @@ template SelectVerificationKey(nBasic) {
     // ...
 
     signal input circuitType;
-
-    // Aggregated verification key. It needs to be provided as input because it is not known at compile time
-    signal input rootCAggregated[4];
     
     // Basic verification keys;
     signal input rootCBasics[nBasic][4];
+
+    // Aggregated verification key. It needs to be provided as input because it is not known at compile time
+    signal input rootCAggregated[4];
 
     // Verification key corresponding to the circuit type
     signal output verificationKey[4];
