@@ -41,8 +41,8 @@ template Main() {
     vA.rootC <== SelectVerificationKey()(a_circuitType, rootCBasics, rootCAgg);
     vB.rootC <== SelectVerificationKey()(b_circuitType, rootCBasics, rootCAgg);
 <%  } else { -%>
-    vA.rootC <== SelectVerificationKey(<%- vadcopInfo.nAirs[starkInfo.subproofId] %>)(a_sv_circuitType, rootCBasics, rootCAgg);
-    vB.rootC <== SelectVerificationKey(<%- vadcopInfo.nAirs[starkInfo.subproofId] %>)(b_sv_circuitType, rootCBasics, rootCAgg);
+    vA.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.nAirs[starkInfo.subproofId] %>)(a_sv_circuitType, rootCBasics, rootCAgg);
+    vB.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.nAirs[starkInfo.subproofId] %>)(b_sv_circuitType, rootCBasics, rootCAgg);
 <%  } -%>
 
 <%- include('src/main_templates/vadcop/agg_vadcop_inputs.circom.ejs', { vadcopInfo, prefix1: "a_sv", prefix2: "b_sv" }); %>
