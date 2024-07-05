@@ -1,8 +1,7 @@
 {
     "cmPolsMap": [
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a0",
       "dim": 1,
       "imPol": false,
@@ -10,8 +9,7 @@
       "stageId": 0
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a1",
       "dim": 1,
       "imPol": false,
@@ -19,8 +17,7 @@
       "stageId": 1
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a2",
       "dim": 1,
       "imPol": false,
@@ -28,8 +25,7 @@
       "stageId": 2
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a3",
       "dim": 1,
       "imPol": false,
@@ -37,8 +33,7 @@
       "stageId": 3
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a4",
       "dim": 1,
       "imPol": false,
@@ -46,8 +41,7 @@
       "stageId": 4
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a5",
       "dim": 1,
       "imPol": false,
@@ -55,8 +49,7 @@
       "stageId": 5
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a6",
       "dim": 1,
       "imPol": false,
@@ -64,8 +57,7 @@
       "stageId": 6
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a7",
       "dim": 1,
       "imPol": false,
@@ -73,8 +65,7 @@
       "stageId": 7
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a8",
       "dim": 1,
       "imPol": false,
@@ -82,8 +73,7 @@
       "stageId": 8
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a9",
       "dim": 1,
       "imPol": false,
@@ -91,8 +81,7 @@
       "stageId": 9
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a10",
       "dim": 1,
       "imPol": false,
@@ -100,8 +89,7 @@
       "stageId": 10
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a11",
       "dim": 1,
       "imPol": false,
@@ -109,8 +97,7 @@
       "stageId": 11
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a12",
       "dim": 1,
       "imPol": false,
@@ -118,8 +105,7 @@
       "stageId": 12
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a13",
       "dim": 1,
       "imPol": false,
@@ -127,8 +113,7 @@
       "stageId": 13
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a14",
       "dim": 1,
       "imPol": false,
@@ -136,8 +121,7 @@
       "stageId": 14
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a15",
       "dim": 1,
       "imPol": false,
@@ -145,8 +129,7 @@
       "stageId": 15
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a16",
       "dim": 1,
       "imPol": false,
@@ -154,8 +137,7 @@
       "stageId": 16
      },
      {
-      "stage": "cm1",
-      "stageNum": 1,
+      "stage": 1,
       "name": "Compressor.a17",
       "dim": 1,
       "imPol": false,
@@ -163,8 +145,7 @@
       "stageId": 17
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "Connection0.z",
       "dim": 3,
       "imPol": false,
@@ -172,8 +153,7 @@
       "stageId": 0
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.72",
       "dim": 1,
       "imPol": true,
@@ -181,8 +161,7 @@
       "stageId": 1
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.75",
       "dim": 1,
       "imPol": true,
@@ -190,8 +169,7 @@
       "stageId": 2
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.91",
       "dim": 1,
       "imPol": true,
@@ -199,8 +177,7 @@
       "stageId": 3
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.94",
       "dim": 1,
       "imPol": true,
@@ -208,8 +185,7 @@
       "stageId": 4
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.110",
       "dim": 1,
       "imPol": true,
@@ -217,8 +193,7 @@
       "stageId": 5
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.113",
       "dim": 1,
       "imPol": true,
@@ -226,8 +201,7 @@
       "stageId": 6
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.129",
       "dim": 1,
       "imPol": true,
@@ -235,8 +209,7 @@
       "stageId": 7
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.132",
       "dim": 1,
       "imPol": true,
@@ -244,8 +217,7 @@
       "stageId": 8
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.148",
       "dim": 1,
       "imPol": true,
@@ -253,8 +225,7 @@
       "stageId": 9
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.151",
       "dim": 1,
       "imPol": true,
@@ -262,8 +233,7 @@
       "stageId": 10
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.167",
       "dim": 1,
       "imPol": true,
@@ -271,8 +241,7 @@
       "stageId": 11
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.170",
       "dim": 1,
       "imPol": true,
@@ -280,8 +249,7 @@
       "stageId": 12
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.186",
       "dim": 1,
       "imPol": true,
@@ -289,8 +257,7 @@
       "stageId": 13
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.189",
       "dim": 1,
       "imPol": true,
@@ -298,8 +265,7 @@
       "stageId": 14
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.205",
       "dim": 1,
       "imPol": true,
@@ -307,8 +273,7 @@
       "stageId": 15
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.208",
       "dim": 1,
       "imPol": true,
@@ -316,8 +281,7 @@
       "stageId": 16
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.224",
       "dim": 1,
       "imPol": true,
@@ -325,8 +289,7 @@
       "stageId": 17
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.227",
       "dim": 1,
       "imPol": true,
@@ -334,8 +297,7 @@
       "stageId": 18
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.243",
       "dim": 1,
       "imPol": true,
@@ -343,8 +305,7 @@
       "stageId": 19
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.246",
       "dim": 1,
       "imPol": true,
@@ -352,8 +313,7 @@
       "stageId": 20
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.262",
       "dim": 1,
       "imPol": true,
@@ -361,8 +321,7 @@
       "stageId": 21
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.265",
       "dim": 1,
       "imPol": true,
@@ -370,8 +329,7 @@
       "stageId": 22
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.281",
       "dim": 1,
       "imPol": true,
@@ -379,8 +337,7 @@
       "stageId": 23
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.284",
       "dim": 1,
       "imPol": true,
@@ -388,8 +345,7 @@
       "stageId": 24
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.311",
       "dim": 1,
       "imPol": true,
@@ -397,8 +353,7 @@
       "stageId": 25
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.314",
       "dim": 1,
       "imPol": true,
@@ -406,8 +361,7 @@
       "stageId": 26
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.329",
       "dim": 1,
       "imPol": true,
@@ -415,8 +369,7 @@
       "stageId": 27
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.332",
       "dim": 1,
       "imPol": true,
@@ -424,8 +377,7 @@
       "stageId": 28
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.347",
       "dim": 1,
       "imPol": true,
@@ -433,8 +385,7 @@
       "stageId": 29
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.350",
       "dim": 1,
       "imPol": true,
@@ -442,8 +393,7 @@
       "stageId": 30
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.365",
       "dim": 1,
       "imPol": true,
@@ -451,8 +401,7 @@
       "stageId": 31
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.368",
       "dim": 1,
       "imPol": true,
@@ -460,8 +409,7 @@
       "stageId": 32
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.383",
       "dim": 1,
       "imPol": true,
@@ -469,8 +417,7 @@
       "stageId": 33
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.386",
       "dim": 1,
       "imPol": true,
@@ -478,8 +425,7 @@
       "stageId": 34
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.401",
       "dim": 1,
       "imPol": true,
@@ -487,8 +433,7 @@
       "stageId": 35
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.404",
       "dim": 1,
       "imPol": true,
@@ -496,8 +441,7 @@
       "stageId": 36
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.419",
       "dim": 1,
       "imPol": true,
@@ -505,8 +449,7 @@
       "stageId": 37
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.422",
       "dim": 1,
       "imPol": true,
@@ -514,8 +457,7 @@
       "stageId": 38
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.437",
       "dim": 1,
       "imPol": true,
@@ -523,8 +465,7 @@
       "stageId": 39
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.440",
       "dim": 1,
       "imPol": true,
@@ -532,8 +473,7 @@
       "stageId": 40
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.455",
       "dim": 1,
       "imPol": true,
@@ -541,8 +481,7 @@
       "stageId": 41
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.458",
       "dim": 1,
       "imPol": true,
@@ -550,8 +489,7 @@
       "stageId": 42
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.473",
       "dim": 1,
       "imPol": true,
@@ -559,8 +497,7 @@
       "stageId": 43
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.476",
       "dim": 1,
       "imPol": true,
@@ -568,8 +505,7 @@
       "stageId": 44
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.309",
       "dim": 1,
       "imPol": true,
@@ -577,8 +513,7 @@
       "stageId": 45
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.493",
       "dim": 1,
       "imPol": true,
@@ -586,8 +521,7 @@
       "stageId": 46
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.310",
       "dim": 1,
       "imPol": true,
@@ -595,8 +529,7 @@
       "stageId": 47
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.498",
       "dim": 1,
       "imPol": true,
@@ -604,8 +537,7 @@
       "stageId": 48
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.600",
       "dim": 1,
       "imPol": true,
@@ -613,8 +545,7 @@
       "stageId": 49
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.601",
       "dim": 1,
       "imPol": true,
@@ -622,8 +553,7 @@
       "stageId": 50
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.602",
       "dim": 1,
       "imPol": true,
@@ -631,8 +561,7 @@
       "stageId": 51
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.683",
       "dim": 3,
       "imPol": true,
@@ -640,8 +569,7 @@
       "stageId": 52
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.691",
       "dim": 3,
       "imPol": true,
@@ -649,8 +577,7 @@
       "stageId": 53
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.699",
       "dim": 3,
       "imPol": true,
@@ -658,8 +585,7 @@
       "stageId": 54
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.707",
       "dim": 3,
       "imPol": true,
@@ -667,8 +593,7 @@
       "stageId": 55
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.682",
       "dim": 3,
       "imPol": true,
@@ -676,8 +601,7 @@
       "stageId": 56
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.690",
       "dim": 3,
       "imPol": true,
@@ -685,8 +609,7 @@
       "stageId": 57
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.698",
       "dim": 3,
       "imPol": true,
@@ -694,8 +617,7 @@
       "stageId": 58
      },
      {
-      "stage": "cm3",
-      "stageNum": 3,
+      "stage": 3,
       "name": "ImPol.706",
       "dim": 3,
       "imPol": true,
@@ -703,8 +625,7 @@
       "stageId": 59
      },
      {
-      "stage": "cm4",
-      "stageNum": 4,
+      "stage": 4,
       "name": "Q0",
       "dim": 3,
       "imPol": false,
@@ -712,8 +633,7 @@
       "stageId": 0
      },
      {
-      "stage": "cm4",
-      "stageNum": 4,
+      "stage": 4,
       "name": "Q1",
       "dim": 3,
       "imPol": false,
@@ -721,8 +641,7 @@
       "stageId": 1
      },
      {
-      "stage": "cm4",
-      "stageNum": 4,
+      "stage": 4,
       "name": "Q2",
       "dim": 3,
       "imPol": false,
@@ -730,8 +649,7 @@
       "stageId": 2
      },
      {
-      "stage": "cm4",
-      "stageNum": 4,
+      "stage": 4,
       "name": "Q3",
       "dim": 3,
       "imPol": false,
@@ -740,7 +658,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol676",
       "dim": 3,
       "imPol": false,
@@ -749,7 +666,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol677",
       "dim": 3,
       "imPol": false,
@@ -758,7 +674,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol678",
       "dim": 3,
       "imPol": false,
@@ -767,7 +682,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol679",
       "dim": 3,
       "imPol": false,
@@ -776,7 +690,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol680",
       "dim": 3,
       "imPol": false,
@@ -785,7 +698,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol681",
       "dim": 3,
       "imPol": false,
@@ -794,7 +706,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol684",
       "dim": 3,
       "imPol": false,
@@ -803,7 +714,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol685",
       "dim": 3,
       "imPol": false,
@@ -812,7 +722,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol686",
       "dim": 3,
       "imPol": false,
@@ -821,7 +730,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol687",
       "dim": 3,
       "imPol": false,
@@ -830,7 +738,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol688",
       "dim": 3,
       "imPol": false,
@@ -839,7 +746,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol689",
       "dim": 3,
       "imPol": false,
@@ -848,7 +754,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol692",
       "dim": 3,
       "imPol": false,
@@ -857,7 +762,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol693",
       "dim": 3,
       "imPol": false,
@@ -866,7 +770,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol694",
       "dim": 3,
       "imPol": false,
@@ -875,7 +778,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol695",
       "dim": 3,
       "imPol": false,
@@ -884,7 +786,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol696",
       "dim": 3,
       "imPol": false,
@@ -893,7 +794,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol697",
       "dim": 3,
       "imPol": false,
@@ -902,7 +802,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol700",
       "dim": 3,
       "imPol": false,
@@ -911,7 +810,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol701",
       "dim": 3,
       "imPol": false,
@@ -920,7 +818,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol702",
       "dim": 3,
       "imPol": false,
@@ -929,7 +826,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol703",
       "dim": 3,
       "imPol": false,
@@ -938,7 +834,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol704",
       "dim": 3,
       "imPol": false,
@@ -947,7 +842,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol705",
       "dim": 3,
       "imPol": false,
@@ -956,7 +850,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol708",
       "dim": 3,
       "imPol": false,
@@ -965,7 +858,6 @@
      },
      {
       "stage": "tmpExp",
-      "stageNum": 3,
       "name": "tmpPol709",
       "dim": 3,
       "imPol": false,
@@ -975,456 +867,405 @@
     ],
     "constPolsMap": [
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Global.L1",
       "dim": 1,
       "imPol": false,
       "stageId": 0
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Global.L2",
       "dim": 1,
       "imPol": false,
       "stageId": 1
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Global.L3",
       "dim": 1,
       "imPol": false,
       "stageId": 2
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Global.L4",
       "dim": 1,
       "imPol": false,
       "stageId": 3
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S0",
       "dim": 1,
       "imPol": false,
       "stageId": 4
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S1",
       "dim": 1,
       "imPol": false,
       "stageId": 5
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S2",
       "dim": 1,
       "imPol": false,
       "stageId": 6
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S3",
       "dim": 1,
       "imPol": false,
       "stageId": 7
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S4",
       "dim": 1,
       "imPol": false,
       "stageId": 8
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S5",
       "dim": 1,
       "imPol": false,
       "stageId": 9
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S6",
       "dim": 1,
       "imPol": false,
       "stageId": 10
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S7",
       "dim": 1,
       "imPol": false,
       "stageId": 11
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S8",
       "dim": 1,
       "imPol": false,
       "stageId": 12
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S9",
       "dim": 1,
       "imPol": false,
       "stageId": 13
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S10",
       "dim": 1,
       "imPol": false,
       "stageId": 14
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S11",
       "dim": 1,
       "imPol": false,
       "stageId": 15
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S12",
       "dim": 1,
       "imPol": false,
       "stageId": 16
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S13",
       "dim": 1,
       "imPol": false,
       "stageId": 17
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S14",
       "dim": 1,
       "imPol": false,
       "stageId": 18
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S15",
       "dim": 1,
       "imPol": false,
       "stageId": 19
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S16",
       "dim": 1,
       "imPol": false,
       "stageId": 20
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.S17",
       "dim": 1,
       "imPol": false,
       "stageId": 21
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C0",
       "dim": 1,
       "imPol": false,
       "stageId": 22
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C1",
       "dim": 1,
       "imPol": false,
       "stageId": 23
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C2",
       "dim": 1,
       "imPol": false,
       "stageId": 24
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C3",
       "dim": 1,
       "imPol": false,
       "stageId": 25
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C4",
       "dim": 1,
       "imPol": false,
       "stageId": 26
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C5",
       "dim": 1,
       "imPol": false,
       "stageId": 27
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C6",
       "dim": 1,
       "imPol": false,
       "stageId": 28
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C7",
       "dim": 1,
       "imPol": false,
       "stageId": 29
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C8",
       "dim": 1,
       "imPol": false,
       "stageId": 30
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C9",
       "dim": 1,
       "imPol": false,
       "stageId": 31
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C10",
       "dim": 1,
       "imPol": false,
       "stageId": 32
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C11",
       "dim": 1,
       "imPol": false,
       "stageId": 33
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C12",
       "dim": 1,
       "imPol": false,
       "stageId": 34
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C13",
       "dim": 1,
       "imPol": false,
       "stageId": 35
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C14",
       "dim": 1,
       "imPol": false,
       "stageId": 36
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C15",
       "dim": 1,
       "imPol": false,
       "stageId": 37
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C16",
       "dim": 1,
       "imPol": false,
       "stageId": 38
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.C17",
       "dim": 1,
       "imPol": false,
       "stageId": 39
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.POSEIDONM",
       "dim": 1,
       "imPol": false,
       "stageId": 40
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.POSEIDONCUSTFIRST",
       "dim": 1,
       "imPol": false,
       "stageId": 41
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.POSEIDONP",
       "dim": 1,
       "imPol": false,
       "stageId": 42
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.POSEIDONFIRST",
       "dim": 1,
       "imPol": false,
       "stageId": 43
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.PARTIALROUND",
       "dim": 1,
       "imPol": false,
       "stageId": 44
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.POSEIDONAFTERPART",
       "dim": 1,
       "imPol": false,
       "stageId": 45
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.GATE",
       "dim": 1,
       "imPol": false,
       "stageId": 46
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.GATE2",
       "dim": 1,
       "imPol": false,
       "stageId": 47
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.CMUL",
       "dim": 1,
       "imPol": false,
       "stageId": 48
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.EVPOL4",
       "dim": 1,
       "imPol": false,
       "stageId": 49
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.FFT4",
       "dim": 1,
       "imPol": false,
       "stageId": 50
      },
      {
-      "stage": "const",
-      "stageNum": 0,
+      "stage": 0,
       "name": "Compressor.TREESELECTOR4",
       "dim": 1,
       "imPol": false,
       "stageId": 51
      }
     ],
+    "subproofValuesMap": [],
     "challengesMap": [
      {
       "name": "std_gamma",
-      "stageNum": 3,
+      "stage": 3,
       "dim": 3,
       "stageId": 0
      },
      {
       "name": "std_delta",
-      "stageNum": 3,
+      "stage": 3,
       "dim": 3,
       "stageId": 1
      },
      {
       "name": "std_vc",
-      "stageNum": 4,
+      "stage": 4,
       "dim": 3,
       "stageId": 0
      },
      {
       "name": "std_xi",
-      "stageNum": 5,
+      "stage": 5,
       "dim": 3,
       "stageId": 0
      },
      {
       "name": "std_vf1",
-      "stageNum": 6,
+      "stage": 6,
       "dim": 3,
       "stageId": 0
      },
      {
       "name": "std_vf2",
-      "stageNum": 6,
+      "stage": 6,
       "dim": 3,
       "stageId": 1
      }

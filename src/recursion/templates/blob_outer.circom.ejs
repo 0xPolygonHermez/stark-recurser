@@ -39,7 +39,7 @@ template Main() {
 
     signal isValidBlob <== VerifyBlobOuter()(publics, batch_publics, blob_inner_publics, chainId);
 
-    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vBatch", starkInfo: starkInfoBatch, setEnableInput: "isValidBlob", nPublics: batchPublics.nPublics }); %>
+    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vBatch", starkInfo: starkInfoBatch, nPublics: batchPublics.nPublics, options: { setEnableInput: "isValidBlob" } }); %>
 
     for (var i=0; i<4; i++) {
         vBatch.publics[<%- batchPublics.nPublics %> + i] <== rootCAggBatch[i];

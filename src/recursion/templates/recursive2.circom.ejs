@@ -13,7 +13,7 @@ include "<%- verifierFilenames[i] %>";
 template Main() {
     var rootCBasic[4] = [<%- basicVK.join(",") %>];
 
-    signal input publics[<%- publics.nPublics %>];
+    signal input publics[<%- starkInfo.nPublics - 4 %>];
     signal input rootC[4];
 
 <%  if(options.selectCircuitInput) { -%> 
@@ -21,13 +21,13 @@ template Main() {
     signal input b_isAggregatedCircuit;
 <%  } -%> 
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "a", starkInfo }); %>
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "b", starkInfo }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "a", starkInfo, nPublics: starkInfo.nPublics - 4 }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "b", starkInfo, nPublics: starkInfo.nPublics - 4 }); %>
     
     VerifyRecursive2()(publics, a_publics, b_publics);
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vA", prefix: "a", starkInfo, setEnableInput: options.setEnableInput }); %>
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vB", prefix: "b", starkInfo, setEnableInput: options.setEnableInput }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vA", prefix: "a", starkInfo, nPublics: starkInfo.nPublics - 4, options }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vB", prefix: "b", starkInfo, nPublics: starkInfo.nPublics - 4, options }); %>
 
     for (var i=0; i<4; i++) {
         vA.publics[<%- publics.nPublics %> + i] <== rootC[i];

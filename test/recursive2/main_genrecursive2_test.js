@@ -14,8 +14,8 @@ async function run() {
     if(!argv.test) throw new Error("Test file needs to be provided!");
     const publicsPath = argv.publics;
     const testFile = argv.test;
-    const publics = JSON.parse(await fs.promises.readFile(path.join(process.cwd(), publicsPath), "utf8"));
-    const template = await fs.promises.readFile(path.join(process.cwd(), "test", "recursive2", "gen_recursive2_test.ejs"), "utf8");
+    const publics = JSON.parse(await fs.promises.readFile(publicsPath, "utf8"));
+    const template = await fs.promises.readFile("test/recursive2/gen_recursive2_test.ejs", "utf8");
     const test = ejs.render(template, { publicsPath, publics });
 
     await fs.promises.writeFile(testFile, test, "utf8");

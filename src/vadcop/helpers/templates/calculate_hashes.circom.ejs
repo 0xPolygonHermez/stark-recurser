@@ -131,7 +131,7 @@ template CalculateEvalsHash() {
 <%      for (let i=0; i<starkInfo.evMap.length; i++) {
             transcriptEvals.put(`evals[${i}]`, 3);
         }
-        transcriptEvals.getHash("evalsHash"); -%>
+        transcriptEvals.getState("evalsHash"); -%>
 <%-     transcriptEvals.getCode(); %>
 }
 
@@ -144,6 +144,6 @@ template CalculateFinalPolHash() {
 <%        for (let j=0; j< 1<<starkInfo.starkStruct.steps[starkInfo.starkStruct.steps.length-1].nBits; j++ ) {
             transcriptFinalPol.put(`finalPol[${j}]`, 3);
         }
-        transcriptFinalPol.getHash("finalPolHash"); -%>
+        transcriptFinalPol.getState("finalPolHash"); -%>
 <%-     transcriptFinalPol.getCode(); %>
 }

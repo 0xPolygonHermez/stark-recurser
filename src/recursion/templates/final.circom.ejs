@@ -11,9 +11,9 @@ template Main() {
 
     signal input aggregatorAddr;
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics }); %>
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo, nPublics: starkInfo.nPublics }); %>
 
     publicsHash <== getSha256Inputs()(aggregatorAddr, publics);
 

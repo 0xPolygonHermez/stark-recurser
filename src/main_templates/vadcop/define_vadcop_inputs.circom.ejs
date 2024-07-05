@@ -2,16 +2,16 @@
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 
     signal <%- signalType %> <%- prefix_ %>circuitType;
-    signal <%- signalType %> <%- prefix_ %>aggregationTypes[<%- vadcopInfo.aggTypes[subproofId].length  %>];
-    signal <%- signalType %> <%- prefix_ %>subproofValues[<%- vadcopInfo.aggTypes[subproofId].length  %>];
+    signal <%- signalType %> <%- prefix_ %>aggregationTypes[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>];
+    signal <%- signalType %> <%- prefix_ %>subproofValues[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>];
 
     signal <%- signalType %> <%- prefix_ %>rootC[4];
 
-<% if(Array.isArray(publicsNames)) publicsNames.push(...[`${prefix_}circuitType`, `${prefix_}aggregationTypes`, `${prefix_}subproofValues`, `${prefix_}rootC`]) -%>
+<% if(Array.isArray(options.publicsNames)) publicsNames.push(...[`${prefix_}circuitType`, `${prefix_}aggregationTypes`, `${prefix_}subproofValues`, `${prefix_}rootC`]) -%>
 
 <%  for (let i = 0; i < vadcopInfo.nStages + 1; ++i) { -%>
     signal <%- signalType %> <%- prefix_ %>root<%- i + 1 %>[4];
-<%    if(Array.isArray(publicsNames)) publicsNames.push(`${prefix_}root${i + 1}`) -%>
+<%    if(Array.isArray(options.publicsNames)) publicsNames.push(`${prefix_}root${i + 1}`) -%>
 <%  } -%>
 
     signal <%- signalType %> <%- prefix_ %>evalsHash[4];

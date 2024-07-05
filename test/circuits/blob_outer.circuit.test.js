@@ -3,11 +3,11 @@ const tmp = require('temporary');
 const fs = require("fs");
 const ejs = require("ejs");
 const { assert } = require("chai");
-const blobInnerPublics = require(path.join(process.cwd(), "src/publics/blob_inner_publics.json"));
-const blobOuterPublics = require(path.join(process.cwd(), "src/publics/blob_outer_publics.json"));
-const batchEip4844Publics = require(path.join(process.cwd(), "src/publics/batch_eip4844_publics.json"));
+const blobInnerPublics = require("../../src/publics/blob_inner_publics.json");
+const blobOuterPublics = require("../../src/publics/blob_outer_publics.json");
+const batchEip4844Publics = require("../../src/publics/batch_eip4844_publics.json");
 
-const { preparePublics, generateRandomHex } = require(path.join(process.cwd(), "test/helpers"));
+const { preparePublics, generateRandomHex } = require("../helpers");
 
 const wasm_tester = require("circom_tester").wasm;
 
@@ -69,7 +69,7 @@ describe("Verify Blob Outer Circuit Test", function () {
     this.timeout(10000000);
 
     before( async() => {
-        const template = await fs.promises.readFile(path.join(process.cwd(), "src", "recursive", "circuits", "verify_blob_outer.circom.ejs"), "utf8");
+        const template = await fs.promises.readFile("src/recursion/helpers/templates/verify_blob_outer.circom.ejs", "utf8");
         const options = { batchPublics: batchEip4844Publics, blobInnerPublics, blobOuterPublics, isTest: true}
         const content = ejs.render(template, options);
         // const circuitFile = path.join(new tmp.Dir().path, "circuit.circom");

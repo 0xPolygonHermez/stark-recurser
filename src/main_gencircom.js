@@ -58,7 +58,6 @@ async function run() {
         if(typeof (argv.verifierfile[i]) !== "string") throw new Error("A valid verification file name must be provided!");
         verifierFilenames.push(argv.verifierfile[i]);
     }
-
     
     for(let i = 0; i < argv.publics.length; ++i) {
         if(typeof (argv.publics[i]) !== "string") throw new Error("A valid publics file name must be provided!");
@@ -76,7 +75,7 @@ async function run() {
     
     //TODO: ADD OPTIONS
 
-    const circomVerifier = await genCircom(templateFile, starkInfos, vadcopInfo, publics, verifierFilenames, basicVerificationKeys, aggVerificationKeys, options);
+    const circomVerifier = await genCircom(templateFile, starkInfos, vadcopInfo, verifierFilenames, basicVerificationKeys, aggVerificationKeys, publics, options);
     
     await fs.promises.writeFile(outputFile, circomVerifier, "utf8");
 

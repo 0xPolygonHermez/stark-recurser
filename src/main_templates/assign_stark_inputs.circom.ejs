@@ -11,7 +11,7 @@
     component <%- componentName %> = StarkVerifier();
 <%  } -%>
 
-    for (var i=0; i< <%- publics.nPublics %>; i++) {
+    for (var i=0; i< <%- nPublics %>; i++) {
         <%- componentName %>.publics[i] <== <%- prefix_ %>publics[i];
     }
 
@@ -41,7 +41,7 @@
 
     <%- componentName %>.finalPol <== <%- prefix_ %>finalPol;
 
-<%  if(setEnableInput) { -%>
-<%  let enableInput = setEnableInput === true ? 1 : setEnableInput -%>
+<%  if(options.setEnableInput) { -%>
+<%  let enableInput = options.setEnableInput === true ? 1 : options.setEnableInput -%>
     <%- componentName %>.enable <== <%- enableInput %>;
 <%  } -%>

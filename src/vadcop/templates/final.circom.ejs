@@ -14,12 +14,12 @@ template Main() {
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
 
 <%  for(let i = 0; i < vadcop.nSubproofs; ++i) { -%>
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `sv${i}`, starkInfo }); %>
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `sv${i}`, vadcopInfo }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `sv${i}`, starkInfo, nPublics: starkInfo.nPublics }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `sv${i}`, vadcopInfo, starkInfo, options }); %>
 <%  } -%>
 
 <%  for(let i = 0; i < vadcop.nSubproofs; ++i) { -%>
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo, nPublics: starkInfo.nPublics }); %>
 <%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, vadcopInfo }); %>
 
     var sv<%- i %>_rootCAgg[4] = [<%- /* TODO */ %>];

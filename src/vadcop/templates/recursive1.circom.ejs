@@ -13,7 +13,7 @@ pragma custom_templates;
 <%  let publicsNames = []; -%>
 template Main() {
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { starkInfo }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics }); %>
 
     signal input aggregationTypes[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>];
 
@@ -22,9 +22,9 @@ template Main() {
    
     signal input rootCAgg[4];
 
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, isInput: hasCompressor ? true : false, publicsNames }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, options: { ...options, publicsNames, isInput: hasCompressor ? true : false  } }); %>
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: starkInfo.nPublics }); %>
 
 <%  if(!hasCompressor) { -%>
 <%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", circuitType, starkInfo, vadcopInfo }); %>

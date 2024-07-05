@@ -1,8 +1,9 @@
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 
+<%  let circuitType = vadcop.aggTypes.length > 1 ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
     circuitType <== <%- circuitType %>;
 
-<%  if(vadcopInfo.aggTypes[subproofId].length  > 0) { -%>
+<%  if(vadcopInfo.aggTypes[starkInfo.subproofId].length  > 0) { -%>
         aggregationTypes <== [<%- vadcopInfo.aggregationTypes.map(a => a.aggType).join(",") %>];
 <%      for (let i = 0; i < vadcopInfo.aggTypes[starkInfo.subproofId].length; ++i) { -%>
     subproofValues[<%- i %>] <== <%- prefix_ %>subproofValues[<%- i %>];
