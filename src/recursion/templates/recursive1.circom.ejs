@@ -10,7 +10,7 @@ template Main() {
     signal input rootCAgg[4];
 <%  } -%>
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { starkInfo, prefix: "", nPublics: starkInfo.nPublics }); %>
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", publics, starkInfo, nPublics: starkInfo.nPublics, options }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", publics, starkInfo, nPublics: starkInfo.nPublics,  options: { ...options, addPublics: true } }); %>
 }
 
 <%  if(options.setAggregatedVK) { -%>

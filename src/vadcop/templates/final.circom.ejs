@@ -19,7 +19,7 @@ template Main() {
 <%  } -%>
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo, nPublics: vadcopInfo.nPublics }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo, nPublics: vadcopInfo.nPublics, options: {...options, addPublics: false } }); %>
 <%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, vadcopInfo }); %>
 
     var sv<%- i %>_rootCAgg[4] = [<%- /* TODO */ %>];

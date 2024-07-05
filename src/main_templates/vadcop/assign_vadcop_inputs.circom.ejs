@@ -1,5 +1,8 @@
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
+<%  let prefixStark_ = prefixStark ? `${prefixStark}_` : ""; -%>
 <%  let nPublicsInps = 0; -%>
+
+<%- componentName %>.publics[<%- nPublicsInps++ %>] <== <%- prefix_ %>circuitType;
 
 <%  if(vadcopInfo.aggTypes[starkInfo.subproofId].length  > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>; i++) {
@@ -47,7 +50,7 @@
 <%  nPublicsInps += 4 -%>
 
     for(var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== publics[i];
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefixStark_ %>publics[i];
     }
 <%  nPublicsInps += vadcopInfo.nPublics -%>
 

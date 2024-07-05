@@ -17,7 +17,7 @@ template Main() {
 
     <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics - 4 }); %>
 
-    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo, nPublics: starkInfo.nPublics - 4, options }); %>
+    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", starkInfo, nPublics: starkInfo.nPublics - 4,  options: { ...options, addPublics: true } }); %>
 
     for (var i=0; i<4; i++) {
         vA.publics[<%- nPublics %> + i] <== rootCAgg[i];

@@ -16,7 +16,7 @@ template Main() {
    
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "", options: {...options, isInput: false} }); %>
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, nPublics: vadcopInfo.nPublics }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, nPublics: vadcopInfo.nPublics,  options: { addPublics: true } }); %>
 
 <%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, vadcopInfo }); %>
 

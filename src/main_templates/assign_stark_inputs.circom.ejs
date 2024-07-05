@@ -11,9 +11,11 @@
     component <%- componentName %> = StarkVerifier();
 <%  } -%>
 
+<%  if(options.addPublics) { -%>
     for (var i=0; i< <%- nPublics %>; i++) {
         <%- componentName %>.publics[i] <== <%- prefix_ %>publics[i];
     }
+<%  } -%>
 
 <%  if(starkInfo.subproofValuesMap.length > 0) { -%>
     <%- componentName %>.subproofValues <== <%- prefix_ %>subproofValues;

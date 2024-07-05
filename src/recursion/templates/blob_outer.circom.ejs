@@ -39,7 +39,7 @@ template Main() {
 
     signal isValidBlob <== VerifyBlobOuter()(publics, batch_publics, blob_inner_publics, chainId);
 
-    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vBatch", starkInfo: starkInfoBatch, nPublics: batchPublics.nPublics, options: { setEnableInput: "isValidBlob" } }); %>
+    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vBatch", starkInfo: starkInfoBatch, nPublics: batchPublics.nPublics, options: { addPublics: true, setEnableInput: "isValidBlob" } }); %>
 
     for (var i=0; i<4; i++) {
         vBatch.publics[<%- batchPublics.nPublics %> + i] <== rootCAggBatch[i];
@@ -47,7 +47,7 @@ template Main() {
 
     vBatch.rootC <== SelectVerificationKey()batch_isAggregatedCircuit, rootCBasicBatch, rootCAggBatch);
 
-    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vBlob", starkInfo: starkInfoBlob }); %>
+    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vBlob", starkInfo: starkInfoBlob, options: { addPublics: true } }); %>
 }
 
 component main {public [publics, rootC]}= Main();
