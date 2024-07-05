@@ -65,8 +65,8 @@
     }
 <%  nPublicsInps += 3*(vadcopInfo.stepsFRI.length); -%>
 
-<%  if(vadcopInfo.aggTypes.length > 1) { -%>
-    signal {binary} <%- prefix_ %>isNull <== IsZero()(circuitType);
+<%  if(vadcopInfo.nAirs[starkInfo.subproofId] > 1) { -%>
+    signal {binary} <%- prefix_ %>isNull <== IsZero()(<%- prefix_ %>circuitType);
 
     <%- componentName %>.enable <== 1 - <%- prefix_ %>isNull;
 <%  } -%>

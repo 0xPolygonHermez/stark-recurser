@@ -12,8 +12,8 @@ template Main() {
     signal input isAggregatedCircuit;
 <%  } -%>
 
-    var rootCBasic[4] = [<%- basicVK.join(",") %>];
-    var rootCAgg[4] = [<%- aggregatedVK.join(",") %>];
+    var rootCBasic[4] = [<%- basicVK[0].join(",") %>];
+    var rootCAgg[4] = [<%- aggregatedVK[0].join(",") %>];
 
     <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics - 4 }); %>
 

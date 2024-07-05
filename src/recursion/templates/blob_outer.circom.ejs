@@ -22,8 +22,8 @@ include "<%- verifierFilenames[i] %>";
 
 template Main() {
 
-    var rootCBasicBatch[4] = [<%- basicVK.join(",") %>];
-    var rootCAggBatch[4] = [<%- aggregatedVK.join(",") %>];
+    var rootCBasicBatch[4] = [<%- basicVK[0].join(",") %>];
+    var rootCAggBatch[4] = [<%- aggregatedVK[0].join(",") %>];
 
     signal input publics[<%- blobOuterPublics.nPublics %>];
     signal input rootC[4];

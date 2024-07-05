@@ -11,7 +11,7 @@ include "<%- verifierFilenames[i] %>";
 <%- include('src/recursion/helpers/templates/select_vk.circom.ejs', { publics, isTest: false }); %>
 
 template Main() {
-    var rootCBasic[4] = [<%- basicVK.join(",") %>];
+    var rootCBasic[4] = [<%- basicVK[0].join(",") %>];
 
     signal input publics[<%- starkInfo.nPublics - 4 %>];
     signal input rootC[4];
