@@ -8,28 +8,33 @@ include "iszero.circom";
 
 template Main() {
 
-    signal input publics[<%- starkInfo.nPublics %>];
+    signal input publics[<%- vadcopInfo.nPublics %>];
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
+    signal input <%- `sv${i}` %>aggregationTypes[<%- vadcopInfo.aggTypes[starkInfo.subproofId].length %>];
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `sv${i}`, starkInfo, nPublics: vadcopInfo.nPublics }); %>
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `sv${i}`, vadcopInfo, starkInfo, options }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `sv_agg${i}`, vadcopInfo, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true } }); %>
 <%  } -%>
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo, nPublics: vadcopInfo.nPublics, options: {...options, addPublics: false } }); %>
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, vadcopInfo }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo, nPublics: vadcopInfo.nPublics, options }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv_agg${i}`, prefixStark: `sv${i}`, vadcopInfo, options: { setEnableInput: vadcopInfo.aggTypes.length > 1  } }); %>
 
-    var sv<%- i %>_rootCAgg[4] = [<%- /* TODO */ %>];
+    var sv<%- i %>_rootCAgg[4] = [<%- aggregatedVK[i].join(",") %>];
     var sv<%- i %>_rootCBasics[<%- vadcopInfo.nAirs[i] %>][4];
 
     <% for(let j = 0; j < vadcopInfo.nAirs[i]; j++) { -%>
-    sv<%- i %>_rootCBasics[<%- j %>] = [<%- /* TODO */ %>];
+    sv<%- i %>_rootCBasics[<%- j %>] = [<%- basicVK[i][j].join(",") %>];
     <% } -%>
 
-    sV<%- i %>.rootC <== SelectVerificationKey()(sv<%- i %>_circuitType, sv<%- i %>_rootCBasics, sv<%- i %>_rootCAgg);
+<%  if(vadcopInfo.aggTypes.length > 1) { -%>
+    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.aggTypes.length %>)(sv<%- i %>_circuitType, sv<%- i %>_rootCBasics, sv<%- i %>_rootCAgg);
+<%  } else { -%> 
+    sV<%- i %>.rootC <== SelectVerificationKeyNull((<%- vadcopInfo.aggTypes.length %>)(sv<%- i %>_circuitType, sv<%- i %>_rootCBasics, sv<%- i %>_rootCAgg);
+<%  } -%>
 <%  } -%>
 
     // Calculate transcript and check that matches with the global challenges
