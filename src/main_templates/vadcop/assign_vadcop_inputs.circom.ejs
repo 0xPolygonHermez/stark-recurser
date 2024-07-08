@@ -4,18 +4,18 @@
 
 <%- componentName %>.publics[<%- nPublicsInps++ %>] <== <%- prefix_ %>circuitType;
 
-<%  if(vadcopInfo.aggTypes[starkInfo.subproofId].length  > 0) { -%>
-    for(var i = 0; i < <%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>; i++) {
+<%  if(vadcopInfo.aggTypes[subproofId].length  > 0) { -%>
+    for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length  %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== aggregationTypes[i];
     }
-<%  nPublicsInps += vadcopInfo.aggTypes[starkInfo.subproofId].length ; -%>
+<%  nPublicsInps += vadcopInfo.aggTypes[subproofId].length ; -%>
 
-    for(var i = 0; i < <%- vadcopInfo.aggTypes[starkInfo.subproofId].length  %>; i++) {
+    for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length  %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== <%- prefix_ %>subproofValues[i][0];
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 1] <== <%- prefix_ %>subproofValues[i][1];
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 2] <== <%- prefix_ %>subproofValues[i][2];
     }
-<%  nPublicsInps += 3*vadcopInfo.aggTypes[starkInfo.subproofId].length ; -%>
+<%  nPublicsInps += 3*vadcopInfo.aggTypes[subproofId].length ; -%>
 <%  } -%>
 
 

@@ -21,14 +21,14 @@ template Main() {
    
     signal input rootCAgg[4];
 
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, prefix: options.hasCompressor ? "" : "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, subproofId, prefix: options.hasCompressor ? "" : "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
 
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: options.hasCompressor ? false : true } }); %>
 
 <%  if(!options.hasCompressor) { -%>
-<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, vadcopInfo }); %>
+<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", subproofId, starkInfo, vadcopInfo }); %>
 <%  } else { -%>
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo, prefix: "", prefixStark: "sv" }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo, prefix: "", prefixStark: "sv", subproofId }); %>
 <%  } -%>
 }
 

@@ -7,13 +7,15 @@ module.exports.genCircom = async function genCircom(templateFile, starkInfos = [
         options
     };
 
+    if(!isNaN(options.subproofId)) {
+        optionsCircom.subproofId = options.subproofId;
+    }
+
     if(starkInfos.length === 1) {
         optionsCircom.starkInfo = starkInfos[0];
     } else {
         optionsCircom.starkInfo = starkInfos;
     }
-
-   
 
     if(publics.length === 1) {
         optionsCircom.publics = publics[0];
