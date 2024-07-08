@@ -1,4 +1,4 @@
-module.exports.joinzkinFinal = function joinzkinFinal(proofsBySubproofId, vadcopInfo, publics, challenges, challengesFRISteps) {
+module.exports.joinzkinFinal = function joinzkinFinal(proofsBySubproofId, globalInfo, publics, challenges, challengesFRISteps) {
     const zkinFinal = {};
 
     zkinFinal.publics = publics;
@@ -40,12 +40,12 @@ module.exports.joinzkinFinal = function joinzkinFinal(proofsBySubproofId, vadcop
         zkinFinal[`s${i}_subproofValues`] = zkin.sv_subproofValues;
 
         zkinFinal[`s${i}_sv_rootC`] = zkin.sv_rootC;
-        for(let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) {
+        for(let j = 0; j < globalInfo.numChallenges.length + 1; ++j) {
             zkinFinal[`s${i}_sv_root${j + 1}`] = zkin[`sv_root${j + 1}`];
         }
         zkinFinal[`s${i}_sv_evalsHash`] = zkin.sv_evalsHash;
         
-        for(let j = 0; j < vadcopInfo.stepsFRI.length - 1; ++j) {
+        for(let j = 0; j < globalInfo.stepsFRI.length - 1; ++j) {
             zkinFinal[`s${i}_sv_s${j+1}_root`] = zkin[`sv_s${j+1}_root`];
         }
 

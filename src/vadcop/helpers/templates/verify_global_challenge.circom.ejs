@@ -126,13 +126,13 @@ template VerifyGlobalChallenges() {
 
     signal input publics[<%- vadcopInfo.nPublics %>];
     signal input rootC[<%- vadcopInfo.aggTypes.length %>][4];
-<% for(let i=0; i < nChallengesStages.length; i++) {  -%>
+<% for(let i=0; i < vadcopInfo.numChallenges.length; i++) {  -%>
 <%  const stage = i + 1; -%>
     signal input root<%- stage %>[<%- vadcopInfo.aggTypes.length %>][4];
 <% } -%>                  
-    signal input root<%- nChallengesStages.length + 1 %>[<%- vadcopInfo.aggTypes.length %>][4];
+    signal input root<%- vadcopInfo.numChallenges.length + 1 %>[<%- vadcopInfo.aggTypes.length %>][4];
     signal input evalsHash[<%- vadcopInfo.aggTypes.length %>][4]; 
-<% for (let s=1; s<stepsFRI.length; s++) {   -%>
+<% for (let s=1; s<vadcopInfo.stepsFRI.length; s++) {   -%>
     signal input s<%- s %>_root[<%- vadcopInfo.aggTypes.length %>][4];
 <% }                                                     -%>
     signal input finalPolHash[<%- vadcopInfo.aggTypes.length %>][4];
@@ -161,7 +161,7 @@ template VerifyGlobalChallenges() {
 } -%>
 <%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
 <%   for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%      transcript.put("root" + (nStages + 1) + "[" + i + "]", 4); -%>
+<%      transcript.put("root" + (vadcopInfo.numChallenges.length + 1) + "[" + i + "]", 4); -%>
 <%   } -%>
 <%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
 <%   for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
@@ -169,17 +169,17 @@ template VerifyGlobalChallenges() {
 <%   } -%>
 <%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
 <%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
-<%  for (let si=0; si<stepsFRI.length; si++) { -%>
+<%  for (let si=0; si<vadcopInfo.stepsFRI.length; si++) { -%>
 <%      transcript.getField(`calculatedChallengesFRISteps[${si}]`); -%>
 <%      for(let k = 0; k < vadcopInfo.aggTypes.length; ++k) { -%>
-<%          if (si < stepsFRI.length-1) { -%>
+<%          if (si < vadcopInfo.stepsFRI.length-1) { -%>
 <%              transcript.put(`s${si+1}_root[${k}]`, 4); -%>
 <%          } else { -%>
 <%              transcript.put("finalPolHash[" + k + "]", 4); -%>
 <%          } -%>
 <%      } -%>
 <%  } -%>
-<%  transcript.getField(`calculatedChallengesFRISteps[${vadcopInfo.stepsFRI.length + 1}]`); -%>
+<%  transcript.getField(`calculatedChallengesFRISteps[${vadcopInfo.stepsFRI.length}]`); -%>
 <%- transcript.getCode() %>
 
     // Check that all the challenges match
@@ -189,7 +189,7 @@ template VerifyGlobalChallenges() {
         calculatedChallenges[i][2] === challenges[i][2];
     }
 
-    for(var i = 0; i < <%- vadcopInfo.nStepsFRI %>; i++) {
+    for(var i = 0; i < <%- vadcopInfo.stepsFRI.length %>; i++) {
         calculatedChallengesFRISteps[i][0] === challengesFRISteps[i][0];
         calculatedChallengesFRISteps[i][1] === challengesFRISteps[i][1];
         calculatedChallengesFRISteps[i][2] === challengesFRISteps[i][2];

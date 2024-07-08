@@ -6,7 +6,7 @@
 
 <%  if(vadcopInfo.aggTypes[subproofId].length  > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length  %>; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== aggregationTypes[i];
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- options.addPrefixAggTypes ? prefix_ : "" %>aggregationTypes[i];
     }
 <%  nPublicsInps += vadcopInfo.aggTypes[subproofId].length ; -%>
 
