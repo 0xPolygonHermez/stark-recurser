@@ -28,16 +28,16 @@ template Main() {
 <%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv_agg${i}`, prefixStark: `sv${i}`, subproofId:i, vadcopInfo, options: { addPrefixAggTypes: true, setEnableInput: vadcopInfo.aggTypes.length > 1  } }); %>
 
     var sv_agg<%- i %>_rootCAgg[4] = [<%- aggregatedVK[i].join(",") %>];
-    var sv_agg<%- i %>_rootCBasics[<%- vadcopInfo.nAirs[i] %>][4];
+    var sv_agg<%- i %>_rootCBasics[<%- vadcopInfo.airs[i].length %>][4];
 
-    <% for(let j = 0; j < vadcopInfo.nAirs[i]; j++) { -%>
+    <% for(let j = 0; j < vadcopInfo.airs[i].length; j++) { -%>
     sv_agg<%- i %>_rootCBasics[<%- j %>] = [<%- basicVK[i][j].join(",") %>];
     <% } -%>
 
 <%  if(vadcopInfo.aggTypes.length > 1) { -%>
-    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.nAirs[i] %>)(sv_agg<%- i %>_circuitType, sv_agg<%- i %>_rootCBasics, sv_agg<%- i %>_rootCAgg);
+    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[i].length %>)(sv_agg<%- i %>_circuitType, sv_agg<%- i %>_rootCBasics, sv_agg<%- i %>_rootCAgg);
 <%  } else { -%> 
-    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.nAirs[i] %>)(sv_agg<%- i %>_circuitType, sv_agg<%- i %>_rootCBasics, sv_agg<%- i %>_rootCAgg);
+    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[i].length %>)(sv_agg<%- i %>_circuitType, sv_agg<%- i %>_rootCBasics, sv_agg<%- i %>_rootCAgg);
 <%  } -%>
 
     for (var i=0; i<4; i++) {

@@ -14,6 +14,8 @@ module.exports.compressorExec = async function compressorExec(F, pil, wasm, inpu
     const wc = await WitnessCalculatorBuilder(wasm);
     const w = await wc.calculateWitness(input);
 
+    const publics = w.slice(1, 1 + pil.publics.length);
+
     for (let i=0; i<nAdds; i++) {
         w.push( F.add( F.mul( w[addsBuff[i*4]], addsBuff[i*4 + 2]), F.mul( w[addsBuff[i*4+1]],  addsBuff[i*4+3]  )));
     }
@@ -28,7 +30,7 @@ module.exports.compressorExec = async function compressorExec(F, pil, wasm, inpu
         }
     }
 
-    return cmPols;
+    return { cmPols, publics };
 }
 
 module.exports.readExecFile = async function readExecFile(execFile, nCols) {
