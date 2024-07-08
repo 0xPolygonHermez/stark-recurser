@@ -14,21 +14,21 @@ include "<%- verifierFilenames[i] %>";
 <%  let publicsNames = []; -%>
 template Main() {
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "sv", starkInfo, nPublics: vadcopInfo.nPublics }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics }); %>
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
    
     signal input rootCAgg[4];
 
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, subproofId, prefix: options.hasCompressor ? "" : "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, subproofId, prefix: "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "sv", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: options.hasCompressor ? false : true } }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: options.hasCompressor ? false : true } }); %>
 
 <%  if(!options.hasCompressor) { -%>
-<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", subproofId, starkInfo, vadcopInfo }); %>
+<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", subproofId, starkInfo, vadcopInfo }); %>
 <%  } else { -%>
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo, prefix: "", prefixStark: "sv", subproofId }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo, prefix: "", subproofId }); %>
 <%  } -%>
 }
 
