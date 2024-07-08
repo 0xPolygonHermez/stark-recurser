@@ -28,14 +28,14 @@ template Main() {
 <%  if(!options.hasCompressor) { -%>
 <%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", subproofId, starkInfo, vadcopInfo }); %>
 <%  } else { -%>
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo, prefix: "", subproofId }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo, prefix: "sv", prefixStark: "", subproofId, options: { addPrefixAggTypes: true } }); %>
 <%  } -%>
 }
 
 <%  if(!options.hasCompressor) { -%>
-    component main {public [sv_publics, challenges, challengesFRISteps, rootCAgg]} = Main();
+    component main {public [publics, challenges, challengesFRISteps, rootCAgg]} = Main();
 <%  } else { -%>
-<%    publicsNames.push(...["sv_publics", "challenges", "challengesFRISteps", "rootCAgg"]); -%>
+<%    publicsNames.push(...["publics", "challenges", "challengesFRISteps", "rootCAgg"]); -%>
 component main {public [<%- publicsNames.join(", ") %>]} = Main();
 
 <%  } -%>
