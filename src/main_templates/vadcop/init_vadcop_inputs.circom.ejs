@@ -22,9 +22,9 @@
 
     <%- prefix_ %>evalsHash <== CalculateEvalsHash()(<%- prefixStark_ %>evals);
 
-<%  let friCounter = 1; -%>
+<%  let friCounter = 0; -%>
 <%  for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
-<%     if(friCounter < starkInfo.starkStruct.steps.length && starkInfo.starkStruct.steps[friCounter].nBits === vadcopInfo.stepsFRI[i - 1].nBits) { -%>
+<%     if(friCounter < starkInfo.starkStruct.steps.length - 1 && starkInfo.starkStruct.steps[friCounter].nBits === vadcopInfo.stepsFRI[i - 1].nBits) { -%>
     <%- prefix_ %>s<%- i %>_root <== <%- prefixStark_ %>s<%- ++friCounter %>_root;
 <%     } else { -%>
     <%- prefix_ %>s<%- i %>_root <== [0,0,0,0];
@@ -57,4 +57,4 @@
 <%  } -%>
     <%- componentName %>.challengesFRISteps[<%- starkInfo.starkStruct.steps.length %>] <== challengesFRISteps[<%- vadcopInfo.stepsFRI.length %>];
     
-    
+    <%- prefix_ %>rootC <== <%- componentName %>.rootC;

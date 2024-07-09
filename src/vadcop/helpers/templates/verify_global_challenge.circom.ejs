@@ -183,15 +183,11 @@ template VerifyGlobalChallenges() {
 <%- transcript.getCode() %>
 
     // Check that all the challenges match
-    for(var i = 0; i < <%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>; i++) {
-        calculatedChallenges[i][0] === challenges[i][0];
-        calculatedChallenges[i][1] === challenges[i][1];
-        calculatedChallenges[i][2] === challenges[i][2];
-    }
+<%  for(let i = 0; i < vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4; ++i) { -%>
+    calculatedChallenges[<%- i %>] === challenges[<%- i %>];
+<%  } -%>
 
-    for(var i = 0; i < <%- vadcopInfo.stepsFRI.length %>; i++) {
-        calculatedChallengesFRISteps[i][0] === challengesFRISteps[i][0];
-        calculatedChallengesFRISteps[i][1] === challengesFRISteps[i][1];
-        calculatedChallengesFRISteps[i][2] === challengesFRISteps[i][2];
-    }
+<%  for(let i = 0; i < vadcopInfo.stepsFRI.length + 1; ++i) { -%>
+    calculatedChallengesFRISteps[<%- i %>] === challengesFRISteps[<%- i %>];
+<%  } -%>
 }
