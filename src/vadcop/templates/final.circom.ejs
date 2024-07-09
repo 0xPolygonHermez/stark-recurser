@@ -19,29 +19,29 @@ template Main() {
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `sv${i}`, starkInfo: starkInfo[i], nPublics: vadcopInfo.nPublics }); %>
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `sv_agg${i}`, vadcopInfo, starkInfo: starkInfo[i], subproofId: i, options: {...options, addPublics: false, isInput: true, isAggregation: false } }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `s${i}`, starkInfo: starkInfo[i], nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `s${i}_sv`, vadcopInfo, starkInfo: starkInfo[i], subproofId: i, options: {...options, addPublics: false, isInput: true, isAggregation: false } }); %>
 <%  } -%>
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv${i}`, starkInfo: starkInfo[i], nPublics: vadcopInfo.nPublics, options }); %>
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `sv_agg${i}`, prefixStark: `sv${i}`, subproofId:i, vadcopInfo, options: { addPrefixAggTypes: true, setEnableInput: vadcopInfo.aggTypes.length > 1  } }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `s${i}`, starkInfo: starkInfo[i], nPublics: vadcopInfo.nPublics, options }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: `sV${i}`, prefix: `s${i}_sv`, prefixStark: `s${i}`, subproofId:i, vadcopInfo, options: { addPrefixAggTypes: true, setEnableInput: vadcopInfo.aggTypes.length > 1  } }); %>
 
-    var sv_agg<%- i %>_rootCAgg[4] = [<%- aggregatedVK[i].join(",") %>];
-    var sv_agg<%- i %>_rootCBasics[<%- vadcopInfo.airs[i].length %>][4];
+    var s<%- i %>_sv_rootCAgg[4] = [<%- aggregatedVK[i].join(",") %>];
+    var s<%- i %>_sv_rootCBasics[<%- vadcopInfo.airs[i].length %>][4];
 
-    <% for(let j = 0; j < vadcopInfo.airs[i].length; j++) { -%>
-    sv_agg<%- i %>_rootCBasics[<%- j %>] = [<%- basicVK[i][j].join(",") %>];
-    <% } -%>
+<% for(let j = 0; j < vadcopInfo.airs[i].length; j++) { -%>
+    s<%- i %>_sv_rootCBasics[<%- j %>] = [<%- basicVK[i][j].join(",") %>];
+<% } -%>
 
 <%  if(vadcopInfo.aggTypes.length > 1) { -%>
-    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[i].length %>)(sv_agg<%- i %>_circuitType, sv_agg<%- i %>_rootCBasics, sv_agg<%- i %>_rootCAgg);
+    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[i].length %>)(s<%- i %>_sv_circuitType, s<%- i %>_sv_rootCBasics, s<%- i %>_sv_rootCAgg);
 <%  } else { -%> 
-    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[i].length %>)(sv_agg<%- i %>_circuitType, sv_agg<%- i %>_rootCBasics, sv_agg<%- i %>_rootCAgg);
+    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[i].length %>)(s<%- i %>_sv_circuitType, s<%- i %>_sv_rootCBasics, s<%- i %>_sv_rootCAgg);
 <%  } -%>
 
     for (var i=0; i<4; i++) {
-        sV<%- i %>.publics[<%- starkInfo[i].nPublics - 4 %> + i] <== sv_agg<%- i %>_rootCAgg[i];
+        sV<%- i %>.publics[<%- starkInfo[i].nPublics - 4 %> + i] <== s<%- i %>_sv_rootCAgg[i];
     }
 <%  } -%>
 
@@ -51,22 +51,22 @@ template Main() {
     verifyChallenges.challengesFRISteps <== challengesFRISteps;
     verifyChallenges.publics <== publics;
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-    verifyChallenges.rootC[<%- i %>] <== sv_agg<%- i %>_rootC;
+    verifyChallenges.rootC[<%- i %>] <== s<%- i %>_sv_rootC;
 <%      for (let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) { -%>
-    verifyChallenges.root<%- j + 1 %>[<%- i %>] <== sv_agg<%- i %>_root<%- j+1 %>;
+    verifyChallenges.root<%- j + 1 %>[<%- i %>] <== s<%- i %>_sv_root<%- j+1 %>;
 <%      } -%>
-    verifyChallenges.evalsHash[<%- i %>] <== sv_agg<%- i %>_evalsHash;
+    verifyChallenges.evalsHash[<%- i %>] <== s<%- i %>_sv_evalsHash;
 <%      for (let j = 1; j < vadcopInfo.stepsFRI.length; ++j) { -%>
-    verifyChallenges.s<%- j %>_root[<%- i %>] <== sv_agg<%- i %>_s<%- j %>_root;
+    verifyChallenges.s<%- j %>_root[<%- i %>] <== s<%- i %>_sv_s<%- j %>_root;
 <%      } -%>
-    verifyChallenges.finalPolHash[<%- i %>] <== sv_agg<%- i %>_finalPolHash;
+    verifyChallenges.finalPolHash[<%- i %>] <== s<%- i %>_sv_finalPolHash;
 <%  } -%>
 
     // Verify global constraints
     component verifyGlobalConstraints = VerifyGlobalConstraints();
     verifyGlobalConstraints.publics <== publics;
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-    verifyGlobalConstraints.s<%- i %>_subproofValues <== sv_agg<%- i %>_subproofValues;
+    verifyGlobalConstraints.s<%- i %>_subproofValues <== s<%- i %>_sv_subproofValues;
 <%  } -%>
 }
 

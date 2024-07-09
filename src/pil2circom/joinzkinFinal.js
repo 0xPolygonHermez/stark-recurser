@@ -9,18 +9,23 @@ module.exports.joinzkinFinal = function joinzkinFinal(proofsBySubproofId, global
         const zkin = proofsBySubproofId[i].zkinFinal;
         const starkInfo = proofsBySubproofId[i].starkInfoRecursive2;
         const nStages = Number(starkInfo.nStages) + 1;
+
         for (let j = 0; j < nStages; ++j) {
-            zkinFinal[`s${i}_root${j + 1}`] = zkin[`root${j + 1}`]; 
+            zkinFinal[`s${i}_root${j + 1}`] = zkin[`root${j + 1}`];
         }
 
         for (let j = 0; j < nStages; ++j) {
-            zkinFinal[`s${i}_s0_vals${j + 1}`] = zkin[`s0_vals${j + 1}`]; 
+            if(starkInfo.mapSectionsN[`cm${j + 1}`] > 0) {
+                zkinFinal[`s${i}_s0_vals${j + 1}`] = zkin[`s0_vals${j + 1}`];
+            }
         }
 
         zkinFinal[`s${i}_s0_valsC`] = zkin.s0_valsC; 
 
         for (let j = 0; j < nStages; ++j) {
-            zkinFinal[`s${i}_s0_siblings${j + 1}`] = zkin[`s0_siblings${j + 1}`]; 
+            if(starkInfo.mapSectionsN[`cm${j + 1}`] > 0) {
+                zkinFinal[`s${i}_s0_siblings${j + 1}`] = zkin[`s0_siblings${j + 1}`];
+            } 
         }
 
         zkinFinal[`s${i}_s0_siblingsC`] = zkin.s0_siblingsC;
@@ -35,9 +40,9 @@ module.exports.joinzkinFinal = function joinzkinFinal(proofsBySubproofId, global
 
         zkinFinal[`s${i}_finalPol`] = zkin.finalPol; 
 
-        zkinFinal[`s${i}_circuitType`] = zkin.sv_circuitType;
-        zkinFinal[`s${i}_aggregationTypes`] = zkin.sv_aggregationTypes;
-        zkinFinal[`s${i}_subproofValues`] = zkin.sv_subproofValues;
+        zkinFinal[`s${i}_sv_circuitType`] = zkin.sv_circuitType;
+        zkinFinal[`s${i}_sv_aggregationTypes`] = zkin.sv_aggregationTypes;
+        zkinFinal[`s${i}_sv_subproofValues`] = zkin.sv_subproofValues;
 
         zkinFinal[`s${i}_sv_rootC`] = zkin.sv_rootC;
         for(let j = 0; j < globalInfo.numChallenges.length + 1; ++j) {

@@ -50,7 +50,7 @@
 <%  nPublicsInps += 4 -%>
 
     for(var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefixStark_ %>publics[i];
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== publics[i];
     }
 <%  nPublicsInps += vadcopInfo.nPublics -%>
 

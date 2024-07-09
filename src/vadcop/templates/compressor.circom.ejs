@@ -9,14 +9,20 @@ pragma custom_templates;
 
 template Main() {
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false} }); %>
+
+    signal input publics[<%- vadcopInfo.nPublics %>];
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length  + 1 %>][3];
    
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "sv", subproofId: starkInfo.subproofId, options: {...options, isInput: false} }); %>
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics,  options: { addPublics: true } }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics,  options: { addPublics: false } }); %>
+
+    for (var i=0; i< <%- vadcopInfo.nPublics %>; i++) {
+        sV.publics[i] <== publics[i];
+    }
 
 <%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", subproofId: starkInfo.subproofId, starkInfo, vadcopInfo }); %>
 

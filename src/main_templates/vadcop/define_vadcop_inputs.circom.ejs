@@ -1,15 +1,15 @@
 <%  let signalType = options.isInput ? "input" : "output" -%>
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 
-    signal <%- signalType %> <%- prefix_ %>circuitType;
 <%  if(!options.isAggregation) { -%>
     signal <%- signalType %> <%- prefix_ %>aggregationTypes[<%- vadcopInfo.aggTypes[subproofId].length  %>];
 <%  } -%>
+    signal <%- signalType %> <%- prefix_ %>circuitType;
     signal <%- signalType %> <%- prefix_ %>subproofValues[<%- vadcopInfo.aggTypes[subproofId].length  %>][3];
 
     signal <%- signalType %> <%- prefix_ %>rootC[4];
 
-<% if(Array.isArray(options.publicsNames)) options.publicsNames.push(...[`${prefix_}circuitType`, `${prefix_}aggregationTypes`, `${prefix_}subproofValues`, `${prefix_}rootC`]) -%>
+<% if(Array.isArray(options.publicsNames)) options.publicsNames.push(...[`${prefix_}aggregationTypes`, `${prefix_}circuitType`, `${prefix_}subproofValues`, `${prefix_}rootC`]) -%>
 
 <%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) { -%>
     signal <%- signalType %> <%- prefix_ %>root<%- i + 1 %>[4];
