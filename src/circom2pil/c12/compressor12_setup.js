@@ -553,6 +553,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
         pilStr: pilStr,
         constPols: constPols,
         sMap: sMap,
-        plonkAdditions: plonkAdditions
+        plonkAdditions: plonkAdditions,
+        nBits,
     };
 }

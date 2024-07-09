@@ -12,7 +12,7 @@ include "<%- verifierFilenames[i] %>";
 <%  } -%>
 
 <%  let publicsNames = []; -%>
-template Main() {
+template Recursive1() {
 
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
 
@@ -34,9 +34,9 @@ template Main() {
 }
 
 <%  if(!options.hasCompressor) { -%>
-    component main {public [publics, challenges, challengesFRISteps, rootCAgg]} = Main();
+    component main {public [publics, challenges, challengesFRISteps, rootCAgg]} = Recursive1();
 <%  } else { -%>
 <%    publicsNames.push(...["publics", "challenges", "challengesFRISteps", "rootCAgg"]); -%>
-component main {public [<%- publicsNames.join(", ") %>]} = Main();
+component main {public [<%- publicsNames.join(", ") %>]} = Recursive1();
 
 <%  } -%>

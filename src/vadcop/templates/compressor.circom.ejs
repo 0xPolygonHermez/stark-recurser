@@ -7,7 +7,7 @@ pragma custom_templates;
 
 <%- include('src/vadcop/helpers/templates/calculate_hashes.circom.ejs', { starkInfo, vadcopInfo }); %>
 
-template Main() {
+template Compressor() {
 
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false} }); %>
 
@@ -28,4 +28,4 @@ template Main() {
 
 }
 
-component main {public [publics, challenges, challengesFRISteps]} = Main();
+component main {public [publics, challenges, challengesFRISteps]} = Compressor();

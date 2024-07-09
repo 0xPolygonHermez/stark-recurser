@@ -9,7 +9,7 @@ include "<%- verifierFilenames[i] %>";
 <% } -%>
 
 
-template Main() {
+template Recursive2() {
     var rootCBasics[<%- vadcopInfo.airs[subproofId].length %>][4];
 
 <% for(let i = 0; i < vadcopInfo.airs[subproofId].length; ++i) { -%>
@@ -55,4 +55,4 @@ template Main() {
     }
 }
 
-component main {public [publics, challenges, challengesFRISteps, rootCAgg]} = Main();
+component main {public [publics, challenges, challengesFRISteps, rootCAgg]} = Recursive2();
