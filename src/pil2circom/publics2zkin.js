@@ -1,13 +1,14 @@
 
 module.exports.publics2zkin = function publics2zkin(subproofId, zkin, vadcopInfo, publics, isAggregated) {
     let p = 0;
-    zkin.sv_circuitType = publics[p++];
     zkin.sv_aggregationTypes = [];
     for(let i = 0; i < vadcopInfo.aggTypes[subproofId].length; ++i) {
         zkin.sv_aggregationTypes.push(publics[p++]);
     }
+    zkin.sv_circuitType = publics[p++];
+    zkin.sv_subproofValues = [];
     for(let i = 0; i < vadcopInfo.aggTypes[subproofId].length; ++i) {
-        zkin.sv_subproofValues = [publics[p++], publics[p++], publics[p++]];
+        zkin.sv_subproofValues.push([publics[p++], publics[p++], publics[p++]]);
     }
     zkin.sv_rootC = [publics[p++], publics[p++], publics[p++], publics[p++]];
     for(let i = 0; i <vadcopInfo.numChallenges.length + 1; ++i) {

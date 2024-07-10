@@ -2,14 +2,16 @@
 <%  let prefixStark_ = prefixStark ? `${prefixStark}_` : ""; -%>
 <%  let nPublicsInps = 0; -%>
 
-<%- componentName %>.publics[<%- nPublicsInps++ %>] <== <%- prefix_ %>circuitType;
-
 <%  if(vadcopInfo.aggTypes[subproofId].length  > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length  %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- options.addPrefixAggTypes ? prefix_ : "" %>aggregationTypes[i];
     }
 <%  nPublicsInps += vadcopInfo.aggTypes[subproofId].length ; -%>
+<%  } -%>
 
+<%- componentName %>.publics[<%- nPublicsInps++ %>] <== <%- prefix_ %>circuitType;
+
+<%  if(vadcopInfo.aggTypes[subproofId].length  > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length  %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== <%- prefix_ %>subproofValues[i][0];
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 1] <== <%- prefix_ %>subproofValues[i][1];
