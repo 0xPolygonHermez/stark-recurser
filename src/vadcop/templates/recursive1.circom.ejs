@@ -24,7 +24,7 @@ template Recursive1() {
    
     signal input rootCAgg[4];
 
-<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: options.hasCompressor ? false : true } }); %>
     
 <%  if(!options.hasCompressor) { -%>
 <%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", subproofId, starkInfo, vadcopInfo }); %>
