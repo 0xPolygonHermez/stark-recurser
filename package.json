@@ -47,7 +47,7 @@
     "ethers": "^6.8.1",
     "json-bigint": "^1.0.0",
     "pil2-compiler": "https://github.com/0xPolygonHermez/pil2-compiler.git#develop",
-    "pil2-stark-js": "https://github.com/0xPolygonHermez/pil2-stark-js.git#develop",
+    "pil2-stark-js": "https://github.com/0xPolygonHermez/pil2-stark-js.git#hints_multiarray",
     "pilcom": "^0.0.24",
     "protobufjs": "^7.3.2",
     "r1csfile": "^0.0.47"

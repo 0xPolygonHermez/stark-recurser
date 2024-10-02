@@ -11,7 +11,7 @@
     component <%- componentName %> = StarkVerifier();
 <%  } -%>
 
-<%  if(options.addPublics) { -%>
+<%  if(options.addPublics && nPublics > 0) { -%>
     for (var i=0; i< <%- nPublics %>; i++) {
         <%- componentName %>.publics[i] <== <%- prefix_ %>publics[i];
     }

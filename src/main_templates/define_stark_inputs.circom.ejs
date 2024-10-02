@@ -1,5 +1,5 @@
 <%  let prefix_ = prefix !== "" ? `${prefix}_` : ""; -%>
-<%  if(options.addPublics) { -%>
+<%  if(options.addPublics && nPublics > 0) { -%>
     signal input <%- prefix_ %>publics[<%- nPublics %>];
 <%  } -%>
 <%  if(starkInfo.subproofValuesMap && starkInfo.subproofValuesMap.length > 0) { -%>

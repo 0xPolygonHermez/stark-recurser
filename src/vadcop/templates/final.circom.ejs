@@ -13,7 +13,9 @@ include "select_vk.circom";
 
 template Final() {
 
+<%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
+<%  } -%>
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
@@ -51,7 +53,9 @@ template Final() {
     component verifyChallenges = VerifyGlobalChallenges();
     verifyChallenges.challenges <== challenges;
     verifyChallenges.challengesFRISteps <== challengesFRISteps;
+<%  if(vadcopInfo.nPublics > 0) { -%>
     verifyChallenges.publics <== publics;
+<%  } -%>
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
     verifyChallenges.rootC[<%- i %>] <== s<%- i %>_sv_rootC;
 <%      for (let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) { -%>
@@ -66,10 +70,14 @@ template Final() {
 
     // Verify global constraints
     component verifyGlobalConstraints = VerifyGlobalConstraints();
+<%  if(vadcopInfo.nPublics > 0) { -%>
     verifyGlobalConstraints.publics <== publics;
+<%  } -%>
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
+<%  if(vadcopInfo.aggTypes[i].length > 0) { -%>
     verifyGlobalConstraints.s<%- i %>_subproofValues <== s<%- i %>_sv_subproofValues;
+<%  } -%>
 <%  } -%>
 }
 
-component main {public [publics]} = Final();
+component main <%- vadcopInfo.nPublics > 0 ? "{public [publics]}" : ""%>= Final();
