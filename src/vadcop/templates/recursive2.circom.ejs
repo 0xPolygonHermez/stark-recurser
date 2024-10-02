@@ -28,7 +28,9 @@ template Recursive2() {
 
     signal input rootCAgg[4];
 
+<%  if(vadcopInfo.aggTypes[subproofId].length > 0) { -%>
     signal input aggregationTypes[<%- vadcopInfo.aggTypes[subproofId].length %>];
+<%  } -%>
 
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "a_sv", vadcopInfo, subproofId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "b_sv", vadcopInfo, subproofId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>

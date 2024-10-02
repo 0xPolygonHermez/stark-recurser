@@ -1,7 +1,7 @@
 <%  let prefixStark_ = prefixStark ? `${prefixStark}_` : ""; -%>
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 
-<%  let circuitType = vadcopInfo.aggTypes.length ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
+<%  let circuitType = vadcopInfo.aggTypes.length > 1 ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
     <%- prefix_ %>circuitType <== <%- circuitType %>;
     
 <%  if(vadcopInfo.aggTypes[subproofId].length > 0) { -%>
