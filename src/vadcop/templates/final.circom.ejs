@@ -38,8 +38,8 @@ template Final() {
     s<%- i %>_sv_rootCBasics[<%- j %>] = [<%- basicVK[i][j].join(",") %>];
 <% } -%>
 
-<%  if(vadcopInfo.aggTypes.length > 1) { -%>
-    sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[i].length %>)(s<%- i %>_sv_circuitType, s<%- i %>_sv_rootCBasics, s<%- i %>_sv_rootCAgg);
+<%  if(vadcopInfo.aggTypes.length === 1) { -%>
+    sV<%- i %>.rootC <== SelectVerificationKey(<%- vadcopInfo.airs[i].length %>)(s<%- i %>_sv_circuitType, s<%- i %>_sv_rootCBasics, s<%- i %>_sv_rootCAgg);
 <%  } else { -%> 
     sV<%- i %>.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[i].length %>)(s<%- i %>_sv_circuitType, s<%- i %>_sv_rootCBasics, s<%- i %>_sv_rootCAgg);
 <%  } -%>
