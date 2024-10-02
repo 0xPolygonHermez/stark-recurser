@@ -49,10 +49,12 @@
     }
 <%  nPublicsInps += 4 -%>
 
+<%  if(vadcopInfo.nPublics > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== publics[i];
     }
 <%  nPublicsInps += vadcopInfo.nPublics -%>
+<%  } -%>
 
     for(var i = 0; i < <%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== challenges[i][0];
