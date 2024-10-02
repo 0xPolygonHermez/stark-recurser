@@ -53,7 +53,9 @@ template Final() {
     component verifyChallenges = VerifyGlobalChallenges();
     verifyChallenges.challenges <== challenges;
     verifyChallenges.challengesFRISteps <== challengesFRISteps;
+<%  if(vadcopInfo.nPublics > 0) { -%>
     verifyChallenges.publics <== publics;
+<%  } -%>
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
     verifyChallenges.rootC[<%- i %>] <== s<%- i %>_sv_rootC;
 <%      for (let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) { -%>
