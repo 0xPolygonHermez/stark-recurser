@@ -78,8 +78,4 @@ template Final() {
 <%  } -%>
 }
 
-<%  if(vadcopInfo.nPublics > 0) { -%>
-component main {public [publics]} = Final();
-<%  } else { -%>
-component main {public []} = Final();
-<%  } -%>
+component main <%- vadcopInfo.nPublics > 0 ? "{public [publics]}" : ""%>= Final();

@@ -991,9 +991,5 @@ template <%- verifierName %>() {
 }
     
 <% if (!options.skipMain) {  -%>
-<%  if(starkInfo.nPublics > 0) { -%>
-component main {public [publics]}= <%- verifierName %>();
-<%  } else { -%> 
-component main {public []}= <%- verifierName %>();
-<%  } -%>
+component main <%- starkInfo.nPublics > 0 ? "{public [publics]}" : ""%>= <%- verifierName %>();
 <% } -%>
