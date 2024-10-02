@@ -278,7 +278,9 @@ template <%- calculateFriQueriesName %>() {
 */ 
 template <%- transcriptName %>() {
 
+<%  if(starkInfo.nPublics > 0) { -%>
     signal input publics[<%- starkInfo.nPublics %>];
+<%  } -%>
     signal input rootC[4];
 <% for(let i=0; i < starkInfo.nStages; i++) {  -%>
 <%  const stage = i + 1; -%>
@@ -302,14 +304,17 @@ template <%- transcriptName %>() {
     signal output challengesFRISteps[<%- starkStruct.steps.length + 1 %>][3];
     signal output {binary} queriesFRI[<%- starkStruct.nQueries %>][<%- starkStruct.steps[0].nBits %>];
 
-<%  if(starkInfo.starkStruct.hashCommits) { -%> 
+<%  if(starkInfo.starkStruct.hashCommits) { -%>
+<%  if(starkInfo.nPublics > 0) { -%>
     signal publicsHash[4];
+<%  } -%>
     signal evalsHash[4];
     signal lastPolFRIHash[4];
 <%  } -%>
 
 <%   const transcript = new Transcript(); -%>
 <%   transcript.put("rootC", 4  ); -%>
+<%  if(starkInfo.nPublics > 0) { -%>
 <%   if(!starkInfo.starkStruct.hashCommits) { -%>
 <%         transcript.put("publics", starkInfo.nPublics); -%>
 <%   } else { -%>
@@ -319,6 +324,7 @@ template <%- transcriptName %>() {
         transcriptPublics.getState("publicsHash"); -%>
 <%-      transcriptPublics.getCode(); %>
 <%      transcript.put("publicsHash", 4); -%>
+<%  } -%>
 <%  } -%>
 
 <%   for(let i=0; i < starkInfo.nStages; i++) {
@@ -435,7 +441,9 @@ template parallel <%- verifyEvaluationsName %>() {
     signal input challengeQ[3];
     signal input challengeXi[3];
     signal input evals[<%- starkInfo.evMap.length %>][3];
+    <%  if(starkInfo.nPublics > 0) { -%>
     signal input publics[<%- starkInfo.nPublics %>];
+    <%  } -%>
 <%  if(starkInfo.subproofValuesMap.length > 0) { -%>
     signal input subproofValues[<%- starkInfo.subproofValuesMap.length %>][3];
 <%  } -%>
@@ -699,7 +707,9 @@ template parallel <%- verifyFinalPolName %>() {
 <%  verifierName += subproofId; -%>
 <% } -%>
 template <%- verifierName %>() {
+<%  if(starkInfo.nPublics > 0) { -%>
     signal input publics[<%- starkInfo.nPublics %>]; // publics polynomials
+<%  } -%>
 <% if(starkInfo.subproofValuesMap.length > 0) { -%>
     signal input subproofValues[<%- starkInfo.subproofValuesMap.length %>][3]; // subproof values
 <% } -%>
@@ -805,7 +815,7 @@ template <%- verifierName %>() {
 
 <%  const stageRoots = []; -%> 
 <%  for(let i = 0; i < starkInfo.nStages; i++) { stageRoots.push(`root${i + 1}`) } -%>
-    (<%- challengeNames.join(",") %>,challengesFRISteps,queriesFRI) <== <%- transcriptName %>()(publics,rootC,<%- stageRoots.join(",") %>,root<%- qStage %>,evals<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPol);
+    (<%- challengeNames.join(",") %>,challengesFRISteps,queriesFRI) <== <%- transcriptName %>()(<%- starkInfo.nPublics > 0 ? "publics," : "" %>rootC,<%- stageRoots.join(",") %>,root<%- qStage %>,evals<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPol);
 
 <% } else { -%>
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
@@ -839,7 +849,7 @@ template <%- verifierName %>() {
 <%      verifyEvalsInputs.push("challengeQ"); -%>
 <%      verifyEvalsInputs.push("challengeXi"); -%>
 <%      verifyEvalsInputs.push("evals"); -%>
-<%      verifyEvalsInputs.push("publics"); -%>
+<%      if(starkInfo.nPublics > 0) verifyEvalsInputs.push("publics"); -%>
 <%      if(starkInfo.subproofValuesMap.length > 0) verifyEvalsInputs.push("subproofValues"); -%>
 <%      verifyEvalsInputs.push("enabled"); -%>
 
@@ -981,5 +991,9 @@ template <%- verifierName %>() {
 }
     
 <% if (!options.skipMain) {  -%>
+<%  if(starkInfo.nPublics > 0) { -%>
 component main {public [publics]}= <%- verifierName %>();
+<%  } else { -%> 
+component main {public []}= <%- verifierName %>();
+<%  } -%>
 <% } -%>

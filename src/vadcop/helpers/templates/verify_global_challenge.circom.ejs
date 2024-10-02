@@ -124,7 +124,9 @@ class Transcript {
 
 template VerifyGlobalChallenges() {
 
+<%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
+<%  } -%>
     signal input rootC[<%- vadcopInfo.aggTypes.length %>][4];
 <% for(let i=0; i < vadcopInfo.numChallenges.length; i++) {  -%>
 <%  const stage = i + 1; -%>

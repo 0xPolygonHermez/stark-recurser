@@ -13,7 +13,9 @@ include "select_vk.circom";
 
 template Final() {
 
+<%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
+<%  } -%>
 
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
@@ -66,10 +68,18 @@ template Final() {
 
     // Verify global constraints
     component verifyGlobalConstraints = VerifyGlobalConstraints();
+<%  if(vadcopInfo.nPublics > 0) { -%>
     verifyGlobalConstraints.publics <== publics;
+<%  } -%>
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
+<%  if(vadcopInfo.aggTypes[i].length > 0) { -%>
     verifyGlobalConstraints.s<%- i %>_subproofValues <== s<%- i %>_sv_subproofValues;
+<%  } -%>
 <%  } -%>
 }
 
+<%  if(vadcopInfo.nPublics > 0) { -%>
 component main {public [publics]} = Final();
+<%  } else { -%>
+component main {public []} = Final();
+<%  } -%>

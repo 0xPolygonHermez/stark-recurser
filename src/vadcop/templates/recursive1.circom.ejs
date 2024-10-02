@@ -18,7 +18,9 @@ template Recursive1() {
 
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, subproofId, prefix: "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
 
+<%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
+<%  } -%>
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
    
@@ -34,9 +36,10 @@ template Recursive1() {
 }
 
 <%  if(!options.hasCompressor) { -%>
-    component main {public [publics, challenges, challengesFRISteps, rootCAgg]} = Recursive1();
+    component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>challenges, challengesFRISteps, rootCAgg]} = Recursive1();
 <%  } else { -%>
-<%    publicsNames.push(...["publics", "challenges", "challengesFRISteps", "rootCAgg"]); -%>
+<%    if(vadcopInfo.nPublics > 0) publicsNames.push("publics"); -%>
+<%    publicsNames.push(...["challenges", "challengesFRISteps", "rootCAgg"]); -%>
 component main {public [<%- publicsNames.join(", ") %>]} = Recursive1();
 
 <%  } -%>

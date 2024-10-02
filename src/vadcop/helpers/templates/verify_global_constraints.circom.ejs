@@ -67,7 +67,9 @@ template VerifyGlobalConstraints() {
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
     signal input s<%- i %>_subproofValues[<%- vadcopInfo.aggTypes[i].length %>][3];
 <%  } -%>
+<%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
+<%  } -%>
 
     // Verify global constraints
 <% for(let i = 0; i < vadcopInfo.globalConstraints.length; i++) { -%>
