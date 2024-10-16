@@ -1,3 +1,5 @@
+    <%- prefix %>_circuitType <== <%- vadcopInfo.aggTypes.length > 1 ? 1 : 0 %>;
+
 <%  if(vadcopInfo.aggTypes[subproofId].length > 0) { -%>
     <%- prefix %>_aggregationTypes <== aggregationTypes;
     signal {binary} aggTypes[<%- vadcopInfo.aggTypes[subproofId].length  %>];
