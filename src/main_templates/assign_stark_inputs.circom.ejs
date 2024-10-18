@@ -1,12 +1,12 @@
-<% let subproofId; -%>
-<% if(starkInfo.subproofId !== undefined) { -%>
-<%      subproofId = starkInfo.subproofId; -%>
+<% let airgroupId; -%>
+<% if(starkInfo.airgroupId !== undefined) { -%>
+<%      airgroupId = starkInfo.airgroupId; -%>
 <% } -%>
 
 <%  let prefix_ = prefix !== "" ? `${prefix}_` : ""; -%>
 
-<%  if(!isNaN(subproofId)) { -%>
-    component <%- componentName %> = StarkVerifier<%- subproofId %>();
+<%  if(!isNaN(airgroupId)) { -%>
+    component <%- componentName %> = StarkVerifier<%- airgroupId %>();
 <%  } else { -%>
     component <%- componentName %> = StarkVerifier();
 <%  } -%>
@@ -17,8 +17,12 @@
     }
 <%  } -%>
 
-<%  if(starkInfo.subproofValuesMap.length > 0) { -%>
-    <%- componentName %>.subproofValues <== <%- prefix_ %>subproofValues;
+<%  if(starkInfo.airgroupValuesMap.length > 0) { -%>
+    <%- componentName %>.airgroupvalues <== <%- prefix_ %>airgroupvalues;
+<%  } -%>
+
+<%  if(starkInfo.airValuesMap.length > 0) { -%>
+    <%- componentName %>.airvalues <== <%- prefix_ %>airvalues;
 <%  } -%>
 
 <%  for (let s=1; s<=starkInfo.nStages + 1; ++s) { -%>

@@ -1,6 +1,6 @@
-const { generateWtnsCols } = require("pil2-stark-js/src/witness/witnessCalculator");
 const { WitnessCalculatorBuilder } = require("circom_runtime");
 const fs = require("fs");
+const { generateWtnsCols } = require("../utils/witnessCalculator");
 
 module.exports.compressorExec = async function compressorExec(F, pil, wasm, input, exec, pil2 = false) {
     const cmPols = pil2 

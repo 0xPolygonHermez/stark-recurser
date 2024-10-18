@@ -7,8 +7,8 @@ module.exports.genCircom = async function genCircom(templateFile, starkInfos = [
         options
     };
 
-    if(!isNaN(options.subproofId)) {
-        optionsCircom.subproofId = options.subproofId;
+    if(!isNaN(options.airgroupId)) {
+        optionsCircom.airgroupId = options.airgroupId;
     }
 
     if(starkInfos.length === 1) {

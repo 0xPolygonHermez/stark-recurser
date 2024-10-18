@@ -1,21 +1,19 @@
     <%- prefix %>_circuitType <== <%- vadcopInfo.aggTypes.length > 1 ? 1 : 0 %>;
 
-<%  if(vadcopInfo.aggTypes[subproofId].length > 0) { -%>
+<%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     <%- prefix %>_aggregationTypes <== aggregationTypes;
-    signal {binary} aggTypes[<%- vadcopInfo.aggTypes[subproofId].length  %>];
-    for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length  %>; i++) {
+    signal {binary} aggTypes[<%- vadcopInfo.aggTypes[airgroupId].length  %>];
+    for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length  %>; i++) {
         <%- prefix %>_aggregationTypes[i] * (<%- prefix %>_aggregationTypes[i] - 1) === 0;
         aggTypes[i] <== <%- prefix %>_aggregationTypes[i];
     }
 <%  } -%>
 <%  if(vadcopInfo.aggTypes.length > 1) { -%>
-<%  if(vadcopInfo.aggTypes[subproofId].length > 0) { -%>
-    for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length %>; i++) {
-        <%- prefix %>_subproofValues[i] <== AggregateSubproofValuesNull()(<%- prefix1 %>_subproofValues[i], <%- prefix2 %>_subproofValues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+<%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
+    for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
+        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValuesNull()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
     }
 <%  } -%>
-
-    <%- prefix %>_rootC <== AggregateValuesNull()(<%- prefix1 %>_rootC, <%- prefix2 %>_rootC, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
 
 <%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) { -%>
         <%- prefix %>_root<%- i+1 %> <== AggregateValuesNull()(<%- prefix1 %>_root<%- i+1 %>, <%- prefix2 %>_root<%- i+1 %>, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
@@ -27,13 +25,11 @@
 <%  } -%>
 <%- prefix %>_finalPolHash <== AggregateValuesNull()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
 <%  } else { -%>
-<%  if(vadcopInfo.aggTypes[subproofId].length > 0) { -%>
-    for(var i = 0; i < <%- vadcopInfo.aggTypes[subproofId].length %>; i++) {
-        <%- prefix %>_subproofValues[i] <== AggregateSubproofValues()(<%- prefix1 %>_subproofValues[i], <%- prefix2 %>_subproofValues[i], aggTypes[i]);
+<%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
+    for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
+        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValues()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i]);
     }
 <%  } -%>
-
-    <%- prefix %>_rootC <== AggregateValues()(<%- prefix1 %>_rootC, <%- prefix2 %>_rootC);
 
 <%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) { -%>
         <%- prefix %>_root<%- i+1 %> <== AggregateValues()(<%- prefix1 %>_root<%- i+1 %>, <%- prefix2 %>_root<%- i+1 %>);

@@ -1231,7 +1231,7 @@
       "stageId": 51
      }
     ],
-    "subproofValuesMap": [],
+    "airgroupValuesMap": [],
     "challengesMap": [
      {
       "name": "std_gamma",
@@ -1282,7 +1282,7 @@
     "nPublics": 44,
     "nConstants": 52,
     "nStages": 3,
-    "subproofId": 0,
+    "airgroupId": 0,
     "airId": 0,
     "starkStruct": {
      "nBits": 20,

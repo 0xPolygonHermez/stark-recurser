@@ -47,8 +47,10 @@ pragma custom_templates;
             return "consts[" + r.id + "]";
         } else if (r.type == "number") {
             return r.value;
-        } else if (r.type === "subproofValue") {
-            return "subproofValues[" + r.id + "]";
+        } else if (r.type === "airgroupvalue") {
+            return "airgroupvalues[" + r.id + "]";
+        } else if (r.type === "airvalue") {
+            return "airvalues[" + r.id + "]";
         } else {
             throw new Error("Invalid Ref: " +r.type);
         }
@@ -59,8 +61,8 @@ pragma custom_templates;
 <%      if (inst.dest.type == "tmp" && ![1,3].includes(inst.dest.dim)) {                -%>
 <%          throw new Error("Invalid dimension");                                       -%>
 <%      }                                                                               -%>
-<%      if(inst.src[0] && inst.src[0].type === "Zi") inst.src[0].dim = 3;               -%>
-<%      if(inst.src[1] && inst.src[1].type === "Zi") inst.src[1].dim = 3;               -%>
+<%      if(inst.src[0] && ["Zi", "airgroupvalue", "airvalue"].includes(inst.src[0].type)) inst.src[0].dim = 3;               -%>
+<%      if(inst.src[1] && ["Zi", "airgroupvalue", "airvalue"].includes(inst.src[1].type)) inst.src[1].dim = 3;               -%>
 <%      if (inst.op == "add") {                                                         -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
     signal <%- ref(inst.dest) %> <== <%- ref(inst.src[0]) %> + <%- ref(inst.src[1]) %>;
@@ -239,9 +241,9 @@ include "merklehash_gpu.circom";
 <% } else { -%>
 include "merklehash.circom";
 <% } -%>
-<% let subproofId; -%>
-<% if(starkInfo.subproofId !== undefined) { -%>
-<%      subproofId = starkInfo.subproofId; -%>
+<% let airgroupId; -%>
+<% if(starkInfo.airgroupId !== undefined) { -%>
+<%      airgroupId = starkInfo.airgroupId; -%>
 <% } -%>
 
 <% let qStage = starkInfo.nStages + 1; -%>
@@ -252,8 +254,8 @@ include "merklehash.circom";
     Calculate FRI Queries
 */
 <% let calculateFriQueriesName = "calculateFRIQueries"; -%>
-<% if(subproofId !== undefined) { -%>
-<%      calculateFriQueriesName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%      calculateFriQueriesName += airgroupId; -%>
 <% } -%>
 template <%- calculateFriQueriesName %>() {
     
@@ -268,8 +270,8 @@ template <%- calculateFriQueriesName %>() {
 }
 
 <% let transcriptName = "Transcript"; -%>
-<% if(subproofId !== undefined) { -%>
-<%      transcriptName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%      transcriptName += airgroupId; -%>
 <% } -%>
 <% if (!options.inputChallenges) { -%>
 
@@ -390,8 +392,8 @@ template <%- transcriptName %>() {
     Verify that FRI polynomials are built properly
 */
 <% let verifyFriName = "VerifyFRI"; -%>
-<% if(subproofId !== undefined) { -%>
-<%      verifyFriName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%      verifyFriName += airgroupId; -%>
 <% } -%>
 template parallel <%- verifyFriName %>(nBitsExt, prevStepBits, currStepBits, nextStepBits, e0) {
     var nextStep = currStepBits - nextStepBits; 
@@ -429,8 +431,8 @@ template parallel <%- verifyFriName %>(nBitsExt, prevStepBits, currStepBits, nex
 */
 
 <% let verifyEvaluationsName = "VerifyEvaluations"; -%>
-<% if(subproofId !== undefined) { -%>
-<%      verifyEvaluationsName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%      verifyEvaluationsName += airgroupId; -%>
 <% } -%>
 template parallel <%- verifyEvaluationsName %>() {
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
@@ -444,8 +446,11 @@ template parallel <%- verifyEvaluationsName %>() {
     <%  if(starkInfo.nPublics > 0) { -%>
     signal input publics[<%- starkInfo.nPublics %>];
     <%  } -%>
-<%  if(starkInfo.subproofValuesMap.length > 0) { -%>
-    signal input subproofValues[<%- starkInfo.subproofValuesMap.length %>][3];
+<%  if(starkInfo.airgroupValuesMap.length > 0) { -%>
+    signal input airgroupvalues[<%- starkInfo.airgroupValuesMap.length %>][3];
+<%  } -%>
+<%  if(starkInfo.airValuesMap.length > 0) { -%>
+    signal input airvalues[<%- starkInfo.airValuesMap.length %>][3];
 <%  } -%>
     signal input {binary} enable;
 
@@ -539,8 +544,8 @@ template parallel <%- verifyEvaluationsName %>() {
 
 /*  Calculate FRI polinomial */
 <% let calculateFRIPolName = "CalculateFRIPolValue"; -%>
-<% if(subproofId !== undefined) { -%>
-<%      calculateFRIPolName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%      calculateFRIPolName += airgroupId; -%>
 <% } -%>
 template parallel <%- calculateFRIPolName %>() {
     signal input {binary} queriesFRI[<%- starkStruct.steps[0].nBits %>];
@@ -559,8 +564,8 @@ template parallel <%- calculateFRIPolName %>() {
     signal output queryVals[3];
 
 <% let mapValuesName = "MapValues"; -%>
-<% if(subproofId !== undefined) { -%>
-<%      mapValuesName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%      mapValuesName += airgroupId; -%>
 <% } -%>
     // Map the s0_vals so that they are converted either into single vars (if they belong to base field) or arrays of 3 elements (if 
     // they belong to the extended field). 
@@ -603,8 +608,8 @@ template parallel <%- calculateFRIPolName %>() {
     during the STARK phases, is built properly
 */
 <% let verifyQueryName = "VerifyQuery"; -%>
-<% if(subproofId !== undefined) { -%>
-<%      verifyQueryName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%      verifyQueryName += airgroupId; -%>
 <% } -%>
 template parallel <%- verifyQueryName %>(currStepBits, nextStepBits) {
     var nextStep = currStepBits - nextStepBits; 
@@ -674,8 +679,8 @@ template <%- mapValuesName %>() {
 }
 
 <% let verifyFinalPolName = "VerifyFinalPol"; -%>
-<% if(subproofId !== undefined) { -%>
-<%      verifyFinalPolName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%      verifyFinalPolName += airgroupId; -%>
 <% } -%>
 template parallel <%- verifyFinalPolName %>() {
     ///////
@@ -703,15 +708,18 @@ template parallel <%- verifyFinalPolName %>() {
 }
 
 <% let verifierName = "StarkVerifier"; -%>
-<% if(subproofId !== undefined) { -%>
-<%  verifierName += subproofId; -%>
+<% if(airgroupId !== undefined) { -%>
+<%  verifierName += airgroupId; -%>
 <% } -%>
 template <%- verifierName %>() {
 <%  if(starkInfo.nPublics > 0) { -%>
     signal input publics[<%- starkInfo.nPublics %>]; // publics polynomials
 <%  } -%>
-<% if(starkInfo.subproofValuesMap.length > 0) { -%>
-    signal input subproofValues[<%- starkInfo.subproofValuesMap.length %>][3]; // subproof values
+<% if(starkInfo.airgroupValuesMap.length > 0) { -%>
+    signal input airgroupvalues[<%- starkInfo.airgroupValuesMap.length %>][3]; // airgroupvalue values
+<% } -%>
+<% if(starkInfo.airValuesMap.length > 0) { -%>
+    signal input airvalues[<%- starkInfo.airValuesMap.length %>][3]; // air values
 <% } -%>
 <% for(let i=0; i < starkInfo.nStages; i++) {  -%>
 <%  const stage = i + 1; -%>
@@ -850,7 +858,8 @@ template <%- verifierName %>() {
 <%      verifyEvalsInputs.push("challengeXi"); -%>
 <%      verifyEvalsInputs.push("evals"); -%>
 <%      if(starkInfo.nPublics > 0) verifyEvalsInputs.push("publics"); -%>
-<%      if(starkInfo.subproofValuesMap.length > 0) verifyEvalsInputs.push("subproofValues"); -%>
+<%      if(starkInfo.airgroupValuesMap.length > 0) verifyEvalsInputs.push("airgroupvalues"); -%>
+<%      if(starkInfo.airValuesMap.length > 0) verifyEvalsInputs.push("airvalues"); -%>
 <%      verifyEvalsInputs.push("enabled"); -%>
 
     <%- verifyEvaluationsName %>()(<%- verifyEvalsInputs.join(", ") %>);

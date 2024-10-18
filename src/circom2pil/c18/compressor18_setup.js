@@ -7,7 +7,7 @@ const ejs = require("ejs");
 const {M, P, S, C} = require("../../utils/hash/poseidon/poseidon_constants_opt.js");
 const { getCompressorConstraints } = require("../compressor_constraints.js");
 const { connect, log2, getKs } = require("../../utils/utils.js");
-const { generateFixedCols } = require("pil2-stark-js/src/witness/witnessCalculator");
+const { generateFixedCols } = require("../../utils/witnessCalculator.js");
 
 
 /*
@@ -63,7 +63,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
         const PilOut = protobuf.loadSync(pilOutProtoPath).lookupType("PilOut");
         let pilout = PilOut.toObject(PilOut.decode(piloutEncoded));
         
-        constPols = generateFixedCols(pilout.symbols, pil.subproofs[0].airs[0].numRows);
+        constPols = generateFixedCols(pilout.symbols, pil.airgroups[0].airs[0].numRows);
     } else {
         const pil = await compile(F, pilFile);
         constPols = generateFixedCols(pil.references, Object.values(pil.references)[0].polDeg, false);

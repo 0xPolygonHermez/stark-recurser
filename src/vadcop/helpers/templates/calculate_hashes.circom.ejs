@@ -122,6 +122,54 @@ class Transcript {
 }
 -%>
 
+template CalculateStage1Hash() {
+    signal input rootC[4];
+    signal input root1[4];
+
+<%  if(starkInfo.airValuesMap.filter(a => a.stage == 1).length > 0) { -%>
+    signal input airValues[<%- starkInfo.airValuesMap.length %>][3];
+<%  } -%>
+
+    signal output stageHash[4];
+
+<%  const transcriptStage = new Transcript(); -%>
+<%  transcriptStage.put("rootC", 4); -%>
+<%  transcriptStage.put("root1", 4); -%>
+<%    for (let j=0; j<starkInfo.airValuesMap.length; j++) { -%>
+<%        if(starkInfo.airValuesMap[j].stage == 1) { -%>
+<%            transcriptStage.put(`airValues[${j}]`, 1); -%>
+<%        } else { -%>
+   _ <== airValues[<%- j %>];
+<%        } -%>
+<%    } -%>
+<%    transcriptStage.getState(`stageHash`); -%>
+<%-     transcriptStage.getCode(); %>
+}
+
+<%  for (let i = 1; i < starkInfo.nStages; ++i) { -%>
+<%  if(starkInfo.airValuesMap.filter(a => a.stage == i + 1).length > 0) { -%>
+template CalculateStage<%- i+1 %>Hash() {
+    signal input root[4];
+    signal input airValues[<%- starkInfo.airValuesMap.length %>][3];
+
+    signal output stageHash[4];
+
+<%  const transcriptStage = new Transcript(); -%>
+<%  transcriptStage.put("root", 4); -%>
+<%    for (let j=0; j<starkInfo.airValuesMap.length; j++) { -%>
+<%        if(starkInfo.airValuesMap[j].stage == i + 1) { -%>
+<%            const dim = i == 0 ? 1 : 3; -%>
+<%            transcriptStage.put(`airValues[${j}]`, dim); -%>
+<%        } else { -%>
+   _ <== airValues[<%- j %>];
+<%        } -%>
+<%    } -%>
+<%    transcriptStage.getState(`stageHash`); -%>
+<%-     transcriptStage.getCode(); %>
+}
+<%  } -%>
+<%  } -%>
+
 template CalculateEvalsHash() {
     signal input evals[<%- starkInfo.evMap.length %>][3];
 

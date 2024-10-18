@@ -16,7 +16,7 @@ template Recursive1() {
 
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
 
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, subproofId, prefix: "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, airgroupId, prefix: "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
@@ -29,9 +29,9 @@ template Recursive1() {
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: options.hasCompressor ? false : true } }); %>
     
 <%  if(!options.hasCompressor) { -%>
-<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", subproofId, starkInfo, vadcopInfo }); %>
+<%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", airgroupId, starkInfo, vadcopInfo }); %>
 <%  } else { -%>
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo, prefix: "sv", prefixStark: "", subproofId, options: { addPrefixAggTypes: true } }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "sV", vadcopInfo, prefix: "sv", prefixStark: "", airgroupId, options: { addPrefixAggTypes: true } }); %>
 <%  } -%>
 }
 

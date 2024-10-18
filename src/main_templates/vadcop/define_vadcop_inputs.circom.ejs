@@ -4,17 +4,15 @@
     signal <%- signalType %> <%- prefix_ %>circuitType;
 <%  if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}circuitType`) -%>
 
-<%  if(vadcopInfo.aggTypes[subproofId].length > 0) { -%>
+<%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
 <%  if(!options.isAggregation) { -%>
-    signal <%- signalType %> <%- prefix_ %>aggregationTypes[<%- vadcopInfo.aggTypes[subproofId].length  %>];
+    signal <%- signalType %> <%- prefix_ %>aggregationTypes[<%- vadcopInfo.aggTypes[airgroupId].length  %>];
 <%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}aggregationTypes`) -%>
 <%  } -%>
-    signal <%- signalType %> <%- prefix_ %>subproofValues[<%- vadcopInfo.aggTypes[subproofId].length  %>][3];
-<%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}subproofValues`) -%>
+    signal <%- signalType %> <%- prefix_ %>airgroupvalues[<%- vadcopInfo.aggTypes[airgroupId].length  %>][3];
+<%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}airgroupvalues`) -%>
 <%  } -%>
 
-    signal <%- signalType %> <%- prefix_ %>rootC[4];
-<% if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}rootC`) -%>
 
 <%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) { -%>
     signal <%- signalType %> <%- prefix_ %>root<%- i + 1 %>[4];

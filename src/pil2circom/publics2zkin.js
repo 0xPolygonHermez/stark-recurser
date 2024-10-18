@@ -1,14 +1,14 @@
 
-module.exports.publics2zkin = function publics2zkin(subproofId, zkin, vadcopInfo, publics, isAggregated) {
+module.exports.publics2zkin = function publics2zkin(airgroupId, zkin, vadcopInfo, publics, isAggregated) {
     let p = 0;
     zkin.sv_aggregationTypes = [];
-    for(let i = 0; i < vadcopInfo.aggTypes[subproofId].length; ++i) {
+    for(let i = 0; i < vadcopInfo.aggTypes[airgroupId].length; ++i) {
         zkin.sv_aggregationTypes.push(publics[p++]);
     }
     zkin.sv_circuitType = publics[p++];
-    zkin.sv_subproofValues = [];
-    for(let i = 0; i < vadcopInfo.aggTypes[subproofId].length; ++i) {
-        zkin.sv_subproofValues.push([publics[p++], publics[p++], publics[p++]]);
+    zkin.sv_airgroupValues = [];
+    for(let i = 0; i < vadcopInfo.aggTypes[airgroupId].length; ++i) {
+        zkin.sv_airgroupValues.push([publics[p++], publics[p++], publics[p++]]);
     }
     zkin.sv_rootC = [publics[p++], publics[p++], publics[p++], publics[p++]];
     for(let i = 0; i <vadcopInfo.numChallenges.length + 1; ++i) {
@@ -43,13 +43,13 @@ module.exports.publics2zkin = function publics2zkin(subproofId, zkin, vadcopInfo
     return zkin;
 }
 
-module.exports.nullpublics2zkin = function nullpublics2zkin(subproofId, zkin, vadcopInfo) {
+module.exports.nullpublics2zkin = function nullpublics2zkin(airgroupId, zkin, vadcopInfo) {
     zkin.sv_circuitType = "0";
     zkin.sv_aggregationTypes = [];
-    for(let i = 0; i < vadcopInfo.aggTypes[subproofId].length; ++i) {
-        zkin.sv_aggregationTypes.push(vadcopInfo.aggTypes[subproofId][i].aggType);
+    for(let i = 0; i < vadcopInfo.aggTypes[airgroupId].length; ++i) {
+        zkin.sv_aggregationTypes.push(vadcopInfo.aggTypes[airgroupId][i].aggType);
     }
-    zkin.sv_subproofValues = new Array(vadcopInfo.aggTypes[subproofId].length).fill(["0", "0", "0"]);
+    zkin.sv_airgroupValues = new Array(vadcopInfo.aggTypes[airgroupId].length).fill(["0", "0", "0"]);
     zkin.sv_rootC = ["0", "0", "0", "0"];
     for(let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) {
         zkin[`sv_root${i+1}`] = ["0", "0", "0", "0"];

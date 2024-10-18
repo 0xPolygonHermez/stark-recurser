@@ -20,7 +20,7 @@ module.exports.isCompressorNeeded = async function isCompressorNeeded(constRoot,
     );
 
     verifierCircomTemplate +=
-        `\n\ncomponent main = StarkVerifier${starkInfo.subproofId}();\n\n`;
+        `\n\ncomponent main = StarkVerifier${starkInfo.airgroupId}();\n\n`;
     
     const nameTmp = await tmpName();
     const folder = path.dirname(nameTmp);

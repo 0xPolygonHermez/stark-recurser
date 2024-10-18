@@ -15,20 +15,20 @@ template AggregateValues() {
     valueAB <== [hash[0], hash[1], hash[2], hash[3]];
 }
 
-template AggregateSubproofValues() {
-    signal input subproofValueA[3];
-    signal input subproofValueB[3];
+template AggregateAirgroupValues() {
+    signal input airgroupValueA[3];
+    signal input airgroupValueB[3];
 
     signal input {binary} aggregationType; // 1 if aggregation is multiplication, 0 if aggregation is addition
 
-    signal output subproofValueAB[3];
+    signal output airgroupValueAB[3];
 
     signal values[2][3];
-    values[0] <== [subproofValueA[0] + subproofValueB[0], subproofValueA[1] + subproofValueB[1], subproofValueA[2] + subproofValueB[2]];
-    values[1] <== [subproofValueA[0] * subproofValueB[0], subproofValueA[1] * subproofValueB[1], subproofValueA[2] * subproofValueB[2]];
+    values[0] <== [airgroupValueA[0] + airgroupValueB[0], airgroupValueA[1] + airgroupValueB[1], airgroupValueA[2] + airgroupValueB[2]];
+    values[1] <== [airgroupValueA[0] * airgroupValueB[0], airgroupValueA[1] * airgroupValueB[1], airgroupValueA[2] * airgroupValueB[2]];
 
-    // Either add or multiply the subproofValues according to the aggregation type and then return the result
-    subproofValueAB <== MultiMux1(3)(values, aggregationType);
+    // Either add or multiply the airgroupvalues according to the aggregation type and then return the result
+    airgroupValueAB <== MultiMux1(3)(values, aggregationType);
 }
 
 
@@ -44,7 +44,7 @@ template AggregateValuesNull() {
     signal hash[12] <== Poseidon(12)([valueA[0], valueA[1], valueA[2], valueA[3], valueB[0], valueB[1], valueB[2], valueB[3]], [0,0,0,0]);
     signal hashAB[4] <== [hash[0], hash[1], hash[2], hash[3]];
 
-    // If valueA or valueB is [0,0,0], it means that the particular subproof does not have that stage. Therefore we should proceed the same way as if circuitType is null
+    // If valueA or valueB is [0,0,0], it means that the particular airgroupvalue does not have that stage. Therefore we should proceed the same way as if circuitType is null
     signal isValueA1Zero <== IsZero()(valueA[0]);
     signal isValueA2Zero <== IsZero()(valueA[1]);
     signal isValueA3Zero <== IsZero()(valueA[2]);
@@ -67,26 +67,26 @@ template AggregateValuesNull() {
     valueAB <== MultiMux2(4)([[0,0,0,0], valueA, valueB, hashAB], s);
 }
 
-template AggregateSubproofValuesNull() {
-    signal input subproofValueA[3];
-    signal input subproofValueB[3];
+template AggregateAirgroupValuesNull() {
+    signal input airgroupValueA[3];
+    signal input airgroupValueB[3];
     signal input {binary} aggregationType; // 1 if aggregation is multiplication, 0 if aggregation is addition
     signal input {binary} isNullA; // 1 if is circuit type A is 0 (null), 0 otherwise 
     signal input {binary} isNullB; // 1 if is circuit type B is 0 (null), 0 otherwise 
 
 
-    signal output subproofValueAB[3];
+    signal output airgroupValueAB[3];
 
-    // If circuit type A is null, then its subproofValue is zero;
-    signal valueA[3] <== [ (1 - isNullA)*subproofValueA[0], (1 - isNullA)*subproofValueA[1], (1 - isNullA)*subproofValueA[2] ];
+    // If circuit type A is null, then its airgroupvalue is zero;
+    signal valueA[3] <== [ (1 - isNullA)*airgroupValueA[0], (1 - isNullA)*airgroupValueA[1], (1 - isNullA)*airgroupValueA[2] ];
 
-    // If circuit type B is null, then its subproofValue is zero;
-    signal valueB[3] <== [ (1 - isNullB)*subproofValueB[0], (1 - isNullB)*subproofValueB[1], (1 - isNullB)*subproofValueB[2] ];
+    // If circuit type B is null, then its airgroupvalue is zero;
+    signal valueB[3] <== [ (1 - isNullB)*airgroupValueB[0], (1 - isNullB)*airgroupValueB[1], (1 - isNullB)*airgroupValueB[2] ];
 
     signal values[2][3];
     values[0] <== [valueA[0] + valueB[0], valueA[1] + valueB[1], valueA[2] + valueB[2]];
     values[1] <== [valueA[0] * valueB[0], valueA[1] * valueB[1], valueA[2] * valueB[2]];
 
-    // Either add or multiply the subproofValues according to the aggregation type and then return the result
-    subproofValueAB <== MultiMux1(3)(values, aggregationType);
+    // Either add or multiply the airgroupvalues according to the aggregation type and then return the result
+    airgroupValueAB <== MultiMux1(3)(values, aggregationType);
 }
