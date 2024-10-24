@@ -5,7 +5,7 @@
 
 <%  let prefix_ = prefix !== "" ? `${prefix}_` : ""; -%>
 
-<%  if(!isNaN(airgroupId)) { -%>
+<%  if(!options.final && !isNaN(airgroupId)) { -%>
     component <%- componentName %> = StarkVerifier<%- airgroupId %>();
 <%  } else { -%>
     component <%- componentName %> = StarkVerifier();
