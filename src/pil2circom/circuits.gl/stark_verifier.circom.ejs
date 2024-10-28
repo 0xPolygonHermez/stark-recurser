@@ -50,6 +50,9 @@ pragma custom_templates;
         } else if (r.type === "airgroupvalue") {
             return "airgroupvalues[" + r.id + "]";
         } else if (r.type === "airvalue") {
+            if(r.dim == 1) {
+                return "airvalues[" + r.id + "][0]";
+            }
             return "airvalues[" + r.id + "]";
         } else {
             throw new Error("Invalid Ref: " +r.type);
@@ -61,8 +64,8 @@ pragma custom_templates;
 <%      if (inst.dest.type == "tmp" && ![1,3].includes(inst.dest.dim)) {                -%>
 <%          throw new Error("Invalid dimension");                                       -%>
 <%      }                                                                               -%>
-<%      if(inst.src[0] && ["Zi", "airgroupvalue", "airvalue"].includes(inst.src[0].type)) inst.src[0].dim = 3;               -%>
-<%      if(inst.src[1] && ["Zi", "airgroupvalue", "airvalue"].includes(inst.src[1].type)) inst.src[1].dim = 3;               -%>
+<%      if(inst.src[0] && ["Zi", "airgroupvalue"].includes(inst.src[0].type)) inst.src[0].dim = 3;               -%>
+<%      if(inst.src[1] && ["Zi", "airgroupvalue"].includes(inst.src[1].type)) inst.src[1].dim = 3;               -%>
 <%      if (inst.op == "add") {                                                         -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
     signal <%- ref(inst.dest) %> <== <%- ref(inst.src[0]) %> + <%- ref(inst.src[1]) %>;
