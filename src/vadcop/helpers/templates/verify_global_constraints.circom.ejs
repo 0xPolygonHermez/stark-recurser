@@ -3,6 +3,8 @@
     function ref(r) {
         if (r.type == "public") {
             return "publics[" + r.id + "]";
+        } else if (r.type == "proofvalue") {
+            return "proofValues[" + r.id + "]";
         } else if (r.type == "tmp") {
             return "tmp_"+r.id;
         } else if (r.type == "number") {
@@ -19,8 +21,8 @@
 <%      if (inst.dest.type == "tmp" && ![1,3].includes(inst.dest.dim)) {                -%>
 <%          throw new Error("Invalid dimension");                                       -%>
 <%      }                                                                               -%>
-<%      if(inst.src[0] && inst.src[0].type === "Zi") inst.src[0].dim = 3;               -%>
-<%      if(inst.src[1] && inst.src[1].type === "Zi") inst.src[1].dim = 3;               -%>
+<%      if(inst.src[0] && inst.src[0].type === "proofvalue") inst.src[0].dim = 3;       -%>
+<%      if(inst.src[1] && inst.src[1].type === "proofvalue") inst.src[1].dim = 3;       -%>
 <%      if (inst.op == "add") {                                                         -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
     signal <%- ref(inst.dest) %> <== <%- ref(inst.src[0]) %> + <%- ref(inst.src[1]) %>;
@@ -69,6 +71,9 @@ template VerifyGlobalConstraints() {
 <%  } -%>
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
+<%  } -%>
+<%  if(vadcopInfo.numProofValues> 0) { -%>
+    signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
 <%  } -%>
 
     // Verify global constraints

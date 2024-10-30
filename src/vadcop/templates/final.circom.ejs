@@ -17,6 +17,10 @@ template Final() {
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
 
+<%  if(vadcopInfo.numProofValues > 0) { -%>
+    signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
+<%  } -%>
+
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
 
@@ -71,6 +75,9 @@ template Final() {
     component verifyGlobalConstraints = VerifyGlobalConstraints();
 <%  if(vadcopInfo.nPublics > 0) { -%>
     verifyGlobalConstraints.publics <== publics;
+<%  } -%>
+<%  if(vadcopInfo.numProofValues> 0) { -%>
+    verifyGlobalConstraints.proofValues <== proofValues;
 <%  } -%>
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%  if(vadcopInfo.aggTypes[i].length > 0) { -%>
