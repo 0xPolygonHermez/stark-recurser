@@ -79,6 +79,7 @@ template Final() {
 <%  if(vadcopInfo.numProofValues> 0) { -%>
     verifyGlobalConstraints.proofValues <== proofValues;
 <%  } -%>
+    verifyGlobalConstraints.challenges <== challenges;
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%  if(vadcopInfo.aggTypes[i].length > 0) { -%>
     verifyGlobalConstraints.s<%- i %>_airgroupvalues <== s<%- i %>_sv_airgroupvalues;

@@ -9,6 +9,8 @@
             return "tmp_"+r.id;
         } else if (r.type == "number") {
             return r.value;
+        } else if (r.type == "challenge") {
+            return "challenges[" + r.id + "]";
         } else if (r.type === "airgroupvalue") {
             return "s" + r.airgroupId + "_airgroupvalues[" + r.id + "]";
         } else {
@@ -75,6 +77,8 @@ template VerifyGlobalConstraints() {
 <%  if(vadcopInfo.numProofValues> 0) { -%>
     signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
 <%  } -%>
+
+    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
 
     // Verify global constraints
 <% for(let i = 0; i < vadcopInfo.globalConstraints.length; i++) { -%>
