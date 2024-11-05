@@ -40,10 +40,10 @@ template Recursive2() {
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vA", prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics }); %>
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vB", prefix: "b", starkInfo, nPublics: vadcopInfo.nPublics }); %>
 
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "vA", vadcopInfo, prefix: "a_sv", prefixStark: "a", airgroupId, options: { setEnableInput: vadcopInfo.aggTypes.length > 1  } }); %>
-<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "vB", vadcopInfo, prefix: "b_sv", prefixStark: "b", airgroupId, options: { setEnableInput: vadcopInfo.aggTypes.length > 1  } }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "vA", vadcopInfo, prefix: "a_sv", prefixStark: "a", airgroupId, options: { setEnableInput: (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1)  } }); %>
+<%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "vB", vadcopInfo, prefix: "b_sv", prefixStark: "b", airgroupId, options: { setEnableInput: (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1)  } }); %>
 
-<% if(vadcopInfo.aggTypes.length === 1) { -%>
+<% if(vadcopInfo.air_groups.length === 1 && vadcopInfo.airs[0].length === 1) { -%>
     vA.rootC <== SelectVerificationKey(<%- vadcopInfo.airs[airgroupId].length %>)(a_sv_circuitType, rootCBasics, rootCAgg);
     vB.rootC <== SelectVerificationKey(<%- vadcopInfo.airs[airgroupId].length %>)(b_sv_circuitType, rootCBasics, rootCAgg);
 <%  } else { -%>

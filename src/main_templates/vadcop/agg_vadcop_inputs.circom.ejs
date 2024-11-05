@@ -1,4 +1,4 @@
-    <%- prefix %>_circuitType <== <%- vadcopInfo.aggTypes.length > 1 ? 1 : 0 %>;
+    <%- prefix %>_circuitType <== <%- (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) ? 1 : 0 %>;
 
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     <%- prefix %>_aggregationTypes <== aggregationTypes;
@@ -8,7 +8,7 @@
         aggTypes[i] <== <%- prefix %>_aggregationTypes[i];
     }
 <%  } -%>
-<%  if(vadcopInfo.aggTypes.length > 1) { -%>
+<%  if(vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) { -%>
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
         <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValuesNull()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
