@@ -29,6 +29,8 @@ async function run() {
     };
     
     const pil2 = argv.pil2 || false;
+
+    console.log(pil2);
     
     const {exec, pilStr, constPols} = await compressorSetup(F, r1csFile, cols, pil2, options);
 

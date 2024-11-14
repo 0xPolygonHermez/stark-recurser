@@ -1,0 +1,167 @@
+require "std_connection.pil";
+
+function define_publics(nPublics) {
+    
+    #pragma fixed
+    for (int i = 0; i < nPublics; ++i) {
+        public pub_${i};
+    }
+}
+
+airtemplate Pil2Circom(const int N, const int nPublics) {
+    col witness a[18];
+    col fixed S[18];
+    col fixed C[18];
+    
+    col fixed POSEIDONM;
+    col fixed POSEIDONCUSTFIRST;
+    col fixed POSEIDONP;
+    col fixed POSEIDONFIRST;
+    col fixed PARTIALROUND;
+    col fixed POSEIDONAFTERPART;
+    col fixed GATE;
+    col fixed GATE2;
+    col fixed CMUL;
+    col fixed EVPOL4;
+    col fixed FFT4;
+    col fixed TREESELECTOR4;
+
+    // Check Plonk gates
+
+    // C[0] -> QM1  /  C[1] -> QL1  /  C[2] -> QR1  /  C[3] ->  QO1  /  C[4] -> QC1
+    // C[6] -> QM2  /  C[7] -> QL2  /  C[8] -> QR2  /  C[9] ->  QO2  /  C[10] -> QC2
+    // C[12] -> QM3  /  C[13] -> QL3  /  C[14] -> QR3  /  C[15] ->  QO3  /  C[16] -> QC3
+
+    const expr g012 = (C[0]*a[0]*a[1] + C[1]*a[0] + C[2]*a[1] + C[3]*a[2] + C[4]);
+    const expr g345 = (C[0]*a[3]*a[4] + C[1]*a[3] + C[2]*a[4] + C[3]*a[5] + C[4]);
+    const expr g678 = (C[6]*a[6]*a[7] + C[7]*a[6] + C[8]*a[7] + C[9]*a[8] + C[10]);
+    const expr g91011 = (C[6]*a[9]*a[10] + C[7]*a[9] + C[8]*a[10] + C[9]*a[11] + C[10]);
+    const expr g121314 = (C[12]*a[12]*a[13] + C[13]*a[12] + C[14]*a[13] + C[15]*a[14] + C[16]);
+    const expr g151617 = (C[12]*a[15]*a[16] + C[13]*a[15] + C[14]*a[16] + C[15]*a[17] + C[16]);
+    GATE * g012 === 0;
+    GATE * g345 === 0;
+    GATE * g678 === 0;
+    GATE * g91011 === 0;
+    GATE2 * g121314 === 0;
+    GATE2 * g121314 === 0;
+
+    // Extra plonk gates
+
+    // POSEIDON GATE - Check that a GL Poseidon round implemented with Neptune optimization is valid
+    
+    // Each Poseidon hash is verified in 11 rows. Inputs -> Round 1 -> Round 2 -> Round 3 -> Round 4 
+    // -> Round 15 -> Round 26 -> Round 27 -> Round 28 -> Round 29 -> Output. 
+    // At each row we verify one full rounds, and all the partial rows are verified in two rows (in the
+    // first one we check the first 11 rounds and in the second one the other 11)
+    
+    // There are two diferent Poseidon custom gates: Poseidon and CustPoseidon. The first one is a regular hash of
+    // three inputs, while the second one hashes two inputs (the third one is zero). However, in CustPoseidon custom 
+    // gate the two values to hash (value and sibling) are sent unordered and the key specifying which element is the
+    // first one and which is the second one is also provided. 
+    
+    // Order the each of the GL Poseidon inputs according to the key, which is stored in a[8]
+
+    /* TODO */
+    
+    // CMUL GATE - Check that a * b in Fp³ using (X³ - X - 1) as a generator is performed correctly
+    // In this particular case, 
+    // a = [a[3], a[4], a[5]]
+    // b = [a[6], a[7], a[8]]
+    // and this must be equal to [ a[9], a[10], a[11] ]
+    
+    // Since the modulo is known (X³ - X - 1) we can calculate the coefficients in general form by calculating 
+    // (a0 + a1*x + a2*x²)*(b0 + b1*x + b2*x²) and then using long division to get the residue when dividing by the modulo
+    // We get the following result: (a0*b0 + a1*b2 + a2*b1) + (a0*b1 + a1*b0 + a1*b2 + a2*b1 + a2*b2)x + (a0*b2 + a2*b2 + a2*b0 + a1*b1)x²
+
+    CMUL * (a[6] - (a[0]*a[3] + a[1]*a[5] + a[2]*a[4])) === 0;
+    CMUL * (a[7] - (a[0]*a[4] + a[1]*a[3] + a[1]*a[5] + a[2]*a[4] + a[2]*a[5])) === 0;
+    CMUL * (a[8] - (a[0]*a[5] + a[2]*a[5] + a[2]*a[3] + a[1]*a[4])) === 0;
+
+    CMUL * (a[15] - (a[9]*a[12] + a[10]*a[14] + a[11]*a[13])) === 0;
+    CMUL * (a[16] - (a[9]*a[13] + a[10]*a[12] + a[10]*a[14] + a[11]*a[13] + a[11]*a[14])) === 0;
+    CMUL * (a[17] - (a[9]*a[14] + a[11]*a[14] + a[11]*a[12] + a[10]*a[13])) === 0;
+
+    // FFT4 GATE
+
+    FFT4 * (a[0]' - (C[0]*a[0] + C[1]*a[3] + C[2]*a[6] + C[3]*a[9]  + C[6]*a[0] + C[7]*a[3])) === 0;
+    FFT4 * (a[1]' - (C[0]*a[1] + C[1]*a[4] + C[2]*a[7] + C[3]*a[10] + C[6]*a[1] + C[7]*a[4])) === 0;
+    FFT4 * (a[2]' - (C[0]*a[2] + C[1]*a[5] + C[2]*a[8] + C[3]*a[11] + C[6]*a[2] + C[7]*a[5])) === 0;
+    FFT4 * (a[3]' - (C[0]*a[0] - C[1]*a[3] + C[4]*a[6] - C[5]*a[9]  + C[6]*a[0] - C[7]*a[3])) === 0;
+    FFT4 * (a[4]' - (C[0]*a[1] - C[1]*a[4] + C[4]*a[7] - C[5]*a[10] + C[6]*a[1] - C[7]*a[4])) === 0;
+    FFT4 * (a[5]' - (C[0]*a[2] - C[1]*a[5] + C[4]*a[8] - C[5]*a[11] + C[6]*a[2] - C[7]*a[5])) === 0;
+    FFT4 * (a[6]' - (C[0]*a[0] + C[1]*a[3] - C[2]*a[6] - C[3]*a[9]  + C[6]*a[6] + C[8]*a[9])) === 0;
+    FFT4 * (a[7]' - (C[0]*a[1] + C[1]*a[4] - C[2]*a[7] - C[3]*a[10] + C[6]*a[7] + C[8]*a[10)) === 0;
+    FFT4 * (a[8]' - (C[0]*a[2] + C[1]*a[5] - C[2]*a[8] - C[3]*a[11] + C[6]*a[8] + C[8]*a[11])) === 0;
+    FFT4 * (a[9]' - (C[0]*a[0] - C[1]*a[3] - C[4]*a[6] + C[5]*a[9]  + C[6]*a[6] - C[8]*a[9])) === 0;
+    FFT4 * (a[10]' - (C[0]*a[1] - C[1]*a[4] - C[4]*a[7] + C[5]*a[10] + C[6]*a[7] - C[8]*a[10])) === 0;
+    FFT4 * (a[11]' - (C[0]*a[2] - C[1]*a[5] - C[4]*a[8] + C[5]*a[11] + C[6]*a[8] - C[8]*a[11])) === 0;
+
+    // EVPOL4 GATE - Check that the polynomial evaluation is valid
+    // Evaluate p(x) = d0*x⁴ + d1*x³ + d2*x²+ d3*x + d4 at point z = a[0]' + a[1]'x + a[2]'x² where
+    // d0 = a[0]' + a[1]' * x + a[2]' * x²
+    // d1 = a[9] + a[10] * x + a[11] * x²
+    // d2 = a[6] + a[7] * x + a[8] * x²
+    // d3 = a[3] + a[4] * x + a[5] * x²
+    // d4 = a[0] + a[1] * x + a[2] * x²
+    // The result must be equal to a[6]' + a[7]' * x + a[8]' * x²
+    // The evaluation is performed using the Horner's rule, which means that p(x) is rewritten as
+    // p(x) = (d0 * x + d1)*x + d2)*x + d3)*x + d4
+    // Note: All operations are performed in Fp³ and so multiplications are performed using CMulAdd
+
+    // acc = d0 * x + d1 
+    const expr acc0_0 = (a[0]'*a[3]' + a[1]'*a[5]' + a[2]'*a[4]') + a[9];
+    const expr acc0_1 = (a[0]'*a[4]' + a[1]'*a[3]' + a[1]'*a[5]' + a[2]'*a[4]' + a[2]'*a[5]') + a[10];
+    const expr acc0_2 = (a[0]'*a[5]' + a[2]'*a[5]' + a[2]'*a[3]' + a[1]'*a[4]') + a[11];
+
+    // acc1 = acc * x + d2 
+    const expr acc1_0 = (acc0_0*a[3]' + acc0_1*a[5]' + acc0_2*a[4]') + a[6];
+    const expr acc1_1 = (acc0_0*a[4]' + acc0_1*a[3]' + acc0_1*a[5]' + acc0_2*a[4]' + acc0_2*a[5]') + a[7];
+    const expr acc1_2 = (acc0_0*a[5]' + acc0_2*a[5]' + acc0_2*a[3]' + acc0_1*a[4]') + a[8];
+
+    // acc2 = acc1 * x + d3 
+    const expr acc2_0 = (acc1_0*a[3]' + acc1_1*a[5]' + acc1_2*a[4]') + a[3];
+    const expr acc2_1 = (acc1_0*a[4]' + acc1_1*a[3]' + acc1_1*a[5]' + acc1_2*a[4]' + acc1_2*a[5]') + a[4];
+    const expr acc2_2 = (acc1_0*a[5]' + acc1_2*a[5]' + acc1_2*a[3]' + acc1_1*a[4]') + a[5];
+
+    // acc4 = acc2 * x + d4 
+    const expr acc3_0 = (acc2_0*a[3]' + acc2_1*a[5]' + acc2_2*a[4]') + a[0];
+    const expr acc3_1 = (acc2_0*a[4]' + acc2_1*a[3]' + acc2_1*a[5]' + acc2_2*a[4]' + acc2_2*a[5]') + a[1];
+    const expr acc3_2 = (acc2_0*a[5]' + acc2_2*a[5]' + acc2_2*a[3]' + acc2_1*a[4]') + a[2];
+
+    EVPOL4 * (a[6]' - acc3_0) === 0;
+    EVPOL4 * (a[7]' - acc3_1) === 0;
+    EVPOL4 * (a[8]' - acc3_2) === 0;
+
+    // TREESELECTOR4 GATE - Check that given 4 values and a key, checks that the output is correct
+    // The tree is created as follows: if key = 0, even values are pushed up the tree, if the key = 1 the odd ones are pushed.
+    // Therefore, we need to check that 
+    // key == [0,0] -> [value1, value2, value3, value4] -> [value1, value3] -> [value1]
+    // key == [1,0] -> [value1, value2, value3, value4] -> [value2, value4] -> [value2]
+    // key == [0,1] -> [value1, value2, value3, value4] -> [value1, value3] -> [value3]
+    // key == [1,1] -> [value1, value2, value3, value4] -> [value2, value4] -> [value4]
+
+    // The values are stored from a[0], a[1], a[2] // a[3], a[4], a[5] // a[6], a[7], a[8] // a[9], a[10], a[11] 
+    // The key is stored in [a[12], a[13]]
+    // The output is stored in [a[14], a[15], a[16]]
+
+    TREESELECTOR4 * ((1 - a[12])*(1 - a[13]) * (a[0] - a[14])) === 0;
+    TREESELECTOR4 * ((1 - a[12])*(1 - a[13]) * (a[1] - a[15])) === 0;
+    TREESELECTOR4 * ((1 - a[12])*(1 - a[13]) * (a[2] - a[16])) === 0;
+
+    TREESELECTOR4 * ((a[12])*(1 - a[13]) * (a[3] - a[14])) === 0;
+    TREESELECTOR4 * ((a[12])*(1 - a[13]) * (a[4] - a[15])) === 0;
+    TREESELECTOR4 * ((a[12])*(1 - a[13]) * (a[5] - a[16])) === 0;
+
+    TREESELECTOR4 * (1 - a[12])*(a[13]) * (a[6] - a[14]) === 0;
+    TREESELECTOR4 * (1 - a[12])*(a[13]) * (a[7] - a[15]) === 0;
+    TREESELECTOR4 * (1 - a[12])*(a[13]) * (a[8] - a[16]) === 0;
+
+    TREESELECTOR4 * (a[12])*(a[13]) * (a[9] - a[14]) === 0;
+    TREESELECTOR4 * (a[12])*(a[13]) * (a[10] - a[15]) === 0;
+    TREESELECTOR4 * (a[12])*(a[13]) * (a[11] - a[16]) === 0;
+
+    TREESELECTOR4 * a[12]*(1 - a[12]) === 0;
+    TREESELECTOR4 * a[13]*(1 - a[13]) === 0;
+
+    connection(1, [a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17]], [S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7], S[8], S[9], S[10], S[11], S[12], S[13], S[14], S[15], S[16], S[17]]);
+}
