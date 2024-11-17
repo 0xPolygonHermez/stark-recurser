@@ -11,12 +11,11 @@ namespace Global(%N);
 namespace Compressor(%N);
     pol constant S[18];
     pol constant C[18];
-    pol constant POSEIDONM;
     pol constant POSEIDONCUSTFIRST;
-    pol constant POSEIDONP;
     pol constant POSEIDONFIRST;
-    pol constant PARTIALROUND;
-    pol constant POSEIDONAFTERPART;
+    pol constant POSEIDONPARTIALROUND;
+    pol constant POSEIDONAFTERPARTIALROUND;
+    pol constant POSEIDONFULLROUND;
     pol constant GATE;
     pol constant GATE2;
     pol constant CMUL;
@@ -102,100 +101,157 @@ namespace Compressor(%N);
     pol checkBinary = a[8] * (a[8] - 1);
     POSEIDONCUSTFIRST * checkBinary = 0;
 
+    pol custInitialPoseidonInput0 = 5*custPoseidonInput0 + 7*custPoseidonInput1 +   custPoseidonInput2 + 3*custPoseidonInput3;
+    pol custInitialPoseidonInput1 = 4*custPoseidonInput0 + 6*custPoseidonInput1 +   custPoseidonInput2 +   custPoseidonInput3;
+    pol custInitialPoseidonInput2 =   custPoseidonInput0 + 3*custPoseidonInput1 + 5*custPoseidonInput2 + 7*custPoseidonInput3;
+    pol custInitialPoseidonInput3 =   custPoseidonInput0 +   custPoseidonInput1 + 4*custPoseidonInput2 + 6*custPoseidonInput3;
+    pol custInitialPoseidonInput4 = 5*custPoseidonInput4 + 7*custPoseidonInput5 +   custPoseidonInput6 + 3*custPoseidonInput7;
+    pol custInitialPoseidonInput5 = 4*custPoseidonInput4 + 6*custPoseidonInput5 +   custPoseidonInput6 +   custPoseidonInput7;
+    pol custInitialPoseidonInput6 =   custPoseidonInput4 + 3*custPoseidonInput5 + 5*custPoseidonInput6 + 7*custPoseidonInput7;
+    pol custInitialPoseidonInput7 =   custPoseidonInput4 +   custPoseidonInput5 + 4*custPoseidonInput6 + 6*custPoseidonInput7;
+    
+    pol custAccInitialPoseidonInput0 = 2*custInitialPoseidonInput0 +   custInitialPoseidonInput4;
+    pol custAccInitialPoseidonInput1 = 2*custInitialPoseidonInput1 +   custInitialPoseidonInput5;
+    pol custAccInitialPoseidonInput2 = 2*custInitialPoseidonInput2 +   custInitialPoseidonInput6;
+    pol custAccInitialPoseidonInput3 = 2*custInitialPoseidonInput3 +   custInitialPoseidonInput7;
+    pol custAccInitialPoseidonInput4 =   custInitialPoseidonInput0 + 2*custInitialPoseidonInput4;
+    pol custAccInitialPoseidonInput5 =   custInitialPoseidonInput1 + 2*custInitialPoseidonInput5;
+    pol custAccInitialPoseidonInput6 =   custInitialPoseidonInput2 + 2*custInitialPoseidonInput6;
+    pol custAccInitialPoseidonInput7 =   custInitialPoseidonInput3 + 2*custInitialPoseidonInput7;
+
+    pol initialPoseidonInput0 = 5*a[0] + 7*a[1] +    a[2] +  3*a[3];
+    pol initialPoseidonInput1 = 4*a[0] + 6*a[1] +    a[2] +    a[3];
+    pol initialPoseidonInput2 =   a[0] + 3*a[1] +  5*a[2] +  7*a[3];
+    pol initialPoseidonInput3 =   a[0] +   a[1] +  4*a[2] +  6*a[3];
+    pol initialPoseidonInput4 = 5*a[4] + 7*a[5] +    a[6] +  3*a[7];
+    pol initialPoseidonInput5 = 4*a[4] + 6*a[5] +    a[6] +    a[7];
+    pol initialPoseidonInput6 =   a[4] + 3*a[5] +  5*a[6] +  7*a[7];
+    pol initialPoseidonInput7 =   a[4] +   a[5] +  4*a[6] +  6*a[7];
+    pol initialPoseidonInput8 = 5*a[8] + 7*a[9] +   a[10] + 3*a[11];
+    pol initialPoseidonInput9 = 4*a[8] + 6*a[9] +   a[10] +   a[11];
+    pol initialPoseidonInput10 =  a[8] + 3*a[9] + 5*a[10] + 7*a[11];
+    pol initialPoseidonInput11 =  a[8] +   a[9] + 4*a[10] + 6*a[11];
+    
+    pol accInitialPoseidonInput0 = 2*initialPoseidonInput0 +   initialPoseidonInput4 +   initialPoseidonInput8;
+    pol accInitialPoseidonInput1 = 2*initialPoseidonInput1 +   initialPoseidonInput5 +   initialPoseidonInput9;
+    pol accInitialPoseidonInput2 = 2*initialPoseidonInput2 +   initialPoseidonInput6 +   initialPoseidonInput10;
+    pol accInitialPoseidonInput3 = 2*initialPoseidonInput3 +   initialPoseidonInput7 +   initialPoseidonInput11;
+    pol accInitialPoseidonInput4 =   initialPoseidonInput0 + 2*initialPoseidonInput4 +   initialPoseidonInput8;
+    pol accInitialPoseidonInput5 =   initialPoseidonInput1 + 2*initialPoseidonInput5 +   initialPoseidonInput9;
+    pol accInitialPoseidonInput6 =   initialPoseidonInput2 + 2*initialPoseidonInput6 +   initialPoseidonInput10;
+    pol accInitialPoseidonInput7 =   initialPoseidonInput3 + 2*initialPoseidonInput7 +   initialPoseidonInput11;
+    pol accInitialPoseidonInput8 =   initialPoseidonInput0 +   initialPoseidonInput4 + 2*initialPoseidonInput8;
+    pol accInitialPoseidonInput9 =   initialPoseidonInput1 +   initialPoseidonInput5 + 2*initialPoseidonInput9;
+    pol accInitialPoseidonInput10 =  initialPoseidonInput2 +   initialPoseidonInput6 + 2*initialPoseidonInput10;
+    pol accInitialPoseidonInput11 =  initialPoseidonInput3 +   initialPoseidonInput7 + 2*initialPoseidonInput11;
+
 <% for(let r = 0; r < 24; ++r) { -%>
 <% if(r === 12) { -%>
-<% for(let i = 0; i < 12; ++i) { -%>
-<% let sumArray = []; -%>
-<% for(let j = 0; j < 12; ++j) { sumArray.push(`${M[j][i]} * a${j}_R`); } -%>
-    pol poseidonM<%- i %> = <%- sumArray.join(" + ") -%>;
-<% } -%>
+    pol poseidonFullRound_0 = 5*a0_R + 7*a1_R +    a2_R +  3*a3_R;
+    pol poseidonFullRound_1 = 4*a0_R + 6*a1_R +    a2_R +    a3_R;
+    pol poseidonFullRound_2 =   a0_R + 3*a1_R +  5*a2_R +  7*a3_R;
+    pol poseidonFullRound_3 =   a0_R +   a1_R +  4*a2_R +  6*a3_R;
+    pol poseidonFullRound_4 = 5*a4_R + 7*a5_R +    a6_R +  3*a7_R;
+    pol poseidonFullRound_5 = 4*a4_R + 6*a5_R +    a6_R +    a7_R;
+    pol poseidonFullRound_6 =   a4_R + 3*a5_R +  5*a6_R +  7*a7_R;
+    pol poseidonFullRound_7 =   a4_R +   a5_R +  4*a6_R +  6*a7_R;
+    pol poseidonFullRound_8 = 5*a8_R + 7*a9_R +   a10_R + 3*a11_R;
+    pol poseidonFullRound_9 = 4*a8_R + 6*a9_R +   a10_R +    a3_R;
+    pol poseidonFullRound_10 =  a8_R + 3*a9_R + 5*a10_R + 7*a11_R;
+    pol poseidonFullRound_11 =  a8_R +   a9_R + 4*a10_R + 6*a11_R;
 <% } -%>
 <%  if(r < 12) { -%>
+
     // Calculate the 7th power of the <%- r %>th element
 <%  if(r < 8) { -%>
-    pol inp<%- r %> = POSEIDONCUSTFIRST * (custPoseidonInput<%- r %> - a[<%- r %>]) + a[<%- r %>] + (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %>;
+    pol inp<%- r %> = POSEIDONCUSTFIRST * custAccInitialPoseidonInput<%- r %> + POSEIDONFIRST * accInitialPoseidonInput<%- r %> + (1 - (POSEIDONFIRST + POSEIDONCUSTFIRST))*a[<%- r %>];
 <%  } else { -%>
-    pol inp<%- r %> = POSEIDONCUSTFIRST * (-a[<%- r %>]) + a[<%- r %>] + (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %>;
+    pol inp<%- r %> = POSEIDONFIRST * accInitialPoseidonInput<%- r %> + (1 - POSEIDONCUSTFIRST) * a[<%- r %>];
 <%  } -%>
+    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONPARTIALROUND * <%- C[48 + r] %> + POSEIDONAFTERPARTIALROUND * <%- C[70] + r %> + (1 - (POSEIDONFULLROUND' + POSEIDONPARTIALROUND')) * <%- C[94 + r] %>;
 <%  if (r > 0) { -%>
-    pol inputP<%- r %> = PARTIALROUND * (s0_R<%- r - 1 %> - inp<%- r %>) + inp<%- r %>;
-    pol constC<%- r %> = PARTIALROUND * (<%- C[60 + r] %> - C[<%- r %>]) + C[<%- r %>];
+    pol inputP<%- r %> = (POSEIDONPARTIALROUND * (s0_R<%- r - 1 %> - inp<%- r %>) + inp<%- r %>) + constC_<%- r %>;
+<%  } else { -%>
+    pol inputP<%- r %> = inp<%- r %> + constC_<%- r %>;
+<%  } -%>
     pol a<%- r %>_2 = inputP<%- r %> * inputP<%- r %>;
     pol a<%- r %>_4 = a<%- r %>_2 * a<%- r %>_2;
     pol a<%- r %>_6 = a<%- r %>_4 * a<%- r %>_2;
-    pol a<%- r %>_R = a<%- r %>_6 * inputP<%- r %> + constC<%- r %>;
-<%  } else { -%>
-    // Calculate the 7th power of the <%- r %>th element
-    pol constC<%- r %> = PARTIALROUND * (<%- C[60 + r] %> - C[<%- r %>]) + C[<%- r %>];
-    pol a<%- r %>_2 = inp<%- r %> * inp<%- r %>;
-    pol a<%- r %>_4 = a<%- r %>_2 * a<%- r %>_2;
-    pol a<%- r %>_6 = a<%- r %>_4 * a<%- r %>_2;
-    pol a<%- r %>_R = a<%- r %>_6 * inp<%- r %> + constC<%- r %>;
-<%  } -%>
+    pol a<%- r %>_R = a<%- r %>_6 * inputP<%- r %>;
 <% } else { -%>
-<%  if (r < 22) { -%>
-
+    
     // Calculate the 7th power of the <%- r %>th element
-    pol inputP<%- r %> = PARTIALROUND * (s0_R<%- r - 1 %> - poseidonM<%- r - 12 %>) + poseidonM<%- r - 12 %>;
-    pol constC_<%- r %> = PARTIALROUND * <%- C[60 + r] %> + (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[12 + r] %> + POSEIDONP * <%- C[36 + r] %> + POSEIDONAFTERPART * <%- C[82 + r] %>;
+<%  if (r < 22) { -%>
+    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONPARTIALROUND * <%- C[48 + r] %> + POSEIDONAFTERPARTIALROUND * <%- C[70] + r %> + (1 - (POSEIDONFULLROUND' + POSEIDONPARTIALROUND')) * <%- C[94 + r] %>;
+    pol inputP<%- r %> = (POSEIDONPARTIALROUND * (s0_R<%- r - 1 %> - poseidonFullRound_<%- r - 12 %>) + poseidonFullRound_<%- r - 12 %>) + constC_<%- r %>;    
+<%  } else { -%>
+    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONAFTERPARTIALROUND * <%- C[70 + r] %> + (1 - (POSEIDONFULLROUND' + POSEIDONPARTIALROUND')) * <%- C[94 + r] %>;
+    pol inputP<%- r %> = poseidonFullRound_<%- r - 12 %> + constC_<%- r %>;
+<%  } -%>
     pol a<%- r %>_2 = inputP<%- r %> * inputP<%- r %>;
     pol a<%- r %>_4 = a<%- r %>_2 * a<%- r %>_2;
     pol a<%- r %>_6 = a<%- r %>_4 * a<%- r %>_2;
-    pol a<%- r %>_R = a<%- r %>_6 * inputP<%- r %> + constC_<%- r %>;
-<%  } else { -%>
-
-    pol constC_<%- r %> = POSEIDONAFTERPART * <%- C[82 + r] %> + POSEIDONP * <%- C[36 + r] %> + (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[12 + r] %>;
-    pol a<%- r %>_2 = poseidonM<%- r - 12 %> * poseidonM<%- r - 12 %>;
-    pol a<%- r %>_4 = a<%- r %>_2 * a<%- r %>_2;
-    pol a<%- r %>_6 = a<%- r %>_4 * a<%- r %>_2;
-    pol a<%- r %>_R = a<%- r %>_6 * poseidonM<%- r - 12 %> + constC_<%- r %>;
-<%  } -%>
+    pol a<%- r %>_R = a<%- r %>_6 * inputP<%- r %>;
 
 <% } -%>
 <% if(r < 22) { -%>
-<% let sumArray = []; -%>
+<% if(r == 0) { -%>
+    pol sum_partial<%- r %> = a<%- r %>_R + a[1] + a[2] + a[3]+ a[4] + a[5] + a[6] + a[7] + a[8] + a[9] + a[10] + a[11];
+<% } else { -%>
+    pol sum_partial<%- r %> = a<%- r %>_R + s1_R<%- r - 1 %> + s2_R<%- r - 1 %> + s3_R<%- r - 1 %> + s4_R<%- r - 1 %> + s5_R<%- r - 1 %> + s6_R<%- r - 1 %> + s7_R<%- r - 1 %> + s8_R<%- r - 1 %> + s9_R<%- r - 1 %> + s10_R<%- r - 1 %> + s11_R<%- r - 1 %>;
+<% } -%>
+   
 <%  for(let j = 0; j < 12; ++j) { -%>
-<%      if(r == 0) { -%>
-<%          if(j == 0) { -%>
-<%              sumArray.push(`${SS[23*r + j]} * a${r}_R`); -%>
-<%          } else { -%>
-<%              sumArray.push(`${SS[23*r + j]} * a[${j}]`); -%>
-<%          } -%>
-<%      } else { -%>
-<%          if(j == 0) { -%>
-<%              sumArray.push(`${SS[23*r + j]} * a${r}_R`); -%>
-<%          } else { -%>
-<%              sumArray.push(`${SS[23*r + j]} * s${j}_R${r - 1}`); -%>
-<%          } -%>
-<%      }  -%>
-<%  } -%>
-
-<%  if(r == 21) { -%>
-    PARTIALROUND * (a[0]' - (<%- sumArray.join(" + ") %>)) = 0;
-<%  } else { -%>
-    pol s0_R<%- r  %> = <%- sumArray.join(" + ") %>;
-<%  } -%>
-<%  for(let j = 1; j < 12; ++j) { -%>
 <%    if(r == 21) { -%>
-    PARTIALROUND * (a[<%- j %>]' - ( <%- `s${j}_R${r - 1}` %> + a<%- r %>_R * <%- SS[23 * r + 11 + j] %>)) = 0;
+<%        if(j == 0) { -%>
+    POSEIDONPARTIALROUND * (a[<%- j %>]' - (a<%- r%>_R*<%- D[j] %> + sum_partial<%- r %>)) = 0;
+<%        } else { -%>
+    POSEIDONPARTIALROUND * (a[<%- j %>]' - (s<%- j %>_R<%- r - 1 %>*<%- D[j] %> + sum_partial<%- r %>)) = 0;
+<%        } -%>
 <%    } else { -%>
-    pol s<%- j %>_R<%- r %> = <%- r === 0 ? `a[${j}]` : `s${j}_R${r - 1}` %> + a<%- r %>_R * <%- SS[23 * r + 11 + j] %>;
+<%    if(r == 0) { -%>
+<%        if(j == 0) { -%>
+    pol s<%- j %>_R<%- r %> = a0_R*<%- D[j] %> + sum_partial<%- r %>;
+<%        } else { -%>
+    pol s<%- j %>_R<%- r %> = a[<%- j %>]*<%- D[j] %> + sum_partial<%- r %>;
+<%        } -%>
+<%    } else { -%>
+<%        if(j == 0) { -%>
+    pol s<%- j %>_R<%- r %> = a<%- r%>_R*<%- D[j] %> + sum_partial<%- r %>;
+<%        } else { -%>
+    pol s<%- j %>_R<%- r %> = s<%- j %>_R<%- r - 1 %>*<%- D[j] %> + sum_partial<%- r %>;
+<%        } -%>
+<%    } -%>
 <%  } -%>
 <%  } -%>
 <%  } -%>
 <%  } -%>
+    
+    pol poseidonFullRound_12 = 5*a12_R + 7*a13_R +   a14_R + 3*a15_R;
+    pol poseidonFullRound_13 = 4*a12_R + 6*a13_R +   a14_R +   a15_R;
+    pol poseidonFullRound_14 =   a12_R + 3*a13_R + 5*a14_R + 7*a15_R;
+    pol poseidonFullRound_15 =   a12_R +   a13_R + 4*a14_R + 6*a15_R;
+    pol poseidonFullRound_16 = 5*a16_R + 7*a17_R +   a18_R + 3*a19_R;
+    pol poseidonFullRound_17 = 4*a16_R + 6*a17_R +   a18_R +   a19_R;
+    pol poseidonFullRound_18 =   a16_R + 3*a17_R + 5*a18_R + 7*a19_R;
+    pol poseidonFullRound_19 =   a16_R +   a17_R + 4*a18_R + 6*a19_R;
+    pol poseidonFullRound_20 = 5*a20_R + 7*a21_R +   a22_R + 3*a23_R;
+    pol poseidonFullRound_21 = 4*a20_R + 6*a21_R +   a22_R +   a23_R;
+    pol poseidonFullRound_22 =   a20_R + 3*a21_R + 5*a22_R + 7*a23_R;
+    pol poseidonFullRound_23 =   a20_R +   a21_R + 4*a22_R + 6*a23_R;
 
-<% for(let i = 0; i < 12; ++i) { -%>
-<% let sumArray = []; -%>
-<% for(let j = 0; j < 12; ++j) { sumArray.push(`${P[j][i]} * a${j + 12}_R`); } -%>
-    POSEIDONP * (a[<%- i %>]' - (<%- sumArray.join(" + ") -%>)) = 0;
-<% } -%>
-            
-<% for(let i = 0; i < 12; ++i) { -%>
-<% let sumArray = []; -%>
-<% for(let j = 0; j < 12; ++j) { sumArray.push(`${M[j][i]} * a${j + 12}_R`); } -%>
-    POSEIDONM * (a[<%- i %>]' - (<%- sumArray.join(" + ") -%>)) = 0;
-<% } -%>
+    POSEIDONFULLROUND * (a[0]' -  (2*poseidonFullRound_12 +   poseidonFullRound_16 +   poseidonFullRound_20) ) = 0;
+    POSEIDONFULLROUND * (a[1]' -  (2*poseidonFullRound_13 +   poseidonFullRound_17 +   poseidonFullRound_21) ) = 0;
+    POSEIDONFULLROUND * (a[2]' -  (2*poseidonFullRound_14 +   poseidonFullRound_18 +   poseidonFullRound_22)) = 0;
+    POSEIDONFULLROUND * (a[3]' -  (2*poseidonFullRound_15 +   poseidonFullRound_19 +   poseidonFullRound_23)) = 0;
+    POSEIDONFULLROUND * (a[4]' -  (  poseidonFullRound_12 + 2*poseidonFullRound_16 +   poseidonFullRound_20) ) = 0;
+    POSEIDONFULLROUND * (a[5]' -  (  poseidonFullRound_13 + 2*poseidonFullRound_17 +   poseidonFullRound_21) ) = 0;
+    POSEIDONFULLROUND * (a[6]' -  (  poseidonFullRound_14 + 2*poseidonFullRound_18 +   poseidonFullRound_22)) = 0;
+    POSEIDONFULLROUND * (a[7]' -  (  poseidonFullRound_15 + 2*poseidonFullRound_19 +   poseidonFullRound_23)) = 0;
+    POSEIDONFULLROUND * (a[8]' -  (  poseidonFullRound_12 +   poseidonFullRound_16 + 2*poseidonFullRound_20) ) = 0;
+    POSEIDONFULLROUND * (a[9]' -  (  poseidonFullRound_13 +   poseidonFullRound_17 + 2*poseidonFullRound_21) ) = 0;
+    POSEIDONFULLROUND * (a[10]' - (  poseidonFullRound_14 +   poseidonFullRound_18 + 2*poseidonFullRound_22)) = 0;
+    POSEIDONFULLROUND * (a[11]' - (  poseidonFullRound_15 +   poseidonFullRound_19 + 2*poseidonFullRound_23)) = 0;
 
     // CMUL GATE - Check that a * b in Fp³ using (X³ - X - 1) as a generator is performed correctly
     // In this particular case, 
