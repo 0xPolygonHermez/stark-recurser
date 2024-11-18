@@ -4,7 +4,7 @@ const path = require("path");
 const {tmpName} = require("tmp-promise");
 const { compile } = require("pilcom");
 const ejs = require("ejs");
-const {M, P, S, C} = require("../../utils/hash/poseidon/poseidon_constants_opt.js");
+const {D, C} = require("../../utils/hash/poseidon/poseidon2_constants.js");
 const { getCompressorConstraints } = require("../compressor_constraints.js");
 const { connect, log2, getKs } = require("../../utils/utils.js");
 const { generateFixedCols } = require("../../utils/witnessCalculator.js");
@@ -40,9 +40,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     const obj = {
         nBits: nBits,
         nPublics: nPublics,
-        M,
-        SS: S,
-        P,
+        D,
         C,
         committedPols,
     };
