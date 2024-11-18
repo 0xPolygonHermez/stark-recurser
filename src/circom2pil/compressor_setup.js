@@ -3,7 +3,7 @@ const plonkSetupC18 = require("./c18/compressor18_setup.js");
 const plonkSetupC12 = require("./c12/compressor12_setup.js");
 const { writeExecFile } = require("./compressor_exec.js");
 
-module.exports.compressorSetup = async function compressorSetup(F, r1csFile, cols, pil2, options = {}) {
+module.exports.compressorSetup = async function compressorSetup(F, r1csFile, constFile, cols, pil2, options = {}) {
     const r1cs = await readR1cs(r1csFile, {F: F, logger:console });
 
     if(![12,18].includes(cols)) throw new Error("Invalid number of cols");
@@ -17,5 +17,7 @@ module.exports.compressorSetup = async function compressorSetup(F, r1csFile, col
 
     const exec = await writeExecFile(res.plonkAdditions, res.sMap);
 
-    return {exec, pilStr: res.pilStr, constPols: res.constPols, nBits: res.nBits};
+    res.constPols.saveToFile(constFile);
+
+    return {exec, pilStr: res.pilStr, nBits: res.nBits};
 }
