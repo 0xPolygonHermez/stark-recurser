@@ -567,6 +567,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     return {
         pilStr: pilStr,
         constPols: constPols,
+        nBits: nBits,
         sMap: sMap,
         plonkAdditions: plonkAdditions
     };
