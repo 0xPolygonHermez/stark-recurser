@@ -148,7 +148,7 @@ class Transcript {
     }`)
             }  
         }
-        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[12] <== Poseidon(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[12] <== Poseidon2(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
         for (let i=0; i<12; i++) {
             this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         }
@@ -238,7 +238,7 @@ class Transcript {
 
 include "cmul.circom";
 include "cinv.circom";
-include "poseidon.circom";
+include "poseidon2.circom";
 include "bitify.circom";
 include "fft.circom";
 include "evalpol.circom";
