@@ -10,11 +10,11 @@ namespace Global(%N);
 
 namespace Compressor(%N);
     pol constant S[18];
-    pol constant C[18];
+    pol constant C[15];
     pol constant POSEIDONCUSTFIRST;
     pol constant POSEIDONFIRST;
     pol constant POSEIDONPARTIALROUND;
-    pol constant POSEIDONAFTERPARTIALROUND;
+    pol constant POSEIDONFINALROUND;
     pol constant POSEIDONFULLROUND;
     pol constant GATE;
     pol constant GATE2;
@@ -39,17 +39,17 @@ namespace Compressor(%N);
     // C[3] -> Qo1
     // C[4] -> Qc1
     
-    // C[6] -> Qm2
-    // C[7] -> Ql2
-    // C[8] -> Qr2
-    // C[9] -> Qo2
-    // C[10]-> Qc2
+    // C[5] -> Qm2
+    // C[6] -> Ql2
+    // C[7] -> Qr2
+    // C[8] -> Qo2
+    // C[9]-> Qc2
 
-    // C[12] -> Qm3
-    // C[13] -> Ql3
-    // C[14] -> Qr3
-    // C[15] -> Qo3
-    // C[16] -> Qc3
+    // C[10] -> Qm3
+    // C[11] -> Ql3
+    // C[12] -> Qr3
+    // C[13] -> Qo3
+    // C[14] -> Qc3
 
 
     pol a01 = a[0]*a[1];
@@ -61,19 +61,19 @@ namespace Compressor(%N);
     g345*GATE = 0;
 
     pol a67 = a[6]*a[7];
-    pol g678 = C[6]*a67 + C[7]*a[6] + C[8]*a[7] + C[9]*a[8] + C[10];
+    pol g678 = C[5]*a67 + C[6]*a[6] + C[7]*a[7] + C[8]*a[8] + C[9];
     g678*GATE = 0;
 
     pol a910 = a[9]*a[10];
-    pol g91011 = C[6]*a910 + C[7]*a[9] + C[8]*a[10] + C[9]*a[11] + C[10];
+    pol g91011 = C[5]*a910 + C[6]*a[9] + C[7]*a[10] + C[8]*a[11] + C[9];
     g91011*GATE = 0;
 
     pol a1213 = a[12]*a[13];
-    pol g121314 = C[12]*a1213 + C[13]*a[12] + C[14]*a[13] + C[15]*a[14] + C[16];
+    pol g121314 = C[10]*a1213 + C[11]*a[12] + C[12]*a[13] + C[13]*a[14] + C[14];
     g121314*GATE2 = 0;
 
     pol a1516 = a[15]*a[16];
-    pol g151617 = C[12]*a1516 + C[13]*a[15] + C[14]*a[16] + C[15]*a[17] + C[16];
+    pol g151617 = C[10]*a1516 + C[11]*a[15] + C[12]*a[16] + C[13]*a[17] + C[14];
     g151617*GATE2 = 0;
 
 
@@ -118,6 +118,10 @@ namespace Compressor(%N);
     pol custAccInitialPoseidonInput5 =   custInitialPoseidonInput1 + 2*custInitialPoseidonInput5;
     pol custAccInitialPoseidonInput6 =   custInitialPoseidonInput2 + 2*custInitialPoseidonInput6;
     pol custAccInitialPoseidonInput7 =   custInitialPoseidonInput3 + 2*custInitialPoseidonInput7;
+    pol custAccInitialPoseidonInput8 =   custInitialPoseidonInput0 + custInitialPoseidonInput4;
+    pol custAccInitialPoseidonInput9 =   custInitialPoseidonInput1 + custInitialPoseidonInput5;
+    pol custAccInitialPoseidonInput10 =   custInitialPoseidonInput2 + custInitialPoseidonInput6;
+    pol custAccInitialPoseidonInput11 =   custInitialPoseidonInput3 + custInitialPoseidonInput7;
 
     pol initialPoseidonInput0 = 5*a[0] + 7*a[1] +    a[2] +  3*a[3];
     pol initialPoseidonInput1 = 4*a[0] + 6*a[1] +    a[2] +    a[3];
@@ -147,6 +151,7 @@ namespace Compressor(%N);
 
 <% for(let r = 0; r < 24; ++r) { -%>
 <% if(r === 12) { -%>
+
     pol poseidonFullRound_0 = 5*a0_R + 7*a1_R +    a2_R +  3*a3_R;
     pol poseidonFullRound_1 = 4*a0_R + 6*a1_R +    a2_R +    a3_R;
     pol poseidonFullRound_2 =   a0_R + 3*a1_R +  5*a2_R +  7*a3_R;
@@ -156,19 +161,33 @@ namespace Compressor(%N);
     pol poseidonFullRound_6 =   a4_R + 3*a5_R +  5*a6_R +  7*a7_R;
     pol poseidonFullRound_7 =   a4_R +   a5_R +  4*a6_R +  6*a7_R;
     pol poseidonFullRound_8 = 5*a8_R + 7*a9_R +   a10_R + 3*a11_R;
-    pol poseidonFullRound_9 = 4*a8_R + 6*a9_R +   a10_R +    a3_R;
+    pol poseidonFullRound_9 = 4*a8_R + 6*a9_R +   a10_R +   a11_R;
     pol poseidonFullRound_10 =  a8_R + 3*a9_R + 5*a10_R + 7*a11_R;
     pol poseidonFullRound_11 =  a8_R +   a9_R + 4*a10_R + 6*a11_R;
+
+    pol stored0 = poseidonFullRound_0 + poseidonFullRound_4 + poseidonFullRound_8;
+    pol stored1 = poseidonFullRound_1 + poseidonFullRound_5 + poseidonFullRound_9;
+    pol stored2 = poseidonFullRound_2 + poseidonFullRound_6 + poseidonFullRound_10;
+    pol stored3 = poseidonFullRound_3 + poseidonFullRound_7 + poseidonFullRound_11;
+
+    pol accPoseidonFullRound_0  = (poseidonFullRound_0 + stored0);
+    pol accPoseidonFullRound_1  = (poseidonFullRound_1 + stored1);
+    pol accPoseidonFullRound_2  = (poseidonFullRound_2 + stored2);
+    pol accPoseidonFullRound_3  = (poseidonFullRound_3 + stored3);
+    pol accPoseidonFullRound_4  = (poseidonFullRound_4 + stored0);
+    pol accPoseidonFullRound_5  = (poseidonFullRound_5 + stored1);
+    pol accPoseidonFullRound_6  = (poseidonFullRound_6 + stored2);
+    pol accPoseidonFullRound_7  = (poseidonFullRound_7 + stored3);
+    pol accPoseidonFullRound_8  = (poseidonFullRound_8 + stored0);
+    pol accPoseidonFullRound_9  = (poseidonFullRound_9 + stored1);
+    pol accPoseidonFullRound_10 = (poseidonFullRound_10 + stored2);
+    pol accPoseidonFullRound_11 = (poseidonFullRound_11 + stored3);
+
 <% } -%>
 <%  if(r < 12) { -%>
-
     // Calculate the 7th power of the <%- r %>th element
-<%  if(r < 8) { -%>
     pol inp<%- r %> = POSEIDONCUSTFIRST * custAccInitialPoseidonInput<%- r %> + POSEIDONFIRST * accInitialPoseidonInput<%- r %> + (1 - (POSEIDONFIRST + POSEIDONCUSTFIRST))*a[<%- r %>];
-<%  } else { -%>
-    pol inp<%- r %> = POSEIDONFIRST * accInitialPoseidonInput<%- r %> + (1 - POSEIDONCUSTFIRST) * a[<%- r %>];
-<%  } -%>
-    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONPARTIALROUND * <%- C[48 + r] %> + POSEIDONAFTERPARTIALROUND * <%- C[70] + r %> + (1 - (POSEIDONFULLROUND' + POSEIDONPARTIALROUND')) * <%- C[94 + r] %>;
+    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONPARTIALROUND * <%- C[48 + r] %> + POSEIDONFINALROUND' * <%- C[70 + r] %> + POSEIDONFINALROUND * <%- C[94 + r] %>;
 <%  if (r > 0) { -%>
     pol inputP<%- r %> = (POSEIDONPARTIALROUND * (s0_R<%- r - 1 %> - inp<%- r %>) + inp<%- r %>) + constC_<%- r %>;
 <%  } else { -%>
@@ -182,11 +201,11 @@ namespace Compressor(%N);
     
     // Calculate the 7th power of the <%- r %>th element
 <%  if (r < 22) { -%>
-    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONPARTIALROUND * <%- C[48 + r] %> + POSEIDONAFTERPARTIALROUND * <%- C[70] + r %> + (1 - (POSEIDONFULLROUND' + POSEIDONPARTIALROUND')) * <%- C[94 + r] %>;
-    pol inputP<%- r %> = (POSEIDONPARTIALROUND * (s0_R<%- r - 1 %> - poseidonFullRound_<%- r - 12 %>) + poseidonFullRound_<%- r - 12 %>) + constC_<%- r %>;    
+    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONPARTIALROUND * <%- C[48 + r] %> + POSEIDONFINALROUND' * <%- C[70 + r] %> + POSEIDONFINALROUND * <%- C[94 + r] %>;
+    pol inputP<%- r %> = (POSEIDONPARTIALROUND * (s0_R<%- r - 1 %> - accPoseidonFullRound_<%- r - 12 %>) + accPoseidonFullRound_<%- r - 12 %>) + constC_<%- r %>;    
 <%  } else { -%>
-    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONAFTERPARTIALROUND * <%- C[70 + r] %> + (1 - (POSEIDONFULLROUND' + POSEIDONPARTIALROUND')) * <%- C[94 + r] %>;
-    pol inputP<%- r %> = poseidonFullRound_<%- r - 12 %> + constC_<%- r %>;
+    pol constC_<%- r %> = (POSEIDONFIRST + POSEIDONCUSTFIRST) * <%- C[r] %> + POSEIDONPARTIALROUND' * <%- C[24 + r] %> + POSEIDONFINALROUND' * <%- C[70 + r] %> + POSEIDONFINALROUND * <%- C[94 + r] %>;
+    pol inputP<%- r %> = accPoseidonFullRound_<%- r - 12 %> + constC_<%- r %>;
 <%  } -%>
     pol a<%- r %>_2 = inputP<%- r %> * inputP<%- r %>;
     pol a<%- r %>_4 = a<%- r %>_2 * a<%- r %>_2;
@@ -240,18 +259,23 @@ namespace Compressor(%N);
     pol poseidonFullRound_22 =   a20_R + 3*a21_R + 5*a22_R + 7*a23_R;
     pol poseidonFullRound_23 =   a20_R +   a21_R + 4*a22_R + 6*a23_R;
 
-    POSEIDONFULLROUND * (a[0]' -  (2*poseidonFullRound_12 +   poseidonFullRound_16 +   poseidonFullRound_20) ) = 0;
-    POSEIDONFULLROUND * (a[1]' -  (2*poseidonFullRound_13 +   poseidonFullRound_17 +   poseidonFullRound_21) ) = 0;
-    POSEIDONFULLROUND * (a[2]' -  (2*poseidonFullRound_14 +   poseidonFullRound_18 +   poseidonFullRound_22)) = 0;
-    POSEIDONFULLROUND * (a[3]' -  (2*poseidonFullRound_15 +   poseidonFullRound_19 +   poseidonFullRound_23)) = 0;
-    POSEIDONFULLROUND * (a[4]' -  (  poseidonFullRound_12 + 2*poseidonFullRound_16 +   poseidonFullRound_20) ) = 0;
-    POSEIDONFULLROUND * (a[5]' -  (  poseidonFullRound_13 + 2*poseidonFullRound_17 +   poseidonFullRound_21) ) = 0;
-    POSEIDONFULLROUND * (a[6]' -  (  poseidonFullRound_14 + 2*poseidonFullRound_18 +   poseidonFullRound_22)) = 0;
-    POSEIDONFULLROUND * (a[7]' -  (  poseidonFullRound_15 + 2*poseidonFullRound_19 +   poseidonFullRound_23)) = 0;
-    POSEIDONFULLROUND * (a[8]' -  (  poseidonFullRound_12 +   poseidonFullRound_16 + 2*poseidonFullRound_20) ) = 0;
-    POSEIDONFULLROUND * (a[9]' -  (  poseidonFullRound_13 +   poseidonFullRound_17 + 2*poseidonFullRound_21) ) = 0;
-    POSEIDONFULLROUND * (a[10]' - (  poseidonFullRound_14 +   poseidonFullRound_18 + 2*poseidonFullRound_22)) = 0;
-    POSEIDONFULLROUND * (a[11]' - (  poseidonFullRound_15 +   poseidonFullRound_19 + 2*poseidonFullRound_23)) = 0;
+    pol stored4 = poseidonFullRound_12 + poseidonFullRound_16 + poseidonFullRound_20;
+    pol stored5 = poseidonFullRound_13 + poseidonFullRound_17 + poseidonFullRound_21;
+    pol stored6 = poseidonFullRound_14 + poseidonFullRound_18 + poseidonFullRound_22;
+    pol stored7 = poseidonFullRound_15 + poseidonFullRound_19 + poseidonFullRound_23;
+
+    POSEIDONFULLROUND * (a[0]' -  (poseidonFullRound_12 + stored4)) = 0;
+    POSEIDONFULLROUND * (a[1]' -  (poseidonFullRound_13 + stored5)) = 0;
+    POSEIDONFULLROUND * (a[2]' -  (poseidonFullRound_14 + stored6)) = 0;
+    POSEIDONFULLROUND * (a[3]' -  (poseidonFullRound_15 + stored7)) = 0;
+    POSEIDONFULLROUND * (a[4]' -  (poseidonFullRound_16 + stored4)) = 0;
+    POSEIDONFULLROUND * (a[5]' -  (poseidonFullRound_17 + stored5)) = 0;
+    POSEIDONFULLROUND * (a[6]' -  (poseidonFullRound_18 + stored6)) = 0;
+    POSEIDONFULLROUND * (a[7]' -  (poseidonFullRound_19 + stored7)) = 0;
+    POSEIDONFULLROUND * (a[8]' -  (poseidonFullRound_20 + stored4)) = 0;
+    POSEIDONFULLROUND * (a[9]' -  (poseidonFullRound_21 + stored5)) = 0;
+    POSEIDONFULLROUND * (a[10]' - (poseidonFullRound_22 + stored6)) = 0;
+    POSEIDONFULLROUND * (a[11]' - (poseidonFullRound_23 + stored7)) = 0;
 
     // CMUL GATE - Check that a * b in Fp³ using (X³ - X - 1) as a generator is performed correctly
     // In this particular case, 
@@ -417,14 +441,3 @@ namespace Compressor(%N);
     TREESELECTOR4 * treeSelect4_2 = 0;
     TREESELECTOR4 * treeSelect4_3 = 0;
 
-
-    // Check connection equations of Plonk
-<% 
-    let a = [];
-    let S = [];
-    for(let i = 0; i < 18; ++i) {
-        a.push(`a[${i}]`);
-        S.push(`S[${i}]`);
-    }
--%>
-    { <%- a.join(',') %> } connect { <%- S.join(',')  %> }

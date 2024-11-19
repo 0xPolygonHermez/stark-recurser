@@ -1,5 +1,6 @@
 const chai = require("chai");
 const path = require("path");
+const getPoseidon2 = require("../../../src/utils/hash/poseidon/poseidon2");
 
 const wasm_tester = require("circom_tester").wasm;
 
@@ -19,8 +20,12 @@ describe("Poseidon2 Circuit Test", function () {
             capacity: [8,9,10,11]
         };
 
+        const poseidon2 = await getPoseidon2();
+        
+        const res = poseidon2([0,1,2,3,4,5,6,7], [8,9,10,11]);
+
         const w = await circuit.calculateWitness(input, true);
         
-        await circuit.assertOut(w, {out: [138186169299091649n, 2237493815125627916n, 7098449130000758157n, 16681569560651424230n] });
+        await circuit.assertOut(w, {out: res });
     });
 });
