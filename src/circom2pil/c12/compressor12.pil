@@ -1,4 +1,4 @@
-// require "std_connection.pil";
+require "std_connection.pil";
 
 function define_publics(int nPublics) {
     public pub[nPublics];
@@ -7,8 +7,6 @@ function define_publics(int nPublics) {
 airtemplate Circom2Pil(const int N = 2**17) {
     col witness a[12];
    
-    require "compressor12_fixed.pil";
-
     // Check Plonk gates
 
     // C[0] -> QM1  /  C[1] -> QL1  /  C[2] -> QR1  /  C[3] ->  QO1  /  C[4] -> QC1
@@ -535,5 +533,5 @@ airtemplate Circom2Pil(const int N = 2**17) {
     TREESELECTOR4 * a[6]'*(1 - a[6]') === 0;
     TREESELECTOR4 * a[7]'*(1 - a[7]') === 0;
 
-    // connection(1, [a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11]], [S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7], S[8], S[9], S[10], S[11]]);
+    connection(1, [a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11]], [S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7], S[8], S[9], S[10], S[11]]);
 }

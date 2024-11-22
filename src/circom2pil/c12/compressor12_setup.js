@@ -9,6 +9,7 @@ const { getCompressorConstraints } = require("../compressor_constraints.js");
 const { log2, getKs, connect } = require("../../utils/utils.js");
 const { generateFixedCols } = require("../../utils/witnessCalculator.js");
 const protobuf = require('protobufjs');
+const compilePil2 = require("pil2-compiler/src/compiler.js");
 
 /*
     Compress plonk constraints and verifies custom gates using 12 committed polynomials
@@ -36,6 +37,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     console.log(`nBits: ${nBits}, 2^nBits: ${N}`);
 
     let pilStr;
+    let pilout;
     if(pil2) {
         const template = await fs.promises.readFile(path.join(__dirname, "compressor12.pil2.ejs"), "utf8");
         const obj = {
@@ -51,13 +53,13 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
         const tmpPath = path.resolve(__dirname, '../tmp');
         if(!fs.existsSync(tmpPath)) fs.mkdirSync(tmpPath);
         let piloutPath = path.join(tmpPath, "pilout.ptb");
-        let pilConfig = { outputFile: piloutPath, includePaths: `${path.join(__dirname, "compressor12.pil")}`, noProtoFixedData: true};
+        let pilConfig = { outputFile: piloutPath, includePaths: `${path.resolve(__dirname)}`, noProtoFixedData: true};
         compilePil2(F, pilFile, null, pilConfig);
         
         const piloutEncoded = fs.readFileSync(piloutPath);
         const pilOutProtoPath = path.resolve(__dirname, '../../../../../node_modules/pil2-compiler/src/pilout.proto');
         const PilOut = protobuf.loadSync(pilOutProtoPath).lookupType("PilOut");
-        let pilout = PilOut.toObject(PilOut.decode(piloutEncoded));
+        pilout = PilOut.toObject(PilOut.decode(piloutEncoded));
         
         constPols = generateFixedCols(pilout.symbols, pilout.airGroups[0].airs[0].numRows);
         fs.promises.unlink(pilFile);
@@ -77,8 +79,8 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
         const pilFile = await tmpName();
         await fs.promises.writeFile(pilFile, pilStr, "utf8");
 
-        const pil = await compile(F, pilFile);
-        constPols = generateFixedCols(pil.references, Object.values(pil.references)[0].polDeg, false);
+        pilout = await compile(F, pilFile);
+        constPols = generateFixedCols(pilout.references, Object.values(pilout.references)[0].polDeg, false);
         fs.promises.unlink(pilFile);
     }
 
@@ -564,6 +566,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     return {
         pilStr: pilStr,
         constPols: constPols,
+        pilout: pilout,
         sMap: sMap,
         plonkAdditions: plonkAdditions,
         nBits,
