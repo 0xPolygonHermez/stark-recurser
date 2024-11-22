@@ -55,7 +55,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
         const tmpPath = path.resolve(__dirname, '../tmp');
         if(!fs.existsSync(tmpPath)) fs.mkdirSync(tmpPath);
         let piloutPath = path.join(tmpPath, "pilout.ptb");
-        let pilConfig = { outputFile: piloutPath, includePaths: `${path.resolve(__dirname)}`, noProtoFixedData: true};
+        let pilConfig = { outputFile: piloutPath, includePaths: [`${path.resolve(__dirname)}`, options.stdPath], noProtoFixedData: true};
         compilePil2(F, pilFile, null, pilConfig);
         
         const piloutEncoded = fs.readFileSync(piloutPath);
