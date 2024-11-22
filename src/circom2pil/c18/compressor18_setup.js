@@ -8,6 +8,7 @@ const {M, P, S, C} = require("../../utils/hash/poseidon/poseidon_constants_opt.j
 const { getCompressorConstraints } = require("../compressor_constraints.js");
 const { connect, log2, getKs } = require("../../utils/utils.js");
 const { generateFixedCols } = require("../../utils/witnessCalculator.js");
+const compilePil2 = require("pil2-compiler/src/compiler.js");
 
 
 /*
@@ -36,26 +37,22 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     console.log(`NUsed: ${NUsed}`);
     console.log(`nBits: ${nBits}, 2^nBits: ${N}`);
 
-    const template = await fs.promises.readFile(path.join(__dirname, "compressor18.pil.ejs"), "utf8");
-    const obj = {
-        nBits: nBits,
-        nPublics: nPublics,
-        M,
-        SS: S,
-        P,
-        C,
-        committedPols,
-    };
-
-    const pilStr = ejs.render(template ,  obj);
-    const pilFile = await tmpName();
-    await fs.promises.writeFile(pilFile, pilStr, "utf8");
-
     if(pil2) {
+        const template = await fs.promises.readFile(path.join(__dirname, "compressor18.pil2.ejs"), "utf8");
+        const obj = {
+            nBits: nBits,
+            nPublics: nPublics,
+            compressorPil: path.join(__dirname, "compressor18.pil"),
+        };
+    
+        const pilStr = ejs.render(template ,  obj);
+        const pilFile = await tmpName();
+        await fs.promises.writeFile(pilFile, pilStr, "utf8");
+
         const tmpPath = path.resolve(__dirname, '../tmp');
         if(!fs.existsSync(tmpPath)) fs.mkdirSync(tmpPath);
         let piloutPath = path.join(tmpPath, "pilout.ptb");
-        let pilConfig = { outputFile: piloutPath};
+        let pilConfig = { outputFile: piloutPath, includePaths: `${path.join(__dirname, "compressor18.pil")}`, fixed: false};
         compilePil2(F, pilFile, null, pilConfig);
         
         const piloutEncoded = fs.readFileSync(piloutPath);
@@ -65,6 +62,21 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
         
         constPols = generateFixedCols(pilout.symbols, pil.airgroups[0].airs[0].numRows);
     } else {
+        const template = await fs.promises.readFile(path.join(__dirname, "compressor18.pil.ejs"), "utf8");
+        const obj = {
+            nBits: nBits,
+            nPublics: nPublics,
+            M,
+            SS: S,
+            P,
+            C,
+            committedPols,
+        };
+    
+        const pilStr = ejs.render(template ,  obj);
+        const pilFile = await tmpName();
+        await fs.promises.writeFile(pilFile, pilStr, "utf8");
+
         const pil = await compile(F, pilFile);
         constPols = generateFixedCols(pil.references, Object.values(pil.references)[0].polDeg, false);
     }

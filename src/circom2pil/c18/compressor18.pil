@@ -1,10 +1,10 @@
-require "std_connection.pil";
+// require "std_connection.pil";
 
-function define_publics(nPublics) {
+function define_publics(const int nPublics) {
     
     #pragma fixed
     for (int i = 0; i < nPublics; ++i) {
-        public pub_${i};
+        public `pub_${i}`;
     }
 }
 
@@ -90,7 +90,7 @@ airtemplate Pil2Circom(const int N, const int nPublics) {
     FFT4 * (a[4]' - (C[0]*a[1] - C[1]*a[4] + C[4]*a[7] - C[5]*a[10] + C[6]*a[1] - C[7]*a[4])) === 0;
     FFT4 * (a[5]' - (C[0]*a[2] - C[1]*a[5] + C[4]*a[8] - C[5]*a[11] + C[6]*a[2] - C[7]*a[5])) === 0;
     FFT4 * (a[6]' - (C[0]*a[0] + C[1]*a[3] - C[2]*a[6] - C[3]*a[9]  + C[6]*a[6] + C[8]*a[9])) === 0;
-    FFT4 * (a[7]' - (C[0]*a[1] + C[1]*a[4] - C[2]*a[7] - C[3]*a[10] + C[6]*a[7] + C[8]*a[10)) === 0;
+    FFT4 * (a[7]' - (C[0]*a[1] + C[1]*a[4] - C[2]*a[7] - C[3]*a[10] + C[6]*a[7] + C[8]*a[10])) === 0;
     FFT4 * (a[8]' - (C[0]*a[2] + C[1]*a[5] - C[2]*a[8] - C[3]*a[11] + C[6]*a[8] + C[8]*a[11])) === 0;
     FFT4 * (a[9]' - (C[0]*a[0] - C[1]*a[3] - C[4]*a[6] + C[5]*a[9]  + C[6]*a[6] - C[8]*a[9])) === 0;
     FFT4 * (a[10]' - (C[0]*a[1] - C[1]*a[4] - C[4]*a[7] + C[5]*a[10] + C[6]*a[7] - C[8]*a[10])) === 0;
@@ -163,5 +163,5 @@ airtemplate Pil2Circom(const int N, const int nPublics) {
     TREESELECTOR4 * a[12]*(1 - a[12]) === 0;
     TREESELECTOR4 * a[13]*(1 - a[13]) === 0;
 
-    connection(1, [a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17]], [S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7], S[8], S[9], S[10], S[11], S[12], S[13], S[14], S[15], S[16], S[17]]);
+    //connection(1, [a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15], a[16], a[17]], [S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7], S[8], S[9], S[10], S[11], S[12], S[13], S[14], S[15], S[16], S[17]]);
 }
