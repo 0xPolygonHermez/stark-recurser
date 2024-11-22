@@ -8,7 +8,7 @@ function define_publics(const int nPublics) {
     }
 }
 
-airtemplate Pil2Circom(const int N, const int nPublics) {
+airtemplate Compressor(const int N, const int nPublics) {
     col witness a[18];
     col fixed S[18];
     col fixed C[18];

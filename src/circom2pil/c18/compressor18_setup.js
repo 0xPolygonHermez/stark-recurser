@@ -9,6 +9,7 @@ const { getCompressorConstraints } = require("../compressor_constraints.js");
 const { connect, log2, getKs } = require("../../utils/utils.js");
 const { generateFixedCols } = require("../../utils/witnessCalculator.js");
 const compilePil2 = require("pil2-compiler/src/compiler.js");
+const protobuf = require('protobufjs');
 
 
 /*
@@ -37,6 +38,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     console.log(`NUsed: ${NUsed}`);
     console.log(`nBits: ${nBits}, 2^nBits: ${N}`);
 
+    let pilStr;
     if(pil2) {
         const template = await fs.promises.readFile(path.join(__dirname, "compressor18.pil2.ejs"), "utf8");
         const obj = {
@@ -45,22 +47,23 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
             compressorPil: path.join(__dirname, "compressor18.pil"),
         };
     
-        const pilStr = ejs.render(template ,  obj);
+        pilStr = ejs.render(template ,  obj);
         const pilFile = await tmpName();
         await fs.promises.writeFile(pilFile, pilStr, "utf8");
 
         const tmpPath = path.resolve(__dirname, '../tmp');
         if(!fs.existsSync(tmpPath)) fs.mkdirSync(tmpPath);
         let piloutPath = path.join(tmpPath, "pilout.ptb");
-        let pilConfig = { outputFile: piloutPath, includePaths: `${path.join(__dirname, "compressor18.pil")}`, fixed: false};
+        let pilConfig = { outputFile: piloutPath, includePaths: `${path.join(__dirname, "compressor18.pil")}`, noProtoFixedData: true};
         compilePil2(F, pilFile, null, pilConfig);
         
         const piloutEncoded = fs.readFileSync(piloutPath);
-        const pilOutProtoPath = path.resolve(__dirname, '../node_modules/pil2-compiler/src/pilout.proto');
+        const pilOutProtoPath = path.resolve(__dirname, '../../../../../node_modules/pil2-compiler/src/pilout.proto');
         const PilOut = protobuf.loadSync(pilOutProtoPath).lookupType("PilOut");
         let pilout = PilOut.toObject(PilOut.decode(piloutEncoded));
         
-        constPols = generateFixedCols(pilout.symbols, pil.airgroups[0].airs[0].numRows);
+        constPols = generateFixedCols(pilout.symbols, pilout.airGroups[0].airs[0].numRows);
+        fs.promises.unlink(pilFile);
     } else {
         const template = await fs.promises.readFile(path.join(__dirname, "compressor18.pil.ejs"), "utf8");
         const obj = {
@@ -73,15 +76,14 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
             committedPols,
         };
     
-        const pilStr = ejs.render(template ,  obj);
+        pilStr = ejs.render(template ,  obj);
         const pilFile = await tmpName();
         await fs.promises.writeFile(pilFile, pilStr, "utf8");
 
         const pil = await compile(F, pilFile);
         constPols = generateFixedCols(pil.references, Object.values(pil.references)[0].polDeg, false);
+        fs.promises.unlink(pilFile);
     }
-
-    fs.promises.unlink(pilFile);
 
     // Stores the positions of all the values that each of the committed polynomials takes in each row 
     // Remember that there are 18 committed polynomials and the number of rows is stored in NUsed
@@ -613,14 +615,16 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
         r +=1;
     }
 
-    // Calculate the Lagrangian Polynomials for the public rows
-    // Its value is 1 on the i^th row and 0 otherwise
-    for (let i=0; i<nPublicRows; i++) {
-        const L = constPols.Global["L" + (i+1)];
-        for (let i=0; i<N; i++) {
-            L[i] = 0n;
+    if(!pil2) {
+        // Calculate the Lagrangian Polynomials for the public rows
+        // Its value is 1 on the i^th row and 0 otherwise
+        for (let i=0; i<nPublicRows; i++) {
+            const L = constPols.Global["L" + (i+1)];
+            for (let i=0; i<N; i++) {
+                L[i] = 0n;
+            }
+            L[i] = 1n;
         }
-        L[i] = 1n;
     }
 
     return {
