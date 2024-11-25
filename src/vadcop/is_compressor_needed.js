@@ -4,8 +4,8 @@ const { getCompressorConstraints } = require("../circom2pil/compressor_constrain
 const { log2 } = require("../utils/utils.js");
 const fs = require("fs");
 const path = require('path');
-const { tmpName } = require('tmp-promise'); 
 const pil2circom = require("stark-recurser/src/pil2circom/pil2circom.js");
+const {tmpName} = require("tmp-promise");
 
 const util = require('util');
 const childProcess = require('child_process'); // Split into two lines for clarity
@@ -13,6 +13,7 @@ const exec = util.promisify(childProcess.exec);
 
 module.exports.isCompressorNeeded = async function isCompressorNeeded(constRoot, starkInfo, verifierInfo, starkInfoFile) {
     let verifierCircomTemplate = await pil2circom(
+        "",
         constRoot,
         starkInfo,
         verifierInfo,

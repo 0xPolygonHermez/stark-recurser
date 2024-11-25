@@ -5,7 +5,7 @@ const path = require("path");
 const F3g = require("../utils/f3g.js");
 const { log2 } = require("../utils/utils");
 
-module.exports = async function pil2circom(constRoot, starkInfo, verifierInfo, options) {
+module.exports = async function pil2circom(verifierFile, constRoot, starkInfo, verifierInfo, options) {
 
     options = options || {};
     starkStruct = starkInfo.starkStruct;
@@ -39,6 +39,7 @@ module.exports = async function pil2circom(constRoot, starkInfo, verifierInfo, o
     };
 
     
-    return ejs.render(template, obj);
-
+    const verifier = ejs.render(template, obj);
+    if(verifierFile != "") await fs.promises.writeFile(verifierFile, verifier, "utf8");
+    return verifier;
 }

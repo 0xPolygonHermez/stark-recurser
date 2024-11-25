@@ -10,11 +10,14 @@ const { log2, getKs, connect } = require("../../utils/utils.js");
 const { generateFixedCols } = require("../../utils/witnessCalculator.js");
 const protobuf = require('protobufjs');
 const compilePil2 = require("pil2-compiler/src/compiler.js");
+const F3g = require("../../utils/f3g.js");
 
 /*
     Compress plonk constraints and verifies custom gates using 12 committed polynomials
 */
-module.exports = async function plonkSetup(F, r1cs, pil2, options) {
+module.exports = async function plonkSetup(r1cs, pil2, options) {
+    const F = new F3g("0xFFFFFFFF00000001");
+
     const committedPols = 12;
 
     const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(F, r1cs, committedPols);
