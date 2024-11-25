@@ -38,7 +38,7 @@ module.exports.genCircom = async function genCircom(filename, buildDir, aggregat
     await fs.promises.writeFile(filename, circomVerifier, "utf8");
 
     const circuitsGLPath = path.resolve(__dirname, 'pil2circom/circuits.gl');
-    const starkRecurserCircuits = path.resolve(__dirname, `/${aggregationType}/helpers/circuits`);
+    const starkRecurserCircuits = path.resolve(__dirname, `${aggregationType}/helpers/circuits`);
 
     // Compile circom
     console.log("Compiling " + filename + "...");
