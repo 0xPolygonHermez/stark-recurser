@@ -23,6 +23,10 @@ class Transcript {
         this.code.push(`${v} <== BN1toGL3()(${this.getFields1()});`);    
     }
 
+    getFieldHash(v) {
+        this.code.push(`${v} <== ${this.getFields1()};`);    
+    }
+
     getFields1() {
         if (this.out.length > 0) {
             this.hiCnt++;
@@ -374,7 +378,7 @@ template Transcript() {
 <%-      transcript.getCode(); %>
 <%      const transcriptPublics = new Transcript("publics");
         transcriptPublics.put("publics", starkInfo.nPublics);
-        transcriptPublics.getField("publicsHash"); -%>
+        transcriptPublics.getFieldHash("publicsHash"); -%>
 <%-      transcriptPublics.getCode(); %>
 <%      transcript.put("publicsHash"); -%>
 <%  } -%>
@@ -830,10 +834,10 @@ template MapValues() {
 <%      for (let i=0; i< sectionsStage.length; i++) {         -%>
 <%          const p = sectionsStage[i];  -%>
 <%          if (p.dim == 1) {                                                    -%>
-    tree<%- t %>_<%- i %> <== GLCopy()(vals<%- t %>[<%- p.stagePos %>]);
+    cm<%- t %>_<%- i %> <== GLCopy()(vals<%- t %>[<%- p.stagePos %>]);
 <%          } else if (p.dim == 3) {                                             -%>
-    tree<%- t %>_<%- i %>.maxNum = 0xFFFFFFFFFFFFFFFF;
-    tree<%- t %>_<%- i %> <== [vals<%- t %>[<%- p.stagePos %>],vals<%- t %>[<%- p.stagePos + 1 %>] , vals<%- t %>[<%- p.stagePos + 2 %>]];
+    cm<%- t %>_<%- i %>.maxNum = 0xFFFFFFFFFFFFFFFF;
+    cm<%- t %>_<%- i %> <== [vals<%- t %>[<%- p.stagePos %>],vals<%- t %>[<%- p.stagePos + 1 %>] , vals<%- t %>[<%- p.stagePos + 2 %>]];
 <%          } else throw new Error("Invalid dim")                                -%>
 <%      }                                                                        -%>
 <% }                                                                             -%>

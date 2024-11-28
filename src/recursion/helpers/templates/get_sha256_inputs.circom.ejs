@@ -9,12 +9,20 @@ include "sha256/sha256.circom";
 include "bitify.circom";
 
 template getSha256Inputs() {
+<%  if(options.addAggregatorAddr) { -%>
     signal input aggregatorAddr;
+<%  } -%>
+
     signal input publics[<%- publics.nPublics %>];
 
     signal output publicsHash;
 
-    var totalBits = <%- publics.definitions.reduce((curr, acc) => curr + acc.chunks[0]*acc.chunks[1], 0) + 160 %>;
+<%  let totalBits = publics.definitions.reduce((curr, acc) => curr + acc.chunks[0]*acc.chunks[1], 0); -%>
+<%  if(options.addAggregatorAddr) { -%>
+<%  totalBits += 160; -%> 
+<%  } -%>
+
+    var totalBits = <%- totalBits %>;
 
     component publicsHasher = Sha256(totalBits);
 
@@ -55,11 +63,13 @@ template getSha256Inputs() {
 
 <%  } -%>
 
+<%  if(options.addAggregatorAddr) { -%>
     var aggregatorAddrBitsOffset = <%- offset %>;
     signal aggregatorAddrBits[160] <== Num2Bits(160)(aggregatorAddr);
     for (var i=0; i<160; i++) {
         publicsHasher.in[aggregatorAddrBitsOffset + 160 - 1 -i] <== aggregatorAddrBits[i];
     }
+<%  } -%>
 
     component b2nPublicsHash = Bits2Num(256);
     for (var i = 0; i < 256; i++) {
