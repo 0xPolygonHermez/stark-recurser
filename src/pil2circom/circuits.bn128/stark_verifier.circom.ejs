@@ -638,12 +638,7 @@ template parallel VerifyEvaluations() {
     }
 
     // Final normalization
-<% if(starkInfo.boundaries.length === 1 && starkInfo.boundaries[0].name === "everyRow") { -%>
-    signal {maxNum} QZ[3] <== GLCMul()(qAcc[<%- starkInfo.qDeg-1 %>], Z); // Stores the result of multiplying Q(X) per Zg(X)
-    signal {maxNum} vals[3] <== GLCSub()(<%- evalP %>, QZ);
-<% } else { -%>
     signal {maxNum} vals[3] <== GLCSub()(<%- evalP %>, qAcc[<%- starkInfo.qDeg-1 %>]);
-<% } -%>
     signal {maxNum} normC[3] <== GLCNorm()(vals);
 
     // Final Verification
