@@ -397,7 +397,7 @@ template <%- transcriptName %>() {
 <% if(airgroupId !== undefined) { -%>
 <%      verifyFriName += airgroupId; -%>
 <% } -%>
-template parallel <%- verifyFriName %>(nBitsExt, prevStepBits, currStepBits, nextStepBits, e0) {
+template <%- verifyFriName %>(nBitsExt, prevStepBits, currStepBits, nextStepBits, e0) {
     var nextStep = currStepBits - nextStepBits; 
     var step = prevStepBits - currStepBits;
 
@@ -436,7 +436,7 @@ template parallel <%- verifyFriName %>(nBitsExt, prevStepBits, currStepBits, nex
 <% if(airgroupId !== undefined) { -%>
 <%      verifyEvaluationsName += airgroupId; -%>
 <% } -%>
-template parallel <%- verifyEvaluationsName %>() {
+template <%- verifyEvaluationsName %>() {
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  const stage = i + 1; -%>
 <%  if(starkInfo.challengesMap.filter(c => c.stage === stage).length === 0) continue; -%>
@@ -549,7 +549,7 @@ template parallel <%- verifyEvaluationsName %>() {
 <% if(airgroupId !== undefined) { -%>
 <%      calculateFRIPolName += airgroupId; -%>
 <% } -%>
-template parallel <%- calculateFRIPolName %>() {
+template <%- calculateFRIPolName %>() {
     signal input {binary} queriesFRI[<%- starkStruct.steps[0].nBits %>];
     signal input challengeXi[3];
     signal input challengesFRI[2][3];
@@ -618,7 +618,7 @@ template parallel <%- calculateFRIPolName %>() {
 <% if(airgroupId !== undefined) { -%>
 <%      verifyQueryName += airgroupId; -%>
 <% } -%>
-template parallel <%- verifyQueryName %>(currStepBits, nextStepBits) {
+template <%- verifyQueryName %>(currStepBits, nextStepBits) {
     var nextStep = currStepBits - nextStepBits; 
     signal input {binary} queriesFRI[<%- starkStruct.steps[0].nBits %>];
     signal input queryVals[3];
@@ -714,7 +714,7 @@ template <%- mapValuesName %>() {
 <% if(airgroupId !== undefined) { -%>
 <%      verifyFinalPolName += airgroupId; -%>
 <% } -%>
-template parallel <%- verifyFinalPolName %>() {
+template <%- verifyFinalPolName %>() {
     ///////
     // Check Degree last pol
     ///////
