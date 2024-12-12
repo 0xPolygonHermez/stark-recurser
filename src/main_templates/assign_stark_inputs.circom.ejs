@@ -25,6 +25,10 @@
     <%- componentName %>.airvalues <== <%- prefix_ %>airvalues;
 <%  } -%>
 
+<%  if(starkInfo.proofValuesMap.length > 0) { -%>
+    <%- componentName %>.proofvalues <== <%- prefix_ %>proofvalues;
+<%  } -%>
+
 <%  for (let s=1; s<=starkInfo.nStages + 1; ++s) { -%>
     <%- componentName %>.root<%- s %> <== <%- prefix_ %>root<%- s %>;
 <% } -%>

@@ -53,6 +53,8 @@ pragma custom_templates;
                 return "airvalues[" + r.id + "][0]";
             }
             return "airvalues[" + r.id + "]";
+        } else if (r.type === "proofvalue") {
+            return "proofvalues[" + r.id + "]";
         } else {
             throw new Error("Invalid Ref: " +r.type);
         }
@@ -454,6 +456,9 @@ template <%- verifyEvaluationsName %>() {
 <%  if(starkInfo.airValuesMap.length > 0) { -%>
     signal input airvalues[<%- starkInfo.airValuesMap.length %>][3];
 <%  } -%>
+<%  if(starkInfo.proofValuesMap.length > 0) { -%>
+    signal input proofvalues[<%- starkInfo.proofValuesMap.length %>][3];
+<%  } -%>
     signal input {binary} enable;
 
     // zMul stores all the powers of z (which is stored in challengeXi) up to nBits, i.e, [z, z^2, ..., z^nBits]
@@ -753,6 +758,9 @@ template <%- verifierName %>() {
 <% if(starkInfo.airValuesMap.length > 0) { -%>
     signal input airvalues[<%- starkInfo.airValuesMap.length %>][3]; // air values
 <% } -%>
+<% if(starkInfo.proofValuesMap.length > 0) { -%>
+    signal input proofvalues[<%- starkInfo.proofValuesMap.length %>][3]; // air values
+<% } -%>
 <% for(let i=0; i < starkInfo.nStages; i++) {  -%>
 <%  const stage = i + 1; -%>
     signal input root<%- stage %>[4]; // Merkle tree root of stage <%- stage %>
@@ -898,6 +906,7 @@ template <%- verifierName %>() {
 <%      if(starkInfo.nPublics > 0) verifyEvalsInputs.push("publics"); -%>
 <%      if(starkInfo.airgroupValuesMap.length > 0) verifyEvalsInputs.push("airgroupvalues"); -%>
 <%      if(starkInfo.airValuesMap.length > 0) verifyEvalsInputs.push("airvalues"); -%>
+<%      if(starkInfo.proofValuesMap.length > 0) verifyEvalsInputs.push("proofvalues"); -%>
 <%      verifyEvalsInputs.push("enabled"); -%>
 
     <%- verifyEvaluationsName %>()(<%- verifyEvalsInputs.join(", ") %>);

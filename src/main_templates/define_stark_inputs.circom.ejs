@@ -10,6 +10,10 @@
     signal input <%- prefix_ %>airvalues[<%- starkInfo.airValuesMap.length %>][3];
 <%  } -%>
 
+<%  if(starkInfo.proofValuesMap && starkInfo.proofValuesMap.length > 0) { -%>
+    signal input <%- prefix_ %>proofvalues[<%- starkInfo.proofValuesMap.length %>][3];
+<%  } -%>
+
 <%  for (let s=1; s<=starkInfo.nStages + 1; ++s) { -%>
 <%    if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
     signal input <%- prefix_ %>root<%- s %>;
