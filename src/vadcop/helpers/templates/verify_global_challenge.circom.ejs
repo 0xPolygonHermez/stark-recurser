@@ -127,6 +127,9 @@ template VerifyGlobalChallenges() {
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
+<%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
+    signal input proofValues[<%- vadcopInfo.proofValuesMap.length %>][3];
+<%  } -%>
 <% for(let i=0; i < vadcopInfo.numChallenges.length; i++) {  -%>
 <%  const stage = i + 1; -%>
     signal input root<%- stage %>[<%- vadcopInfo.aggTypes.length %>][4];
@@ -150,6 +153,15 @@ template VerifyGlobalChallenges() {
 <%   let c = 0; -%>
 <%   for(let i=0; i < vadcopInfo.numChallenges.length; i++) {
         const stage = i + 1;
+        for(let j=0; j < vadcopInfo.proofValuesMap.length; j++) {
+            if(vadcopInfo.proofValuesMap[j].stage == stage) {
+                if(stage == 1) {
+                    transcript.put(`proofValues[${j}]`, 1);
+                } else {
+                    transcript.put(`proofValues[${j}]`, 3);
+                }
+            }
+        }
         for(let j = 0; j < vadcopInfo.numChallenges[i]; ++j) {
             transcript.getField("calculatedChallenges[" + (c++) + "]");
         }

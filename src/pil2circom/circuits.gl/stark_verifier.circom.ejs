@@ -54,6 +54,9 @@ pragma custom_templates;
             }
             return "airvalues[" + r.id + "]";
         } else if (r.type === "proofvalue") {
+            if(r.dim == 1) {
+                return "proofvalues[" + r.id + "][0]";
+            }
             return "proofvalues[" + r.id + "]";
         } else {
             throw new Error("Invalid Ref: " +r.type);

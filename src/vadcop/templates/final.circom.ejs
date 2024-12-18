@@ -60,6 +60,9 @@ template Final() {
 <%  if(vadcopInfo.nPublics > 0) { -%>
     verifyChallenges.publics <== publics;
 <%  } -%>
+<%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
+    verifyChallenges.proofValues <== proofValues;
+<%  } -%>
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%      for (let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) { -%>
     verifyChallenges.root<%- j + 1 %>[<%- i %>] <== s<%- i %>_sv_root<%- j+1 %>;
@@ -76,7 +79,7 @@ template Final() {
 <%  if(vadcopInfo.nPublics > 0) { -%>
     verifyGlobalConstraints.publics <== publics;
 <%  } -%>
-<%  if(vadcopInfo.numProofValues> 0) { -%>
+<%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
     verifyGlobalConstraints.proofValues <== proofValues;
 <%  } -%>
     verifyGlobalConstraints.challenges <== challenges;
