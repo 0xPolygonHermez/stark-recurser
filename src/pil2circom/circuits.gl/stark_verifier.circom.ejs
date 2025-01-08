@@ -241,6 +241,7 @@ include "cinv.circom";
 include "poseidon.circom";
 include "bitify.circom";
 include "fft.circom";
+include "fri.circom";
 include "evalpol.circom";
 include "treeselector4.circom";
 <% if(starkStruct.splitLinearHash) { -%>
@@ -394,44 +395,6 @@ template <%- transcriptName %>() {
 }
 
 <% } -%>
-
-/*
-    Verify that FRI polynomials are built properly
-*/
-<% let verifyFriName = "VerifyFRI"; -%>
-<% if(airgroupId !== undefined) { -%>
-<%      verifyFriName += airgroupId; -%>
-<% } -%>
-template <%- verifyFriName %>(nBitsExt, prevStepBits, currStepBits, nextStepBits, e0) {
-    var nextStep = currStepBits - nextStepBits; 
-    var step = prevStepBits - currStepBits;
-
-    signal input {binary} queriesFRI[currStepBits];
-    signal input friChallenge[3];
-    signal input s_vals_curr[1<< step][3];
-    signal input s_vals_next[1<< nextStep][3];
-    signal input {binary} enable;
-
-    signal sx[currStepBits];
-    
-    sx[0] <==  e0 *( queriesFRI[0] * (invroots(prevStepBits) -1) + 1);
-    for (var i=1; i< currStepBits; i++) {
-        sx[i] <== sx[i-1] *  ( queriesFRI[i] * (invroots(prevStepBits -i) -1) +1);
-    }
-        
-    // Perform an IFFT to obtain the coefficients of the polynomial given s_vals and evaluate it 
-    signal coefs[1 << step][3] <== FFT(step, 3, 1)(s_vals_curr);
-    signal evalXprime[3] <== [friChallenge[0] *  sx[currStepBits - 1], friChallenge[1] * sx[currStepBits - 1], friChallenge[2] *  sx[currStepBits - 1]];
-    signal evalPol[3] <== EvalPol(1 << step)(coefs, evalXprime);
-
-    signal {binary} keys_lowValues[nextStep];
-    for(var i = 0; i < nextStep; i++) { keys_lowValues[i] <== queriesFRI[i + nextStepBits]; } 
-    signal lowValues[3] <== TreeSelector(nextStep, 3)(s_vals_next, keys_lowValues);
-
-    enable * (lowValues[0] - evalPol[0]) === 0;
-    enable * (lowValues[1] - evalPol[1]) === 0;
-    enable * (lowValues[2] - evalPol[2]) === 0;
-}
 
 /* 
     Verify that all committed polynomials are calculated correctly
@@ -718,35 +681,6 @@ template <%- mapValuesName %>() {
 <% }                                                                             -%>
 }
 
-<% let verifyFinalPolName = "VerifyFinalPol"; -%>
-<% if(airgroupId !== undefined) { -%>
-<%      verifyFinalPolName += airgroupId; -%>
-<% } -%>
-template <%- verifyFinalPolName %>() {
-    ///////
-    // Check Degree last pol
-    ///////
-    signal input finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
-    signal input {binary} enable;
-    
-<% const nLastBits = starkStruct.steps[ starkStruct.steps.length-1].nBits;  -%>
-<% const maxDegBits =  Math.max(nLastBits -  (starkStruct.nBitsExt - starkStruct.nBits), 0); -%>
-    // Calculate the IFFT to get the coefficients of finalPol 
-    signal lastIFFT[<%- 1 << nLastBits %>][3] <== FFT(<%- nLastBits %>, 3, 1)(finalPol);
-
-    // Check that the degree of the final polynomial is bounded by the degree defined in the last step of the folding
-    for (var k= <%- 1 << maxDegBits %>; k< <%- 1 << nLastBits %>; k++) {
-        for (var e=0; e<3; e++) {
-            enable * lastIFFT[k][e] === 0;
-        }
-    }
-    
-    // The coefficients of lower degree can have any value
-    for (var k= 0; k < <%- 1 << maxDegBits %>; k++) {
-        _ <== lastIFFT[k];
-    }
-}
-
 <% let verifierName = "StarkVerifier"; -%>
 <% if(airgroupId !== undefined) { -%>
 <%  verifierName += airgroupId; -%>
@@ -999,6 +933,7 @@ template <%- verifierName %>() {
     }
 <% } -%>
 
+<%      if(!options.recursive2) { -%>
 <% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
     signal {binary} s<%- s %>_keys_merkle[<%- starkStruct.nQueries %>][<%- starkStruct.steps[s].nBits %>];
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
@@ -1006,6 +941,7 @@ template <%- verifierName %>() {
         for(var i = 0; i < <%-starkStruct.steps[s].nBits %>; i++) { s<%- s %>_keys_merkle[q][i] <== queriesFRI[q][i]; }
         VerifyMerkleHash(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- 1 << starkStruct.steps[s].nBits %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle[q], s<%- s %>_root, enabled);
     }
+<% } -%>
 <% } -%>
         
 
@@ -1029,8 +965,15 @@ template <%- verifierName %>() {
 -%>
         // Reconstruct FRI polinomial from evaluations
         queryVals[q] <== <%- calculateFRIPolName %>()(queriesFRI[q], challengeXi, challengesFRI, evals, <%- queryVals.join(", ") %>);
-    }
+<%  let nextValsPol = 0 < starkStruct.steps.length-1 ? "s1_vals_p[q]" : "finalPol"; 
+    let nextStep = 0 < starkStruct.steps.length-1 ? starkStruct.steps[1].nBits : 0; 
+-%>      
+        // Verify that the query is properly constructed. This is done by checking that the linear combination of the set of 
+        // polynomials committed during the different rounds evaluated at z matches with the commitment of the FRI polynomial
+        <%- verifyQueryName %>(<%- starkStruct.steps[0].nBits %>, <%- nextStep %>)(queriesFRI[q], queryVals[q], <%- nextValsPol %>, enabled);
+}
 
+<%      if(!options.recursive2) { -%>
     ///////////
     // Verify FRI Polinomial
     ///////////
@@ -1039,13 +982,6 @@ template <%- verifierName %>() {
 <% } -%>
 
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-<%  let nextValsPol = 0 < starkStruct.steps.length-1 ? "s1_vals_p[q]" : "finalPol"; 
-    let nextStep = 0 < starkStruct.steps.length-1 ? starkStruct.steps[1].nBits : 0; 
--%>      
-        // Verify that the query is properly constructed. This is done by checking that the linear combination of the set of 
-        // polynomials committed during the different rounds evaluated at z matches with the commitment of the FRI polynomial
-        <%- verifyQueryName %>(<%- starkStruct.steps[0].nBits %>, <%- nextStep %>)(queriesFRI[q], queryVals[q], <%- nextValsPol %>, enabled);
-
         ///////////
         // Verify FRI construction
         ///////////
@@ -1061,11 +997,14 @@ template <%- verifierName %>() {
 <%  const exponent = s === 0 ? 0 : 1 << (starkStruct.nBitsExt -starkStruct.steps[s-1].nBits); -%>
 <%  const prevStepBits = s === 0 ? starkStruct.steps[s].nBits : starkStruct.steps[s-1].nBits; -%>
 <%  const e0 = F.inv(F.exp(F.shift, exponent)) -%>
-        <%- verifyFriName %>(<%- starkStruct.nBitsExt %>, <%- prevStepBits %>, <%- starkStruct.steps[s].nBits %>, <%- nextStepFRI %>, <%- e0 %>)(s<%- s %>_queriesFRI[q], challengesFRISteps[<%- s %>], s<%- s %>_vals_p[q], <%- nextPolFRI %>, enabled);
+        VerifyFRI(<%- starkStruct.nBitsExt %>, <%- prevStepBits %>, <%- starkStruct.steps[s].nBits %>, <%- nextStepFRI %>, <%- e0 %>)(s<%- s %>_queriesFRI[q], challengesFRISteps[<%- s %>], s<%- s %>_vals_p[q], <%- nextPolFRI %>, enabled);
 <% } -%>
     }
 
-    <%- verifyFinalPolName %>()(finalPol, enabled);
+<% const nLastBits = starkStruct.steps[ starkStruct.steps.length-1].nBits;  -%>
+<% const maxDegBits =  Math.max(nLastBits -  (starkStruct.nBitsExt - starkStruct.nBits), 0); -%>
+    VerifyFinalPol(<%- nLastBits %>, <%- maxDegBits %>)(finalPol, enabled);
+<% } -%>
 }
     
 <% if (!options.skipMain) {  -%>
