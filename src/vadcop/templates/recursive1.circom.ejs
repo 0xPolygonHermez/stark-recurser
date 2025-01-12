@@ -36,7 +36,7 @@ template Recursive1() {
 }
 
 <%  if(!options.hasCompressor) { -%>
-    component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>challenges, challengesFRISteps, rootCAgg]} = Recursive1();
+    component main {public [<%- vadcopInfo.nPublics > 0 ? "publics, " : "" %>challenges, challengesFRISteps, rootCAgg]} = Recursive1();
 <%  } else { -%>
 <%    if(vadcopInfo.nPublics > 0) publicsNames.push("publics"); -%>
 <%    publicsNames.push(...["challenges", "challengesFRISteps", "rootCAgg"]); -%>
