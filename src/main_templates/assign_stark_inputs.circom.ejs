@@ -11,6 +11,7 @@
     component <%- componentName %> = StarkVerifier();
 <%  } -%>
 
+    // Assign the AIR STARK proof data
 <%  if(options.addPublics && nPublics > 0) { -%>
     for (var i=0; i< <%- nPublics %>; i++) {
         <%- componentName %>.publics[i] <== <%- prefix_ %>publics[i];

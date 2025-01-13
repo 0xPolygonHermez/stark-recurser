@@ -3,6 +3,7 @@
 
 
 <%  let c = 0; -%>
+    // Assign the VADCOP data
 <%  for(let i = 0; i < vadcopInfo.numChallenges.length; ++i) { -%>
 <%      for(let j = 0; j < vadcopInfo.numChallenges[i]; ++j) { -%>
 <%          if(i < starkInfo.nStages && j < starkInfo.challengesMap.filter(c => c.stage == i + 1).length) { -%>
@@ -26,7 +27,7 @@
 <%  } -%>
 <%- componentName %>.challengesFRISteps[<%- starkInfo.starkStruct.steps.length %>] <== challengesFRISteps[<%- vadcopInfo.stepsFRI.length %>];
 
-
+    // --> Compute the outputs
 <%  let circuitType = (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
     <%- prefix_ %>circuitType <== <%- circuitType %>;
     
@@ -41,6 +42,7 @@
 <%  } -%>
 
 
+    // Assign the prover messages as outputs, compressing them if there are more than one at the same stage
 <%  for (let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  if(i == 0) { -%>
 <%  if(starkInfo.airValuesMap.filter(a => a.stage == i + 1).length > 0) { -%>
