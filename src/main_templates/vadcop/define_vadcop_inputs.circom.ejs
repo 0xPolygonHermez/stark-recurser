@@ -9,8 +9,9 @@
     signal <%- signalType %> <%- prefix_ %>aggregationTypes[<%- vadcopInfo.aggTypes[airgroupId].length  %>];
 <%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}aggregationTypes`) -%>
 <%  } -%>
-    signal <%- signalType %> <%- prefix_ %>airgroupvalues[<%- vadcopInfo.aggTypes[airgroupId].length  %>][3];
-<%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}airgroupvalues`) -%>
+
+    signal <%- signalType %> <%- prefix_ %>airgroupValues[<%- vadcopInfo.aggTypes[airgroupId].length  %>][3];
+<%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}airgroupValues`) -%>
 <%  } -%>
 
 

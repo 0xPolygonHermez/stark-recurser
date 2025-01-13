@@ -12,13 +12,13 @@
 <%  if(vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) { -%>
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
-        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValuesNull()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+        <%- prefix %>_airgroupValues[i] <== AggregateAirgroupValuesNull()(<%- prefix1 %>_airgroupValues[i], <%- prefix2 %>_airgroupValues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
     }
 <%  } -%>
 <%  } else { -%>
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
-        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValues()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i]);
+        <%- prefix %>_airgroupValues[i] <== AggregateAirgroupValues()(<%- prefix1 %>_airgroupValues[i], <%- prefix2 %>_airgroupValues[i], aggTypes[i]);
     }
 <%  } -%>
 <%  } -%>

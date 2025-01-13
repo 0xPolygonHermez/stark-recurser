@@ -181,7 +181,7 @@ class Transcript {
 <%        } else if (r.type == "const") { -%>
 <%            return "consts[" + r.id + "]"; -%>
 <%        } else if (r.type === "airgroupvalue") { -%>
-<%            return "airgroupvalues[" + r.id + "]"; -%>
+<%            return "airgroupValues[" + r.id + "]"; -%>
 <%        } else if (r.type == "number") { -%>
 <%            let val = r.value; -%>
 <%            if(val < 0n) val = F.add(BigInt(val),18446744069414584321n); -%>
@@ -462,7 +462,7 @@ template parallel VerifyEvaluations() {
     signal input {maxNum} publics[<%- starkInfo.nPublics %>];
 <%  } -%>
 <%  if(starkInfo.airgroupValuesMap.length > 0) { -%>
-    signal input airgroupvalues[<%- starkInfo.airgroupValuesMap.length %>][3];
+    signal input airgroupValues[<%- starkInfo.airgroupValuesMap.length %>][3];
 <%  } -%>
     signal input {binary} enable;
 
@@ -779,7 +779,7 @@ template StarkVerifier() {
     signal input publics[<%- starkInfo.nPublics %>];
 <%  } -%>
 <% if(starkInfo.airgroupValuesMap.length > 0) { -%>
-    signal input airgroupvalues[<%- starkInfo.airgroupValuesMap.length %>][3]; // airgroupvalue values
+    signal input airgroupValues[<%- starkInfo.airgroupValuesMap.length %>][3]; // airgroupvalue values
 <% } -%>
 <% for(let i=0; i < starkInfo.nStages; i++) {  -%>
 <%  const stage = i + 1; -%>
@@ -867,7 +867,7 @@ template StarkVerifier() {
     signal {maxNum} airgroupValuesGL[<%- starkInfo.airgroupValuesMap.length %>][3];
     for(var i = 0; i < <%- starkInfo.airgroupValuesMap.length %>; i++){
         for(var j = 0; j < 3; j++) {
-            airgroupValuesGL[i][j] <== LessThan64Bits()(airgroupvalues[i][j]);
+            airgroupValuesGL[i][j] <== LessThan64Bits()(airgroupValues[i][j]);
         }
     }
 <%  } -%>

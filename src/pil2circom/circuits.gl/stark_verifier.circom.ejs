@@ -47,7 +47,7 @@ pragma custom_templates;
         } else if (r.type == "number") {
             return r.value;
         } else if (r.type === "airgroupvalue") {
-            return "airgroupvalues[" + r.id + "]";
+            return "airgroupValues[" + r.id + "]";
         } else if (r.type === "airvalue") {
             if(r.dim == 1) {
                 return "airvalues[" + r.id + "][0]";
@@ -417,7 +417,7 @@ template <%- verifyEvaluationsName %>() {
     signal input publics[<%- starkInfo.nPublics %>];
     <%  } -%>
 <%  if(starkInfo.airgroupValuesMap.length > 0) { -%>
-    signal input airgroupvalues[<%- starkInfo.airgroupValuesMap.length %>][3];
+    signal input airgroupValues[<%- starkInfo.airgroupValuesMap.length %>][3];
 <%  } -%>
 <%  if(starkInfo.airValuesMap.length > 0) { -%>
     signal input airvalues[<%- starkInfo.airValuesMap.length %>][3];
@@ -690,7 +690,7 @@ template <%- verifierName %>() {
     signal input publics[<%- starkInfo.nPublics %>]; // publics polynomials
 <%  } -%>
 <% if(starkInfo.airgroupValuesMap.length > 0) { -%>
-    signal input airgroupvalues[<%- starkInfo.airgroupValuesMap.length %>][3]; // airgroupvalue values
+    signal input airgroupValues[<%- starkInfo.airgroupValuesMap.length %>][3]; // airgroupvalue values
 <% } -%>
 <% if(starkInfo.airValuesMap.length > 0) { -%>
     signal input airvalues[<%- starkInfo.airValuesMap.length %>][3]; // air values
@@ -841,7 +841,7 @@ template <%- verifierName %>() {
 <%      verifyEvalsInputs.push("challengeXi"); -%>
 <%      verifyEvalsInputs.push("evals"); -%>
 <%      if(starkInfo.nPublics > 0) verifyEvalsInputs.push("publics"); -%>
-<%      if(starkInfo.airgroupValuesMap.length > 0) verifyEvalsInputs.push("airgroupvalues"); -%>
+<%      if(starkInfo.airgroupValuesMap.length > 0) verifyEvalsInputs.push("airgroupValues"); -%>
 <%      if(starkInfo.airValuesMap.length > 0) verifyEvalsInputs.push("airvalues"); -%>
 <%      if(starkInfo.proofValuesMap.length > 0) verifyEvalsInputs.push("proofvalues"); -%>
 <%      verifyEvalsInputs.push("enabled"); -%>

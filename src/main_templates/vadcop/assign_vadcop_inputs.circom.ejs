@@ -11,9 +11,9 @@
 <%  nPublicsInps += vadcopInfo.aggTypes[airgroupId].length ; -%>
 
     for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length  %>; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== <%- prefix_ %>airgroupvalues[i][0];
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 1] <== <%- prefix_ %>airgroupvalues[i][1];
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 2] <== <%- prefix_ %>airgroupvalues[i][2];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== <%- prefix_ %>airgroupValues[i][0];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 1] <== <%- prefix_ %>airgroupValues[i][1];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 2] <== <%- prefix_ %>airgroupValues[i][2];
     }
 <%  nPublicsInps += 3*vadcopInfo.aggTypes[airgroupId].length ; -%>
 <%  } -%>

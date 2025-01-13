@@ -11,15 +11,20 @@ include "<%- verifierFilenames[i] %>";
 
 
 template Recursive2() {
-    var rootCBasics[<%- vadcopInfo.airs[airgroupId].length %>][4];
+    // Merkle tree roots for the fixed columns of each AIR within AIR group <%- airgroupId %>
+    var rootFixedAIRs[<%- vadcopInfo.airs[airgroupId].length %>][4]; -%>
 
 <% for(let i = 0; i < vadcopInfo.airs[airgroupId].length; ++i) { -%>
-    rootCBasics[<%- i %>] = [<%- basicVK[i].join(",") %>];
+    rootFixedAIRs[<%- i %>] = [<%- basicVK[i].join(",") %>];
 <%  } -%>
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "b", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
+    // Merkle tree root for the fixed columns of the aggregation
+    signal input rootFixedAgg[4];
 
+    // Note: `rootFixedAIRs` is used for proof verification in the base layer of the aggregation tree,
+    //       while `rootFixedAgg` is used for proof verification in the higher layers
+
+    // Get the global VADCOP data
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
@@ -27,15 +32,23 @@ template Recursive2() {
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
 
-    signal input rootCAgg[4];
-
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     signal input aggregationTypes[<%- vadcopInfo.aggTypes[airgroupId].length %>];
 <%  } -%>
 
+    // Get the first STARK proof data (prefix "a")
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
+
+    // Get the second STARK proof data  (prefix "b")
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "b", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
+
+    // Get the VADCOP data for the first STARK proof (prefix "a_sv")
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "a_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
+
+    // Get the VADCOP data for the second STARK proof (prefix "b_sv")
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "b_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
 
+    // Define the outputs
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "sv", vadcopInfo, airgroupId, starkInfo, options: {...options, isInput: false} }); %>
 
     // Verify the first STARK proof
@@ -43,13 +56,13 @@ template Recursive2() {
 <%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "vA", vadcopInfo, prefix: "a_sv", prefixStark: "a", airgroupId, options: { setEnableInput: (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1)  } }); %>
 
     for (var i = 0; i < 4; i++) {
-        vA.publics[<%- starkInfo.nPublics - 4 %> + i] <== rootCAgg[i];
+        vA.publics[<%- starkInfo.nPublics - 4 %> + i] <== rootFixedAgg[i];
     }
 
 <% if(vadcopInfo.air_groups.length === 1 && vadcopInfo.airs[0].length === 1) { -%>
-    vA.rootC <== SelectVerificationKey(<%- vadcopInfo.airs[airgroupId].length %>)(a_sv_circuitType, rootCBasics, rootCAgg);
+    vA.rootC <== SelectVerificationKey(<%- vadcopInfo.airs[airgroupId].length %>)(a_sv_circuitType, rootFixedAIRs, rootFixedAgg);
 <%  } else { -%>
-    vA.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[airgroupId].length %>)(a_sv_circuitType, rootCBasics, rootCAgg);
+    vA.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[airgroupId].length %>)(a_sv_circuitType, rootFixedAIRs, rootFixedAgg);
 <%  } -%>
 
     // Verify the second STARK proof
@@ -57,13 +70,13 @@ template Recursive2() {
 <%- include('src/main_templates/vadcop/assign_vadcop_inputs.circom.ejs', { componentName: "vB", vadcopInfo, prefix: "b_sv", prefixStark: "b", airgroupId, options: { setEnableInput: (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1)  } }); %>
 
     for (var i = 0; i < 4; i++) {
-        vB.publics[<%- starkInfo.nPublics - 4 %> + i] <== rootCAgg[i];
+        vB.publics[<%- starkInfo.nPublics - 4 %> + i] <== rootFixedAgg[i];
     }
 
 <% if(vadcopInfo.air_groups.length === 1 && vadcopInfo.airs[0].length === 1) { -%>
-    vB.rootC <== SelectVerificationKey(<%- vadcopInfo.airs[airgroupId].length %>)(b_sv_circuitType, rootCBasics, rootCAgg);
+    vB.rootC <== SelectVerificationKey(<%- vadcopInfo.airs[airgroupId].length %>)(b_sv_circuitType, rootFixedAIRs, rootFixedAgg);
 <%  } else { -%>
-    vB.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[airgroupId].length %>)(b_sv_circuitType, rootCBasics, rootCAgg);
+    vB.rootC <== SelectVerificationKeyNull(<%- vadcopInfo.airs[airgroupId].length %>)(b_sv_circuitType, rootFixedAIRs, rootFixedAgg);
 <%  } -%>
 
     // Aggregate the AIR group values
@@ -76,4 +89,4 @@ template Recursive2() {
 }
 
 
-component main {public [<%- vadcopInfo.nPublics > 0 ? "publics, " : "" %>challenges, challengesFRISteps, rootCAgg]} = Recursive2();
+component main {public [<%- vadcopInfo.nPublics > 0 ? "publics, " : "" %>challenges, challengesFRISteps, rootFixedAgg]} = Recursive2();
