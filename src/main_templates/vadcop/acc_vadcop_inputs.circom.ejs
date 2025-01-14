@@ -4,18 +4,22 @@
 <%  } -%>
 
     <%- prefix %>_evalsHash <== AccumulateValuesNull()(<%- prefix1 %>_evalsHash, <%- prefix2 %>_evalsHash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+
 <%  for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
     <%- prefix %>_s<%- i %>_root <== AccumulateValuesNull()(<%- prefix1 %>_s<%- i %>_root, <%- prefix2 %>_s<%- i %>_root, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
 <%  } -%>
-<%- prefix %>_finalPolHash <== AccumulateValuesNull()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+
+    <%- prefix %>_finalPolHash <== AccumulateValuesNull()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
 <%  } else { -%>
 <%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) { -%>
-        <%- prefix %>_root<%- i+1 %> <== AccumulateValues()(<%- prefix1 %>_root<%- i+1 %>, <%- prefix2 %>_root<%- i+1 %>);
+    <%- prefix %>_root<%- i+1 %> <== AccumulateValues()(<%- prefix1 %>_root<%- i+1 %>, <%- prefix2 %>_root<%- i+1 %>);
 <%  } -%>
 
     <%- prefix %>_evalsHash <== AccumulateValues()(<%- prefix1 %>_evalsHash, <%- prefix2 %>_evalsHash);
+
 <%  for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
     <%- prefix %>_s<%- i %>_root <== AccumulateValues()(<%- prefix1 %>_s<%- i %>_root, <%- prefix2 %>_s<%- i %>_root);
 <%  } -%>
-<%- prefix %>_finalPolHash <== AccumulateValues()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash);
+
+    <%- prefix %>_finalPolHash <== AccumulateValues()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash);
 <%  } -%>

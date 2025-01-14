@@ -13,26 +13,29 @@ include "<%- verifierFilenames[i] %>";
 
 <%  let publicsNames = []; -%>
 template Recursive1() {
-    // --> Get the public inputs
+    // --> Circuit public inputs <--
+
 <%  if(vadcopInfo.nPublics > 0) { -%>
-    // AIR inputs
+    // AIR public inputs
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
 
     // VADCOP inputs
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
-    
-    // VADCOP proof data
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, airgroupId, prefix: "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
 
     // Merkle tree root for the fixed columns of the recursive2 circuit
     signal input rootCRecursive2[4];
 
-    // --> Get the AIR STARK proof data
+    // Accumulated STARK proof data
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, airgroupId, prefix: "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
+
+    // --> Circuit private inputs <--
+
+    // --> Previous STARK proof data
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
 
-    // --> Verify the STARK proof
+    // --> Verify the STARK proof <--
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: options.hasCompressor ? false : true } }); %>
     
 <%  if(!options.hasCompressor) { -%>

@@ -1,8 +1,8 @@
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 <%  let prefixStark_ = prefixStark ? `${prefixStark}_` : ""; -%>
 <%  let nPublicsInps = 0; -%>
-
-    // Assign the VADCOP proof data
+-%>
+    // --> Assign the VADCOP proof data
     <%- componentName %>.publics[<%- nPublicsInps++ %>] <== <%- prefix_ %>circuitType;
 
 <%  if(vadcopInfo.aggTypes[airgroupId].length  > 0) { -%>
@@ -44,14 +44,14 @@
 <%  nPublicsInps += 4 -%>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
-    // Assign the AIR inputs
+    // --> Assign the public inputs
     for(var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== publics[i];
     }
 <%  nPublicsInps += vadcopInfo.nPublics -%>
 <%  } -%>
 
-    // Assign the VADCOP inputs
+    // --> Assign the VADCOP data
     for(var i = 0; i < <%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== challenges[i][0];
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+1] <== challenges[i][1];
@@ -65,7 +65,7 @@
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+2] <== challengesFRISteps[i][2];
     }
 <%  nPublicsInps += 3*(vadcopInfo.stepsFRI.length); -%>
-
+-%>
 <%  if(options.setEnableInput) { -%>
     signal {binary} <%- prefix_ %>isNull <== IsZero()(<%- prefix_ %>circuitType);
 

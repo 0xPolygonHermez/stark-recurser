@@ -8,9 +8,10 @@ include "<%- verifierFilenames[i] %>";
 <%- include('src/vadcop/helpers/templates/calculate_hashes.circom.ejs', { starkInfo, vadcopInfo }); %>
 
 template Compressor() {
-    // --> Get the public inputs
+    // --> Circuit public inputs <--
+
 <%  if(vadcopInfo.nPublics > 0) { -%>
-    // AIR inputs
+    // AIR public inputs
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
 
@@ -18,16 +19,18 @@ template Compressor() {
     signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
     signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length  + 1 %>][3];
 
-    // --> Get the AIR STARK proof data
-    <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false} }); %>
+    // --> Circuit private inputs <--
 
-    // --> Define the outputs
+    // --> AIR STARK proof data
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false} }); %>
+
+    // --> Circuit outputs <--
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "sv", airgroupId: starkInfo.airgroupId, options: {...options, isInput: false} }); %>
 
-    // --> Verify the STARK proof
+    // --> Verify the STARK proof <--
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics,  options: { addPublics: false } }); %>
 
-    // Assign the public inputs
+    // --> Assign the public inputs
 <%  if(vadcopInfo.nPublics > 0) { -%>
     for (var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {
         sV.publics[i] <== publics[i];
@@ -35,7 +38,6 @@ template Compressor() {
 <%  } -%>
 
 <%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", airgroupId: starkInfo.airgroupId, starkInfo, vadcopInfo }); %>
-
 }
 
 component main {public [<%- vadcopInfo.nPublics > 0 ? "publics, " : "" %>challenges, challengesFRISteps]} = Compressor();

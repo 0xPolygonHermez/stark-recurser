@@ -1,4 +1,4 @@
-<%- prefix %>_circuitType <== <%- (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) ? 1 : 0 %>;
+    <%- prefix %>_circuitType <== <%- (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) ? 1 : 0 %>;
 
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     <%- prefix %>_aggregationTypes <== aggregationTypes;
