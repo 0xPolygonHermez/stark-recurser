@@ -40,7 +40,7 @@
     signal input <%- prefix_ %>finalPol[<%- 1 << parseInt(starkInfo.starkStruct.steps[starkInfo.starkStruct.steps.length-1].nBits) %>][3];
 
     // Set of evaluations and Merkle proofs for each of the <%- starkInfo.starkStruct.nQueries %> queries 
-    // performed during the FRI query phase, covering all involved polynomials.
+    // performed during the FRI query phase, covering all involved polynomials
     signal input <%- prefix_ %>s0_valsC[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.nConstants %>];
 <%  if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
     signal input <%- prefix_ %>s0_siblingsC[<%- starkInfo.starkStruct.nQueries %>][<%- Math.floor((parseInt(starkInfo.starkStruct.steps[0].nBits) - 1)/Math.log2(starkInfo.starkStruct.merkleTreeArity))+1 %>][<%- starkInfo.starkStruct.merkleTreeArity %>];

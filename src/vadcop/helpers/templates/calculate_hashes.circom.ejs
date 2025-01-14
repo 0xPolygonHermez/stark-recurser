@@ -123,11 +123,15 @@ class Transcript {
 -%>
 -%>
 template CalculateStage1Hash() {
-    signal input rootFixed[4];   // Merkle tree root of the fixed columns
-    signal input rootWitness[4]; // Merkle tree root of the witness columns of Stage 1
+    // Merkle tree root of the fixed columns
+    signal input rootFixed[4];
+
+    // Merkle tree root of the witness columns of Stage 1
+    signal input rootWitness[4];
 
 <%  if(starkInfo.airValuesMap.filter(a => a.stage == 1).length > 0) { -%>
-    signal input airValues[<%- starkInfo.airValuesMap.length %>][3]; // AIR values of Stage 1
+    // AIR values of Stage 1
+    signal input airValues[<%- starkInfo.airValuesMap.length %>][3];
 <%  } -%>
 
     signal output stageHash[4];
@@ -138,8 +142,10 @@ template CalculateStage1Hash() {
 <%    for (let j=0; j<starkInfo.airValuesMap.length; j++) { -%>
 <%        if(starkInfo.airValuesMap[j].stage == 1) { -%>
 <%            transcriptStage.put(`airValues[${j}]`, 1); -%>
+    _ <== airValues[<%- j %>][1];
+    _ <== airValues[<%- j %>][2]; 
 <%        } else { -%>
-   _ <== airValues[<%- j %>];
+    _ <== airValues[<%- j %>];
 <%        } -%>
 <%    } -%>
 <%    transcriptStage.getState(`stageHash`); -%>
@@ -149,9 +155,11 @@ template CalculateStage1Hash() {
 <%  for (let i = 1; i < starkInfo.nStages; ++i) { -%>
 <%  if(starkInfo.airValuesMap.filter(a => a.stage == i + 1).length > 0) { -%>
 template CalculateStage<%- i+1 %>Hash() {
-    signal input rootWitness[4]; // Merkle tree root of the witness columns of Stage <%- i+1 %>
+    // Merkle tree root of the witness columns of Stage <%- i+1 %>
+    signal input rootWitness[4];
 
-    signal input airValues[<%- starkInfo.airValuesMap.length %>][3]; // AIR values of Stage <%- i+1 %>
+    // AIR values of Stage <%- i+1 %>
+    signal input airValues[<%- starkInfo.airValuesMap.length %>][3];
 
     signal output stageHash[4];
 
@@ -172,7 +180,8 @@ template CalculateStage<%- i+1 %>Hash() {
 <%  } -%>
 
 template CalculateEvalsHash() {
-    signal input evals[<%- starkInfo.evMap.length %>][3]; // Set of evaluations around the out-of-domain sample
+    // Set of evaluations around the out-of-domain sample
+    signal input evals[<%- starkInfo.evMap.length %>][3];
 
     signal output evalsHash[4]; -%>
 
@@ -184,15 +193,16 @@ template CalculateEvalsHash() {
 <%-     transcriptEvals.getCode(); %>
 }
 
-template CalculateFRILastLayerPolHash() {
-    signal input lastLayerPol[<%- 1 << starkInfo.starkStruct.steps[starkInfo.starkStruct.steps.length-1].nBits %>][3]; // Polynomial sent in clear in the last iteration of the FRI commit phase
+template CalculateFinalPolHash() {
+    // Polynomial sent in clear in the last iteration of the FRI commit phase
+    signal input finalPol[<%- 1 << starkInfo.starkStruct.steps[starkInfo.starkStruct.steps.length-1].nBits %>][3];
 
-    signal output lastLayerPolHash[4]; -%>
+    signal output finalPolHash[4]; -%>
 
-<%  const transcriptlastLayerPol = new Transcript(); -%>
+<%  const transcriptfinalPol = new Transcript(); -%>
 <%        for (let j=0; j< 1<<starkInfo.starkStruct.steps[starkInfo.starkStruct.steps.length-1].nBits; j++ ) {
-            transcriptlastLayerPol.put(`lastLayerPol[${j}]`, 3);
+            transcriptfinalPol.put(`finalPol[${j}]`, 3);
         }
-        transcriptlastLayerPol.getState("lastLayerPolHash"); -%>
-<%-     transcriptlastLayerPol.getCode(); %>
+        transcriptfinalPol.getState("finalPolHash"); -%>
+<%-     transcriptfinalPol.getCode(); %>
 }

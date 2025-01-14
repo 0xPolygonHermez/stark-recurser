@@ -41,7 +41,6 @@
 <%      } -%>
 <%  } -%>
 
-
     // Assign the prover messages as outputs, compressing them if there are more than one at the same stage
 <%  for (let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  if(i == 0) { -%>
@@ -75,4 +74,4 @@
 <%     } -%>
 <%  } -%>
     
-    <%- prefix_ %>finalPolHash <== CalculateFRILastLayerPolHash()(<%- prefixStark_ %>finalPol);
+    <%- prefix_ %>finalPolHash <== CalculateFinalPolHash()(<%- prefixStark_ %>finalPol);
