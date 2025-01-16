@@ -1,8 +1,8 @@
 <%  let prefixStark_ = prefixStark ? `${prefixStark}_` : ""; -%>
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
-
-
+-%>
 <%  let c = 0; -%>
+    // --> Assign the VADCOP data
 <%  for(let i = 0; i < vadcopInfo.numChallenges.length; ++i) { -%>
 <%      for(let j = 0; j < vadcopInfo.numChallenges[i]; ++j) { -%>
 <%          if(i < starkInfo.nStages && j < starkInfo.challengesMap.filter(c => c.stage == i + 1).length) { -%>
@@ -18,15 +18,15 @@
     <%- componentName %>.challengesFRI[0] <== challenges[<%- c++ %>];
     <%- componentName %>.challengesFRI[1] <== challenges[<%- c++  %>];
 
-<%  c = 0; %>
+<%  c = 0; -%>
 <%  for(let i = 0; i < vadcopInfo.stepsFRI.length; ++i) { -%>
 <%      if(c < starkInfo.starkStruct.steps.length && starkInfo.starkStruct.steps[c].nBits === vadcopInfo.stepsFRI[i].nBits) { -%>
     <%- componentName %>.challengesFRISteps[<%- c++ %>] <== challengesFRISteps[<%- i %>];
 <%      } -%>
 <%  } -%>
-<%- componentName %>.challengesFRISteps[<%- starkInfo.starkStruct.steps.length %>] <== challengesFRISteps[<%- vadcopInfo.stepsFRI.length %>];
+    <%- componentName %>.challengesFRISteps[<%- starkInfo.starkStruct.steps.length %>] <== challengesFRISteps[<%- vadcopInfo.stepsFRI.length %>];
 
-
+    // --> Compute the outputs
 <%  let circuitType = (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
     <%- prefix_ %>circuitType <== <%- circuitType %>;
     
@@ -36,11 +36,11 @@
 
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
 <%      for (let i = 0; i < vadcopInfo.aggTypes[airgroupId].length; ++i) { -%>
-    <%- prefix_ %>airgroupvalues[<%- i %>] <== <%- prefixStark_ %>airgroupvalues[<%- i %>];
+    <%- prefix_ %>airgroupValues[<%- i %>] <== <%- prefixStark_ %>airgroupValues[<%- i %>];
 <%      } -%>
 <%  } -%>
 
-
+    // --> Accumulate the proof elements: hash them if there are more than one at the same stage
 <%  for (let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  if(i == 0) { -%>
 <%  if(starkInfo.airValuesMap.filter(a => a.stage == i + 1).length > 0) { -%>

@@ -15,7 +15,7 @@
         } else if (r.type == "challenge") {
             return "challenges[" + r.id + "]";
         } else if (r.type === "airgroupvalue") {
-            return "s" + r.airgroupId + "_airgroupvalues[" + r.id + "]";
+            return "s" + r.airgroupId + "_airgroupValues[" + r.id + "]";
         } else {
             throw new Error("Invalid Ref: " +r.type);
         }
@@ -70,7 +70,7 @@
 template VerifyGlobalConstraints() {
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-    signal input s<%- i %>_airgroupvalues[<%- vadcopInfo.aggTypes[i].length %>][3];
+    signal input s<%- i %>_airgroupValues[<%- vadcopInfo.aggTypes[i].length %>][3];
 <%  } -%>
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];

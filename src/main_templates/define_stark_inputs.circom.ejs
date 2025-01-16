@@ -1,19 +1,25 @@
 <%  let prefix_ = prefix !== "" ? `${prefix}_` : ""; -%>
 <%  if(options.addPublics && nPublics > 0) { -%>
     signal input <%- prefix_ %>publics[<%- nPublics %>];
-<%  } -%>
-<%  if(starkInfo.airgroupValuesMap && starkInfo.airgroupValuesMap.length > 0) { -%>
-    signal input <%- prefix_ %>airgroupvalues[<%- starkInfo.airgroupValuesMap.length %>][3];
-<%  } -%>
 
+<%  } -%>
+-%>
+<%  if((starkInfo.airValuesMap && starkInfo.airValuesMap.length > 0) || (starkInfo.airgroupValuesMap && starkInfo.airgroupValuesMap.length > 0) || (starkInfo.proofValuesMap && starkInfo.proofValuesMap.length > 0)) { -%>
+    // One-dimensional elements
+<%  } -%>
 <%  if(starkInfo.airValuesMap && starkInfo.airValuesMap.length > 0) { -%>
     signal input <%- prefix_ %>airvalues[<%- starkInfo.airValuesMap.length %>][3];
 <%  } -%>
-
+-%>
+<%  if(starkInfo.airgroupValuesMap && starkInfo.airgroupValuesMap.length > 0) { -%>
+    signal input <%- prefix_ %>airgroupValues[<%- starkInfo.airgroupValuesMap.length %>][3];
+<%  } -%>
+-%>
 <%  if(starkInfo.proofValuesMap && starkInfo.proofValuesMap.length > 0) { -%>
     signal input <%- prefix_ %>proofvalues[<%- starkInfo.proofValuesMap.length %>][3];
 <%  } -%>
-
+-%>
+    // Merkle tree roots of the witness columns at each stage
 <%  for (let s=1; s<=starkInfo.nStages + 1; ++s) { -%>
 <%    if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
     signal input <%- prefix_ %>root<%- s %>;
@@ -22,8 +28,23 @@
 <%    } -%>
 <%  } -%>
 
-    signal input <%- prefix_ %>evals[<%- starkInfo.evMap.length %>][3]; // Evaluations of the set polynomials at a challenge value z and gz
+    // Set of evaluations around the out-of-domain sample
+    signal input <%- prefix_ %>evals[<%- starkInfo.evMap.length %>][3];
 
+    // Merkle tree roots of the polynomials for each of the <%- starkInfo.starkStruct.steps.length %> layers of the FRI commit phase, except the last one
+<% for (let s=1; s<starkInfo.starkStruct.steps.length; s++) {   -%>
+<%    if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
+    signal input <%- prefix_ %>s<%- s %>_root;
+<%    } else { -%>
+    signal input <%- prefix_ %>s<%- s %>_root[4];
+<%    } -%>
+<% } -%>
+
+    // Polynomial sent in clear at layer <%- starkInfo.starkStruct.steps.length %> of the FRI commit phase
+    signal input <%- prefix_ %>finalPol[<%- 1 << parseInt(starkInfo.starkStruct.steps[starkInfo.starkStruct.steps.length-1].nBits) %>][3];
+
+    // Set of evaluations "vals" and Merkle proofs "siblings" of all involved polynomials,
+    // for each of the <%- starkInfo.starkStruct.nQueries %> queries performed during the FRI query phase
     signal input <%- prefix_ %>s0_valsC[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.nConstants %>];
 <%  if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
     signal input <%- prefix_ %>s0_siblingsC[<%- starkInfo.starkStruct.nQueries %>][<%- Math.floor((parseInt(starkInfo.starkStruct.steps[0].nBits) - 1)/Math.log2(starkInfo.starkStruct.merkleTreeArity))+1 %>][<%- starkInfo.starkStruct.merkleTreeArity %>];
@@ -39,7 +60,7 @@
     signal input <%- prefix_ %>s0_siblings_<%- starkInfo.customCommits[i].name %>_0[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.starkStruct.steps[0].nBits %>][4];
 <%  } -%>
 <%  } -%>
-
+-%>
 <%  for (let s=1; s<=starkInfo.nStages + 1; ++s) { -%>
 <%      if (starkInfo.mapSectionsN[`cm${s}`] > 0) { -%>
     signal input <%- prefix_ %>s0_vals<%- s %>[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${s}`] %>];
@@ -50,15 +71,7 @@
 <%          } -%>
 <%      } -%>
 <% } -%>
-
-<% for (let s=1; s<starkInfo.starkStruct.steps.length; s++) {   -%>
-<%    if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
-    signal input <%- prefix_ %>s<%- s %>_root;
-<%    } else { -%>
-    signal input <%- prefix_ %>s<%- s %>_root[4];
-<%    } -%>
-<% }                                                  -%>
-
+-%>
 <% for (let s=1; s< starkInfo.starkStruct.steps.length; s++) {   -%>
     signal input <%- prefix_ %>s<%- s %>_vals[<%- starkInfo.starkStruct.nQueries %>][<%- (1 << parseInt(starkInfo.starkStruct.steps[s-1].nBits - starkInfo.starkStruct.steps[s].nBits))*3 %>];
 <%          if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>    
@@ -66,6 +79,5 @@
 <%          } else { -%>
     signal input <%- prefix_ %>s<%- s %>_siblings[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.starkStruct.steps[s].nBits %>][4];
 <%          } -%>
-<% }                                                  -%>
-
-    signal input <%- prefix_ %>finalPol[<%- 1 << parseInt(starkInfo.starkStruct.steps[starkInfo.starkStruct.steps.length-1].nBits) %>][3];
+<% } -%>
+-%>

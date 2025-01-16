@@ -1,7 +1,8 @@
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 <%  let prefixStark_ = prefixStark ? `${prefixStark}_` : ""; -%>
 <%  let nPublicsInps = 0; -%>
-
+-%>
+    // --> Assign the VADCOP proof data
     <%- componentName %>.publics[<%- nPublicsInps++ %>] <== <%- prefix_ %>circuitType;
 
 <%  if(vadcopInfo.aggTypes[airgroupId].length  > 0) { -%>
@@ -11,19 +12,17 @@
 <%  nPublicsInps += vadcopInfo.aggTypes[airgroupId].length ; -%>
 
     for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length  %>; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== <%- prefix_ %>airgroupvalues[i][0];
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 1] <== <%- prefix_ %>airgroupvalues[i][1];
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 2] <== <%- prefix_ %>airgroupvalues[i][2];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== <%- prefix_ %>airgroupValues[i][0];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 1] <== <%- prefix_ %>airgroupValues[i][1];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 2] <== <%- prefix_ %>airgroupValues[i][2];
     }
 <%  nPublicsInps += 3*vadcopInfo.aggTypes[airgroupId].length ; -%>
 <%  } -%>
-
 
 <%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; i++) { -%>
     for(var i = 0; i < 4; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>root<%- i+1 %>[i];
     }
-
 <%  nPublicsInps += 4 -%>
 <%  } -%>
 
@@ -45,12 +44,14 @@
 <%  nPublicsInps += 4 -%>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
+    // --> Assign the public inputs
     for(var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== publics[i];
     }
 <%  nPublicsInps += vadcopInfo.nPublics -%>
 <%  } -%>
 
+    // --> Assign the VADCOP data
     for(var i = 0; i < <%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== challenges[i][0];
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+1] <== challenges[i][1];
@@ -64,7 +65,7 @@
         <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+2] <== challengesFRISteps[i][2];
     }
 <%  nPublicsInps += 3*(vadcopInfo.stepsFRI.length); -%>
-
+-%>
 <%  if(options.setEnableInput) { -%>
     signal {binary} <%- prefix_ %>isNull <== IsZero()(<%- prefix_ %>circuitType);
 
