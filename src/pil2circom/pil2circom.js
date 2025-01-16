@@ -18,13 +18,13 @@ module.exports = async function pil2circom(constRoot, starkInfo, verifierInfo, o
     } else if (starkStruct.verificationHashType == "BN128") {
         template = await fs.promises.readFile(path.join(__dirname, "circuits.bn128", "stark_verifier.circom.ejs"), "utf8");
     } else {
-        throw new Error("Invalid Hash Type: "+ starkStruct.verificationHashType);
+        throw new Error("Invalid Hash Type: " + starkStruct.verificationHashType);
     }
 
     const arity = starkStruct.merkleTreeArity || 16;
     const custom = starkStruct.merkleTreeCustom || false;
     const transcriptArity = custom ? starkStruct.merkleTreeArity : 16;
-    
+
     const obj = {
         F,
         starkInfo,
@@ -38,7 +38,5 @@ module.exports = async function pil2circom(constRoot, starkInfo, verifierInfo, o
         custom,
     };
 
-    
-    return ejs.render(template, obj);
-
+    return ejs.render(template, obj, { views: [__dirname] });
 }

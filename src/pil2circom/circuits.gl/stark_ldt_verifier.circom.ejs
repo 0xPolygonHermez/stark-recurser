@@ -1,0 +1,145 @@
+    
+    // --> Preprocess the query answers sent in the query phase of FRI so that we can use anonymous components
+
+    // Two different processings are done:
+    // For s0_vals, the arrays are transposed so that they fit MerkleHash template
+    // For (s_i)_vals, the values are passed all together in a single array of length nVals*3. We convert them to vals[nVals][3]
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
+    var s0_vals<%- stage %>_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${stage}`] %>][1];
+<%  } -%>
+<% } -%> 
+    var s0_vals<%- qStage %>_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${qStage}`] %>][1];
+    var s0_valsC_p[<%- starkStruct.nQueries %>][<%- starkInfo.nConstants %>][1];
+<%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    var s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>][1];
+<% }-%>
+<% for (let s=0; s<starkStruct.steps.length; s++) {   -%>
+<%  let exponent = s === 0 ? 1 : (1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits)); -%>
+    var s<%- s %>_vals_p[<%- starkStruct.nQueries %>][<%- exponent %>][3]; 
+<% } -%>
+
+    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
+        // Preprocess vals for the initial FRI polynomial
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
+        for (var i = 0; i < <%- starkInfo.mapSectionsN[`cm${stage}`] %>; i++) {
+            s0_vals<%- stage %>_p[q][i][0] = s0_vals<%- stage %>[q][i];
+        }
+<%  } -%>
+<% } -%> 
+        for (var i = 0; i < <%- starkInfo.mapSectionsN[`cm${qStage}`] %>; i++) {
+            s0_vals<%- qStage %>_p[q][i][0] = s0_vals<%- qStage %>[q][i];
+        }
+        for (var i = 0; i < <%- starkInfo.nConstants %>; i++) {
+            s0_valsC_p[q][i][0] = s0_valsC[q][i];
+        }
+<%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+        for (var i = 0; i < <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>; i++) {
+            s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q][i][0] = s0_vals_<%- starkInfo.customCommits[i].name %>_0[q][i];
+        }
+<% }-%>
+
+        // Preprocess vals for each folded polynomial
+        for(var e=0; e < 3; e++) {
+<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
+            for(var c=0; c < <%- (1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits))%>; c++) {
+                s<%- s %>_vals_p[q][c][e] = s<%- s %>_vals[q][c*3+e];
+            }
+<% } -%>
+        }
+    }
+    
+    // --> Verify the Merkle roots for each of the <%- starkStruct.nQueries %> queries
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
+    for (var q = 0; q < <%- starkStruct.nQueries %>; q++) {
+        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${stage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>)(s0_vals<%- stage %>_p[q], s0_siblings<%- stage %>[q], queriesFRI[q], root<%- stage %>, enabled);
+    }
+<% } -%>
+<% } -%>
+
+    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
+        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${qStage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>)(s0_vals<%- qStage %>_p[q], s0_siblings<%- qStage %>[q], queriesFRI[q], root<%- qStage %>, enabled);
+    }
+
+    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
+        VerifyMerkleHash(1, <%- starkInfo.nConstants %>, <%- 1 << starkStruct.steps[0].nBits %>)(s0_valsC_p[q], s0_siblingsC[q], queriesFRI[q], rootC, enabled);                                    
+    }
+
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    signal root_<%- starkInfo.customCommits[i].name %>_0[4] <== [publics[<%- starkInfo.customCommits[i].publicValues[0].idx %>], publics[<%- starkInfo.customCommits[i].publicValues[1].idx %>], publics[<%- starkInfo.customCommits[i].publicValues[2].idx %>], publics[<%- starkInfo.customCommits[i].publicValues[3].idx %>]];
+    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
+        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>, <%- 1 << starkStruct.steps[0].nBits %>)(s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q], s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q], queriesFRI[q], root_<%- starkInfo.customCommits[i].name %>_0, enabled);                                    
+    }
+<% } -%>
+
+<%      if(!options.recursive2) { -%>
+<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
+    signal {binary} s<%- s %>_keys_merkle[<%- starkStruct.nQueries %>][<%- starkStruct.steps[s].nBits %>];
+    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
+        for(var i = 0; i < <%-starkStruct.steps[s].nBits %>; i++) { s<%- s %>_keys_merkle[q][i] <== queriesFRI[q][i]; }
+        VerifyMerkleHash(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- 1 << starkStruct.steps[s].nBits %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle[q], s<%- s %>_root, enabled);
+    }
+<% } -%>
+<% } -%>
+        
+    // --> Perform the consistency checks on the FRI polynomial:
+    //        F(X) = (f_0(X) - f_0(Xi))/(X - Xi) + challenge * (f_1(X) - f_1(root·Xi))/(X - root·Xi) + ...
+    //     around the FRI queries
+<%      if (!options.multiFRI) { -%>
+    signal queryVals[<%- starkInfo.starkStruct.nQueries %>][3];
+<%      } -%>
+    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
+<%  let queryVals = [];
+    queryVals.push("s0_valsC[q]");
+    for(let i = 0; i < starkInfo.customCommits.length; ++i) { 
+        queryVals.push(`s0_vals_${starkInfo.customCommits[i].name}_0[q]`);
+    }
+    for(let i = 0; i < starkInfo.nStages; ++i) { 
+        const stage = i + 1;
+        if(starkInfo.mapSectionsN[`cm${stage}`] > 0) {
+            queryVals.push(`s0_vals${stage}[q]`);
+        }
+    }
+    queryVals.push(`s0_vals${qStage}[q]`);
+-%>
+        // Reconstruct the RHS from Xi, the challenge and the evaluations 
+        queryVals[q] <== <%- calculateFRIPolName %>()(queriesFRI[q], challengeXi, challengesFRI, evals, <%- queryVals.join(", ") %>);
+<%  let nextValsPol = 0 < starkStruct.steps.length-1 ? "s1_vals_p[q]" : "finalPol"; 
+    let nextStep = 0 < starkStruct.steps.length-1 ? starkStruct.steps[1].nBits : 0;
+-%>      
+        // Verify that it matches with the LHS
+        <%- verifyQueryName %>(<%- starkStruct.steps[0].nBits %>, <%- nextStep %>)(enabled, queriesFRI[q], queryVals[q], <%- nextValsPol %>);
+    }
+
+<%      if(!options.recursive2) { -%>
+    // --> Verify that, for each query, the polynomials in the FRI commit phase are correctly related layer by layer
+<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
+    signal {binary} s<%- s %>_queriesFRI[<%- starkStruct.nQueries -%>][<%- starkStruct.steps[s].nBits%>];
+<% } -%>
+-%>
+    for (var q = 0; q < <%- starkStruct.nQueries %>; q++) {
+        // For each layer we need to check that polynomial is properly constructed
+        // Remember that if the step between polynomials is b = 2^l, the next polynomial p_(i+1) will have degree deg(p_i) / b
+<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
+
+        // Check S<%- s %>
+        for(var i = 0; i < <%- starkStruct.steps[s].nBits %>; i++) { s<%- s %>_queriesFRI[q][i] <== queriesFRI[q][i]; }  
+<%  const nextPolFRI = s < starkStruct.steps.length-1 ? `s${s+1}_vals_p[q]` : "finalPol"; -%>
+<%  const nextStepFRI = s < starkStruct.steps.length-1 ? starkStruct.steps[s+1].nBits : 0; -%>
+<%  const exponent = s === 0 ? 0 : 1 << (starkStruct.nBitsExt -starkStruct.steps[s-1].nBits); -%>
+<%  const prevStepBits = s === 0 ? starkStruct.steps[s].nBits : starkStruct.steps[s-1].nBits; -%>
+<%  const e0 = F.inv(F.exp(F.shift, exponent)) -%>
+        VerifyFRI(<%- starkStruct.nBitsExt %>, <%- prevStepBits %>, <%- starkStruct.steps[s].nBits %>, <%- nextStepFRI %>, <%- e0 %>)(s<%- s %>_queriesFRI[q], challengesFRISteps[<%- s %>], s<%- s %>_vals_p[q], <%- nextPolFRI %>, enabled);
+<% } -%>
+    }
+
+<% const nLastBits = starkStruct.steps[ starkStruct.steps.length-1].nBits;  -%>
+<% const maxDegBits =  Math.max(nLastBits -  (starkStruct.nBitsExt - starkStruct.nBits), 0); -%>
+    // --> Verify that the final polynomial is of correct degree
+    VerifyFinalPol(<%- nLastBits %>, <%- maxDegBits %>)(finalPol, enabled);
+<% } -%>
