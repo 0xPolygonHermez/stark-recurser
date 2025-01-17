@@ -441,3 +441,14 @@ namespace Compressor(%N);
     TREESELECTOR4 * treeSelect4_2 = 0;
     TREESELECTOR4 * treeSelect4_3 = 0;
 
+
+    // Check connection equations of Plonk
+<% 
+    let a = [];
+    let S = [];
+    for(let i = 0; i < 18; ++i) {
+        a.push(`a[${i}]`);
+        S.push(`S[${i}]`);
+    }
+-%>
+    { <%- a.join(',') %> } connect { <%- S.join(',')  %> }
