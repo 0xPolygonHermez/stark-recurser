@@ -30,6 +30,8 @@ template LinearHash(nInputs, eSize) {
                     curE =0;
                     curI ++;
                 }
+            } else {
+                out[i] <== 0;
             }
         }
     } else {
