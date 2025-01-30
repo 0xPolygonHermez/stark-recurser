@@ -130,7 +130,7 @@ template VerifyGlobalChallenges() {
 <%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
     signal input proofValues[<%- vadcopInfo.proofValuesMap.length %>][3];
 <%  } -%>
-    signal input hashStage1[<%- vadcopInfo.aggTypes.length %>][4];
+    signal input stage1Hash[<%- vadcopInfo.aggTypes.length %>][4];
     
     signal input globalChallenge[3];
     signal calculatedGlobalChallenge[3];
@@ -143,7 +143,7 @@ template VerifyGlobalChallenges() {
         }
     }
     for(let k = 0; k < vadcopInfo.aggTypes.length; ++k) {
-        transcript.put("hashStage1[" + k + "]", 4);
+        transcript.put("stage1Hash[" + k + "]", 4);
     }
     transcript.getField("calculatedGlobalChallenge"); -%>
 <%- transcript.getCode() %>
