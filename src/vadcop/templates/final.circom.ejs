@@ -21,8 +21,7 @@ template Final() {
     signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
 <%  } -%>
 
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
+    signal input globalChallenge[3];
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%  let starkInfoRecursive2 = (vadcopInfo.air_groups.length > 1) ? starkInfo[i] : starkInfo; -%>
@@ -55,24 +54,16 @@ template Final() {
 
     // Calculate transcript and check that matches with the global challenges
     component verifyChallenges = VerifyGlobalChallenges();
-    verifyChallenges.challenges <== challenges;
-    verifyChallenges.challengesFRISteps <== challengesFRISteps;
+    verifyChallenges.globalChallenge <== globalChallenge;
 <%  if(vadcopInfo.nPublics > 0) { -%>
     verifyChallenges.publics <== publics;
 <%  } -%>
 <%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
     verifyChallenges.proofValues <== proofValues;
 <%  } -%>
-<%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%      for (let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) { -%>
-    verifyChallenges.root<%- j + 1 %>[<%- i %>] <== s<%- i %>_sv_root<%- j+1 %>;
+<%      for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
+    verifyChallenges.hashStage1[<%- i %>] <== s<%- i %>_sv_root1;
 <%      } -%>
-    verifyChallenges.evalsHash[<%- i %>] <== s<%- i %>_sv_evalsHash;
-<%      for (let j = 1; j < vadcopInfo.stepsFRI.length; ++j) { -%>
-    verifyChallenges.s<%- j %>_root[<%- i %>] <== s<%- i %>_sv_s<%- j %>_root;
-<%      } -%>
-    verifyChallenges.finalPolHash[<%- i %>] <== s<%- i %>_sv_finalPolHash;
-<%  } -%>
 
     // Verify global constraints
     component verifyGlobalConstraints = VerifyGlobalConstraints();
@@ -82,7 +73,7 @@ template Final() {
 <%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
     verifyGlobalConstraints.proofValues <== proofValues;
 <%  } -%>
-    verifyGlobalConstraints.challenges <== challenges;
+    verifyGlobalConstraints.globalChallenge <== globalChallenge;
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%  if(vadcopInfo.aggTypes[i].length > 0) { -%>
     verifyGlobalConstraints.s<%- i %>_airgroupvalues <== s<%- i %>_sv_airgroupvalues;

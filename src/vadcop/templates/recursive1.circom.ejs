@@ -21,8 +21,7 @@ template Recursive1() {
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
+    signal input globalChallenge[3];
    
     signal input rootCAgg[4];
 
@@ -36,10 +35,10 @@ template Recursive1() {
 }
 
 <%  if(!options.hasCompressor) { -%>
-    component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>challenges, challengesFRISteps, rootCAgg]} = Recursive1();
+    component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>globalChallenge, rootCAgg]} = Recursive1();
 <%  } else { -%>
 <%    if(vadcopInfo.nPublics > 0) publicsNames.push("publics"); -%>
-<%    publicsNames.push(...["challenges", "challengesFRISteps", "rootCAgg"]); -%>
+<%    publicsNames.push(...["globalChallenge", "rootCAgg"]); -%>
 component main {public [<%- publicsNames.join(", ") %>]} = Recursive1();
 
 <%  } -%>

@@ -26,8 +26,7 @@ template Recursive2() {
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
 
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
+    signal input globalChallenge[3];
 
     signal input rootCAgg[4];
 
@@ -61,4 +60,4 @@ template Recursive2() {
 }
 
 
-component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>challenges, challengesFRISteps, rootCAgg]} = Recursive2();
+component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>globalChallenge, rootCAgg]} = Recursive2();

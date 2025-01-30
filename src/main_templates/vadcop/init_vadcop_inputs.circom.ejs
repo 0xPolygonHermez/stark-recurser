@@ -2,30 +2,7 @@
 <%  let prefix_ = prefix ? `${prefix}_` : ""; -%>
 
 
-<%  let c = 0; -%>
-<%  for(let i = 0; i < vadcopInfo.numChallenges.length; ++i) { -%>
-<%      for(let j = 0; j < vadcopInfo.numChallenges[i]; ++j) { -%>
-<%          if(i < starkInfo.nStages && j < starkInfo.challengesMap.filter(c => c.stage == i + 1).length) { -%>
-    <%- componentName %>.challengesStage<%- i + 1 %>[<%-j %>] <== challenges[<%- c++ %>];
-<%          } else { -%>
-<%                c++; -%>
-<%          } -%>
-<%      } -%>
-<%  } -%>
-
-    <%- componentName %>.challengeQ <== challenges[<%- c++ %>];
-    <%- componentName %>.challengeXi <== challenges[<%- c++ %>];
-    <%- componentName %>.challengesFRI[0] <== challenges[<%- c++ %>];
-    <%- componentName %>.challengesFRI[1] <== challenges[<%- c++  %>];
-
-<%  c = 0; %>
-<%  for(let i = 0; i < vadcopInfo.stepsFRI.length; ++i) { -%>
-<%      if(c < starkInfo.starkStruct.steps.length && starkInfo.starkStruct.steps[c].nBits === vadcopInfo.stepsFRI[i].nBits) { -%>
-    <%- componentName %>.challengesFRISteps[<%- c++ %>] <== challengesFRISteps[<%- i %>];
-<%      } -%>
-<%  } -%>
-<%- componentName %>.challengesFRISteps[<%- starkInfo.starkStruct.steps.length %>] <== challengesFRISteps[<%- vadcopInfo.stepsFRI.length %>];
-
+    <%- componentName %>.globalChallenge <== globalChallenge;
 
 <%  let circuitType = (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
     <%- prefix_ %>circuitType <== <%- circuitType %>;

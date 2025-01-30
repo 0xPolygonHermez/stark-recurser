@@ -171,7 +171,17 @@ template GlobalConstraint<%- c %>_chunk<%- i %>() {
     signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
 <%  } -%>
 
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
+    signal input globalChallenge[3];
+
+    signal challenges[<%- vadcopInfo.numChallenges[1] %>][3];
+
+<%  let transcript = new Transcript();
+    transcript.put("globalChallenge", 3);
+    for(let i = 0; i < vadcopInfo.numChallenges[1]; ++i) {
+        transcript.getField("challenges[" + + "]"); 
+    } -%>
+<%- transcript.getCode() %>
+
 <%  for(let j = 0; j < chunk.inputs.length; j++) { -%>
 <%  if(tmps[chunk.inputs[j]].dim == 1) { -%>
     signal input tmp_<%- chunk.inputs[j] %>;
@@ -209,8 +219,8 @@ template VerifyGlobalConstraints() {
 <%  inputs.push(`proofValues`); -%>
 <%  } -%>
 
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-<%  inputs.push(`challenges`); -%>
+    signal input globalChallenge[3];
+<%  inputs.push(`globalChallenge`); -%>
 
     // Verify global constraints
 <% for(let i = 0; i < vadcopInfo.globalConstraints.length; i++) { -%>

@@ -51,19 +51,10 @@
 <%  nPublicsInps += vadcopInfo.nPublics -%>
 <%  } -%>
 
-    for(var i = 0; i < <%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== challenges[i][0];
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+1] <== challenges[i][1];
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+2] <== challenges[i][2];
-    }
-<%  nPublicsInps += 3*(vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4); -%>
-
-    for(var i = 0; i < <%- vadcopInfo.stepsFRI.length + 1 %>; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== challengesFRISteps[i][0];
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+1] <== challengesFRISteps[i][1];
-        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i+2] <== challengesFRISteps[i][2];
-    }
-<%  nPublicsInps += 3*(vadcopInfo.stepsFRI.length); -%>
+<%- componentName %>.publics[<%- nPublicsInps %>] <== globalChallenge[0];
+<%- componentName %>.publics[<%- nPublicsInps %> +1] <== globalChallenge[1];
+<%- componentName %>.publics[<%- nPublicsInps %> +2] <== globalChallenge[2];
+<%  nPublicsInps += 3; -%>
 
 <%  if(options.setEnableInput) { -%>
     signal {binary} <%- prefix_ %>isNull <== IsZero()(<%- prefix_ %>circuitType);
