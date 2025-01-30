@@ -18,29 +18,8 @@
 <%  nPublicsInps += 3*vadcopInfo.aggTypes[airgroupId].length ; -%>
 <%  } -%>
 
-
-<%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; i++) { -%>
     for(var i = 0; i < 4; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>root<%- i+1 %>[i];
-    }
-
-<%  nPublicsInps += 4 -%>
-<%  } -%>
-
-    for(var i = 0; i < 4; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>evalsHash[i];
-    }
-<%  nPublicsInps += 4 -%>
-
-<%  for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
-    for(var i = 0; i < 4; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>s<%- i %>_root[i];
-    }
-<%  nPublicsInps += 4 -%>
-<%  } -%>
-
-    for(var i = 0; i < 4; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>finalPolHash[i];
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>stage1Hash[i];
     }
 <%  nPublicsInps += 4 -%>
 
@@ -51,9 +30,9 @@
 <%  nPublicsInps += vadcopInfo.nPublics -%>
 <%  } -%>
 
-<%- componentName %>.publics[<%- nPublicsInps %>] <== globalChallenge[0];
-<%- componentName %>.publics[<%- nPublicsInps %> +1] <== globalChallenge[1];
-<%- componentName %>.publics[<%- nPublicsInps %> +2] <== globalChallenge[2];
+    <%- componentName %>.publics[<%- nPublicsInps %>] <== globalChallenge[0];
+    <%- componentName %>.publics[<%- nPublicsInps %> +1] <== globalChallenge[1];
+    <%- componentName %>.publics[<%- nPublicsInps %> +2] <== globalChallenge[2];
 <%  nPublicsInps += 3; -%>
 
 <%  if(options.setEnableInput) { -%>
