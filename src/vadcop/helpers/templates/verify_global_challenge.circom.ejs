@@ -143,7 +143,7 @@ template VerifyGlobalChallenges() {
         }
     }
     for(let k = 0; k < vadcopInfo.aggTypes.length; ++k) {
-        transcript.put("root1[" + k + "]", 4);
+        transcript.put("hashStage1[" + k + "]", 4);
     }
     transcript.getField("calculatedGlobalChallenge"); -%>
 <%- transcript.getCode() %>

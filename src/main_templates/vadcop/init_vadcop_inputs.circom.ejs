@@ -17,37 +17,8 @@
 <%      } -%>
 <%  } -%>
 
-
-<%  for (let i = 0; i < starkInfo.nStages; ++i) { -%>
-<%  if(i == 0) { -%>
-<%  if(starkInfo.airValuesMap.filter(a => a.stage == i + 1).length > 0) { -%>
-    <%- prefix_ %>root<%- i+1 %> <== CalculateStage<%- i+1 %>Hash()(<%- componentName %>.rootC, <%- prefixStark_%>root<%- i+1 %>, <%- prefixStark_ %>airvalues);
+<%  if(starkInfo.airValuesMap.filter(a => a.stage == 1).length > 0) { -%>
+    <%- prefix_ %>stage1Hash <== CalculateStage1Hash()(<%- componentName %>.rootC, <%- prefixStark_%>root1, <%- prefixStark_ %>airvalues);
 <%  } else { -%>
-    <%- prefix_ %>root<%- i+1 %> <== CalculateStage<%- i+1 %>Hash()(<%- componentName %>.rootC, <%- prefixStark_%>root<%- i+1 %>);
+    <%- prefix_ %>stage1Hash <== CalculateStage1Hash()(<%- componentName %>.rootC, <%- prefixStark_%>root1);
 <%  } -%>
-<%  } else { -%>
-<%  if(starkInfo.airValuesMap.filter(a => a.stage == i + 1).length > 0) { -%>
-    <%- prefix_ %>root<%- i+1 %> <== CalculateStage<%- i+1 %>Hash()(<%- prefixStark_%>root<%- i+1 %>, <%- prefixStark_ %>airvalues);
-<%  } else { -%>
-    <%- prefix_ %>root<%- i+1 %> <== <%- prefixStark_ %>root<%- i+1 %>;
-<%  } -%>
-<%  } -%>
-<%  } -%>
-<%  for (let i = starkInfo.nStages; i < vadcopInfo.numChallenges.length; ++i) { -%>
-    <%- prefix_ %>root<%- i+1 %> <== [0,0,0,0];
-<%  } -%>
-
-    <%- prefix_ %>root<%- starkInfo.nStages + 1 %> <== <%- prefixStark_ %>root<%- starkInfo.nStages + 1 %>;
-
-    <%- prefix_ %>evalsHash <== CalculateEvalsHash()(<%- prefixStark_ %>evals);
-
-<%  let friCounter = 0; -%>
-<%  for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
-<%     if(friCounter < starkInfo.starkStruct.steps.length - 1 && starkInfo.starkStruct.steps[friCounter].nBits === vadcopInfo.stepsFRI[i - 1].nBits) { -%>
-    <%- prefix_ %>s<%- i %>_root <== <%- prefixStark_ %>s<%- ++friCounter %>_root;
-<%     } else { -%>
-    <%- prefix_ %>s<%- i %>_root <== [0,0,0,0];
-<%     } -%>
-<%  } -%>
-    
-    <%- prefix_ %>finalPolHash <== CalculateFinalPolHash()(<%- prefixStark_ %>finalPol);
