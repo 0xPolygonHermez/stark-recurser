@@ -44,7 +44,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     };
 
     const pilStr = ejs.render(template ,  obj);
-    const pilFile = "tmp/pil.pil";
+    const pilFile = await tmpName();
     await fs.promises.writeFile(pilFile, pilStr, "utf8");
 
     let constPols;
