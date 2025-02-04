@@ -1,7 +1,7 @@
 pragma circom 2.1.0;
 pragma custom_templates;
 
-include "poseidon.circom";
+include "poseidon2.circom";
 include "mux1.circom";
 
 template AggregateValues() {
@@ -11,7 +11,7 @@ template AggregateValues() {
     signal output valueAB[4];
 
     // Calculate the hash of valueA and valueB
-    signal hash[12] <== Poseidon(12)([valueA[0], valueA[1], valueA[2], valueA[3], valueB[0], valueB[1], valueB[2], valueB[3]], [0,0,0,0]);
+    signal hash[12] <== Poseidon2(12)([valueA[0], valueA[1], valueA[2], valueA[3], valueB[0], valueB[1], valueB[2], valueB[3]], [0,0,0,0]);
     valueAB <== [hash[0], hash[1], hash[2], hash[3]];
 }
 
@@ -41,7 +41,7 @@ template AggregateValuesNull() {
     signal output valueAB[4];
 
     // Calculate the hash of valueA and valueB
-    signal hash[12] <== Poseidon(12)([valueA[0], valueA[1], valueA[2], valueA[3], valueB[0], valueB[1], valueB[2], valueB[3]], [0,0,0,0]);
+    signal hash[12] <== Poseidon2(12)([valueA[0], valueA[1], valueA[2], valueA[3], valueB[0], valueB[1], valueB[2], valueB[3]], [0,0,0,0]);
     signal hashAB[4] <== [hash[0], hash[1], hash[2], hash[3]];
 
     // If valueA or valueB is [0,0,0], it means that the particular airgroupvalue does not have that stage. Therefore we should proceed the same way as if circuitType is null
