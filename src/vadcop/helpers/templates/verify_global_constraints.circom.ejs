@@ -95,7 +95,6 @@
 
     let liveTmps = new Set();
     let previousLiveTmps = new Set();
-    let forcedLiveTmps = new Set();
     let chunks = [];
     let currentChunk = [];
     let initChunk = 0;
@@ -109,42 +108,41 @@
 
         if(inst.dest.type == "tmp") {
             liveTmps.add(inst.dest.id);
-            if((i - initChunk) < MIN_CHUNK_SIZE && tmps[inst.dest.id].lastPos > MIN_CHUNK_SIZE - (i - initChunk)) forcedLiveTmps.add(inst.dest.id);
             outputs.add(inst.dest.id);
         }
         if(inst.src[0].type == "tmp") {
             if(i == tmps[inst.src[0].id].lastPos) {
                 liveTmps.delete(inst.src[0].id);
                 outputs.delete(inst.src[0].id);
-                if (forcedLiveTmps.has(inst.src[0].id)) {
-                    forcedLiveTmps.delete(inst.src[0].id);
-                }
             }
             if(previousLiveTmps.has(inst.src[0].id)) {
                 inputs.add(inst.src[0].id);
+                if(i == tmps[inst.src[0].id].lastPos) {
+                    previousLiveTmps.delete(inst.src[0].id)
+                }
             }
         }
         if(inst.src[1].type == "tmp") {
             if(i == tmps[inst.src[1].id].lastPos) {
                 liveTmps.delete(inst.src[1].id);
                 outputs.delete(inst.src[1].id);
-                if (forcedLiveTmps.has(inst.src[1].id)) {
-                    forcedLiveTmps.delete(inst.src[1].id);
-                }
             }
             if(previousLiveTmps.has(inst.src[1].id)) {
                 inputs.add(inst.src[1].id);
+                if(i == tmps[inst.src[1].id].lastPos) {
+                    previousLiveTmps.delete(inst.src[1].id)
+                }
             }
         }
 
-        if(currentChunk.length + 1 >= MIN_CHUNK_SIZE && liveTmps.size - forcedLiveTmps.size == 1) {
+        if(currentChunk.length + 1 >= MIN_CHUNK_SIZE) {
             let chunk = {chunk: currentChunk, inputs: [...inputs].sort((a,b) => a - b), outputs: [...outputs].sort((a,b) => a - b)};
             chunks.push(chunk);
 
             currentChunk = [];
             initChunk = i;
-            previousLiveTmps = new Set(liveTmps);
-            liveTmps = new Set(forcedLiveTmps);
+            previousLiveTmps = new Set([...previousLiveTmps, ...liveTmps]);
+            liveTmps = new Set();
             outputs = new Set();
             inputs = new Set();
         }
