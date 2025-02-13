@@ -17,7 +17,10 @@ template Recursive2() {
 <%  } -%>
 
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "a_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
+
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "b", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "b_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
@@ -32,8 +35,6 @@ template Recursive2() {
     signal input aggregationTypes[<%- vadcopInfo.aggTypes[airgroupId].length %>];
 <%  } -%>
 
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "a_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "b_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
 
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "sv", vadcopInfo, airgroupId, starkInfo, options: {...options, isInput: false} }); %>
 
