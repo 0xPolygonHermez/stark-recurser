@@ -25,8 +25,8 @@ template Final() {
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%  let starkInfoRecursive2 = (vadcopInfo.air_groups.length > 1) ? starkInfo[i] : starkInfo; -%>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `s${i}_sv`, vadcopInfo, starkInfo: starkInfoRecursive2, airgroupId: i, options: {...options, addPublics: false, isInput: true } }); %>
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `s${i}`, starkInfo: starkInfoRecursive2, nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `s${i}_sv`, vadcopInfo, starkInfo: starkInfoRecursive2, airgroupId: i, options: {...options, addPublics: false, isInput: true, isAggregation: false } }); %>
 <%  } -%>
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>

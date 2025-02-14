@@ -30,6 +30,16 @@
 <%  nPublicsInps += vadcopInfo.nPublics -%>
 <%  } -%>
 
+<%  if(vadcopInfo.numProofValues > 0) { -%>
+    for(var i = 0; i < <%- vadcopInfo.numProofValues %>; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i] <== proofValues[i][0];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 1] <== proofValues[i][1];
+        <%- componentName %>.publics[<%- nPublicsInps %> + 3*i + 2] <== proofValues[i][2];
+
+    }
+<%  nPublicsInps += vadcopInfo.numProofValues * 3; -%>
+<%  } -%>
+
     <%- componentName %>.publics[<%- nPublicsInps %>] <== globalChallenge[0];
     <%- componentName %>.publics[<%- nPublicsInps %> +1] <== globalChallenge[1];
     <%- componentName %>.publics[<%- nPublicsInps %> +2] <== globalChallenge[2];

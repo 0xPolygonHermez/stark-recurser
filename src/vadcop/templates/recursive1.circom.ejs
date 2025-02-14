@@ -14,15 +14,20 @@ include "<%- verifierFilenames[i] %>";
 <%  let publicsNames = []; -%>
 template Recursive1() {
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
-
 <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, airgroupId, prefix: "sv", starkInfo, options: { ...options, publicsNames, isInput: options.hasCompressor ? true : false  } }); %>
+
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
+    
+<%  if(vadcopInfo.numProofValues > 0) { -%>
+    signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
+<%  } -%>
+    
     signal input globalChallenge[3];
-   
+
     signal input rootCAgg[4];
 
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: options.hasCompressor ? false : true } }); %>
@@ -34,11 +39,14 @@ template Recursive1() {
 <%  } -%>
 }
 
-<%  if(!options.hasCompressor) { -%>
-    component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>globalChallenge, rootCAgg]} = Recursive1();
-<%  } else { -%>
-<%    if(vadcopInfo.nPublics > 0) publicsNames.push("publics"); -%>
-<%    publicsNames.push(...["globalChallenge", "rootCAgg"]); -%>
-component main {public [<%- publicsNames.join(", ") %>]} = Recursive1();
-
+<%  let pubNames = []; -%>
+<%  if(options.hasCompressor) { -%>
+<%    pubNames.push(...publicsNames); -%>
 <%  } -%>
+<%    if(vadcopInfo.nPublics > 0) pubNames.push("publics"); -%>
+<%    if(vadcopInfo.numProofValues > 0) pubNames.push("proofValues"); -%>
+<%    pubNames.push("globalChallenge"); -%>
+<%    pubNames.push("rootCAgg"); -%>
+    
+component main {public [<%- pubNames.join(", ") %>]} = Recursive1();
+
