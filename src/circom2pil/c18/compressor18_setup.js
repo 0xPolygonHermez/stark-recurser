@@ -16,7 +16,7 @@ const { generateFixedCols } = require("../../utils/witnessCalculator.js");
 module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     const committedPols = 19;
     
-    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(F, r1cs, committedPols);
+    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(F, r1cs, 18);
 
     //Calculate the first power of 2 that's bigger than the number of constraints
     let nBits = log2(NUsed - 1) + 1;
