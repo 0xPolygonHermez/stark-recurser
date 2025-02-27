@@ -7,12 +7,12 @@ include "poseidon2.circom";
     Given a value and its sibling path (with its corresponding vector determining if the element is the left or right one), 
     calculate its merkle root.
 */
-template Merkle(nBits, arity, nLevels) {
-    var keyBits = log2(arity);
+template Merkle(arity, nLevels) {
+    var nBits = log2(arity);
 
     signal input value[4]; // Leaf value
     signal input siblings[nLevels][(arity - 1) * 4]; // Sibling values
-    signal input {binary} key[nBits];
+    signal input {binary} key[nLevels][nBits];
     signal output root[4];
 
     component hash[nLevels];
@@ -35,13 +35,7 @@ template Merkle(nBits, arity, nLevels) {
             hash[i].in[k+4] <== siblings[i][k];
         }
 
-        for(var k = 0; k < keyBits; k++) {
-            if(nBits >= (keyBits * i) + k) {
-                hash[i].key[k] <== key[k];
-            } else {
-                hash[i].key[k] <== 0;
-            }
-        } 
+        hash[i].key[k] <== key[k];
     }
 
     root <== hash[nLevels-1].out;
