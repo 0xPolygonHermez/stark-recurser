@@ -973,9 +973,9 @@ template <%- verifierName %>() {
     ///////////
     // Verify Merkle Roots
     ///////////
-    signal {binary} queriesFRITernary[128][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- Math.ceil(Math.log2(starkInfo.starkStruct.merkleTreeArity)) %>];
-    signal queriesFRINum[128];
-    for(var i = 0; i < 128; i++) {
+    signal {binary} queriesFRITernary[<%- starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- Math.ceil(Math.log2(starkInfo.starkStruct.merkleTreeArity)) %>];
+    signal queriesFRINum[<%- starkStruct.nQueries %>];
+    for(var i = 0; i < <%- starkStruct.nQueries %>; i++) {
         queriesFRINum[i] <== Bits2Num(<%- starkStruct.steps[0].nBits %>)(queriesFRI[i]);
         queriesFRITernary[i] <== Num2Ternary(<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) %>)(queriesFRINum[i]);
     }

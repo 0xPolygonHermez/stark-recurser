@@ -24,11 +24,8 @@ template Num2Ternary(n) {
     var e3=1;
 
     signal ternary_digits[n];
-    signal im[n];
     for (var i = 0; i<n; i++) {
         ternary_digits[i] <-- (in \ e3) % 3;
-        im[i] <== ternary_digits[i] * (ternary_digits[i] -1);
-        im[i] * (ternary_digits[i] - 2) === 0;
         lc1 += ternary_digits[i] * e3;
         e3 *= 3;
         out[i] <== Num2Bits(2)(ternary_digits[i]);
