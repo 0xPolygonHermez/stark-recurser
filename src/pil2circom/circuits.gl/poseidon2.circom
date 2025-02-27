@@ -101,28 +101,47 @@ template custom Poseidon12() {
 // Custom gate that calculates Poseidon hash of two inputs using Neptune optimization
 // The two inputs are sent unordered and the key that determines its position is also sent as an input
 template custom CustPoseidon12() {
-    signal input in[8];
-    signal input key;
+    signal input in[12];
+    signal input key[2];
     signal output im[9][12];
     signal output out[12];
 
-    assert(key*(key - 1) == 0);
+    assert(key[0]*(key[0] - 1) == 0);
+    assert(key[1]*(key[1] - 1) == 0);
 
     var initialSt[12];
     
     // Order the inputs of the Poseidon hash according to the key bit.
-    initialSt[0] = key*(in[0] - in[4]) + in[4];
-    initialSt[1] = key*(in[1] - in[5]) + in[5];
-    initialSt[2] = key*(in[2] - in[6]) + in[6];
-    initialSt[3] = key*(in[3] - in[7]) + in[7];
-    initialSt[4] = key*(in[4] - in[0]) + in[0];
-    initialSt[5] = key*(in[5] - in[1]) + in[1];
-    initialSt[6] = key*(in[6] - in[2]) + in[2];
-    initialSt[7] = key*(in[7] - in[3]) + in[3];
-    initialSt[8] = 0;
-    initialSt[9] = 0;
-    initialSt[10] = 0;
-    initialSt[11] = 0;
+    if(key[0] == 0 && key[1] == 0) {
+        initialSt = in;
+    } else if (key[0] == 1 && key[1] == 0) {
+        initialSt[0]  = in[4];
+        initialSt[1]  = in[5];
+        initialSt[2]  = in[6];
+        initialSt[3]  = in[7];
+        initialSt[4]  = in[0];
+        initialSt[5]  = in[1];
+        initialSt[6]  = in[2];
+        initialSt[7]  = in[3];
+        initialSt[8]  = in[8];
+        initialSt[9]  = in[9];
+        initialSt[10] = in[10];
+        initialSt[11] = in[11];
+    } else {
+        initialSt[0]  = in[4];
+        initialSt[1]  = in[5];
+        initialSt[2]  = in[6];
+        initialSt[3]  = in[7];
+        initialSt[4]  = in[8];
+        initialSt[5]  = in[9];
+        initialSt[6]  = in[10];
+        initialSt[7]  = in[11];
+        initialSt[8]  = in[0];
+        initialSt[9]  = in[1];
+        initialSt[10] = in[2];
+        initialSt[11] = in[3];
+    }
+    
 
     var st[12] = initialSt;
 
@@ -205,17 +224,12 @@ template Poseidon2(nOuts) {
 // Calculate Poseidon Hash of 2 inputs in GL field (each element has at most 63 bits)
 // -nOuts: Number of GL field elements that are being returned as output
 template CustPoseidon2(nOuts) {
-    signal input in[8];
-    signal input key;
+    signal input in[12];
+    signal input key[2];
     signal output out[nOuts];
 
     component p = CustPoseidon12();
-
-    // Pass the two inputs and the capacity as inputs for performing the poseidon Hash
-    for (var j=0; j<8; j++) {
-        p.in[j] <== in[j];
-    }
-
+    p.in <== in;
     p.key <== key;
     
     // Poseidon12 returns 12 outputs but we are only interested in returning nOuts

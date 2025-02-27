@@ -7,11 +7,12 @@ include "poseidon2.circom";
     Given a value and its sibling path (with its corresponding vector determining if the element is the left or right one), 
     calculate its merkle root.
 */
-template Merkle(nLevels) {
+template Merkle(nBits, arity, nLevels) {
+    var keyBits = log2(arity);
 
     signal input value[4]; // Leaf value
-    signal input siblings[nLevels][4]; // Sibling values
-    signal input {binary} key[nLevels];
+    signal input siblings[nLevels][(arity - 1) * 4]; // Sibling values
+    signal input {binary} key[nBits];
     signal output root[4];
 
     component hash[nLevels];
@@ -23,17 +24,24 @@ template Merkle(nLevels) {
         // The key that determines which element is the left one and which one the right one is also
         // sent to the custom gate
         hash[i] = CustPoseidon2(4);
-        for (var k=0; k<4; k++) {
-            hash[i].in[k] <== siblings[i][k];
-            // If i == 0 we hash the sibling with the initial leave value. Otherwise with the last hash calculated
-            // If key[i] == 1, the sibling value corresponds to the first input. Otherwise it corresponds to the second one. 
+        for (var k = 0; k<4; k++) {
             if (i>0) {
-                hash[i].in[k+4] <== hash[i-1].out[k];
+                hash[i].in[k] <== hash[i-1].out[k];
             } else {
-                hash[i].in[k+4] <== value[k];
+                hash[i].in[k] <== value[k];
             }
         }
-        hash[i].key <== key[i];
+        for (var k=0; k<8; k++) {
+            hash[i].in[k+4] <== siblings[i][k];
+        }
+
+        for(var k = 0; k < keyBits; k++) {
+            if(nBits >= (keyBits * i) + k) {
+                hash[i].key[k] <== key[k];
+            } else {
+                hash[i].key[k] <== 0;
+            }
+        } 
     }
 
     root <== hash[nLevels-1].out;

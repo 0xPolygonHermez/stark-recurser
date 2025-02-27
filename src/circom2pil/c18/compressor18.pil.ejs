@@ -9,7 +9,7 @@ namespace Global(%N);
 <% } -%>
 
 namespace Compressor(%N);
-    pol constant S[18];
+    pol constant S[19];
     pol constant C[15];
     pol constant POSEIDONCUSTFIRST;
     pol constant POSEIDONFIRST;
@@ -22,7 +22,7 @@ namespace Compressor(%N);
     pol constant EVPOL4;
     pol constant FFT4;
     pol constant TREESELECTOR4;
-    pol commit a[18];
+    pol commit a[19];
 
 <% for (let i=0; i<nPublics; i++) { -%>
     public pub<%- i%> = a[<%- i%12 %>](<%- Math.floor(i/12) %>);
@@ -89,16 +89,25 @@ namespace Compressor(%N);
     
     // Order the each of the GL Poseidon inputs according to the key, which is stored in a[8]
     
-    pol custPoseidonInput0 = a[8] * (a[0] - a[4]) + a[4];
-    pol custPoseidonInput1 = a[8] * (a[1] - a[5]) + a[5];
-    pol custPoseidonInput2 = a[8] * (a[2] - a[6]) + a[6];
-    pol custPoseidonInput3 = a[8] * (a[3] - a[7]) + a[7];
-    pol custPoseidonInput4 = a[8] * (a[4] - a[0]) + a[0];
-    pol custPoseidonInput5 = a[8] * (a[5] - a[1]) + a[1];
-    pol custPoseidonInput6 = a[8] * (a[6] - a[2]) + a[2];
-    pol custPoseidonInput7 = a[8] * (a[7] - a[3]) + a[3];
+    pol mask00 = (1 - a[18]) * (1 - a[18]');
+    pol mask01 = (1 - a[18]) * a[18]';
+    pol mask10 = a[18] * (1 - a[18]');
+    
+    pol custPoseidonInput0 = (mask00 + mask10) * a[0] + mask01 * a[4];
+    pol custPoseidonInput1 = (mask00 + mask10) * a[1] + mask01 * a[5];
+    pol custPoseidonInput2 = (mask00 + mask10) * a[2] + mask01 * a[6];
+    pol custPoseidonInput3 = (mask00 + mask10) * a[3] + mask01 * a[7];
+    pol custPoseidonInput4 = mask00 * a[4] + mask01 * a[0] + mask10 * a[8];
+    pol custPoseidonInput5 = mask00 * a[5] + mask01 * a[1] + mask10 * a[9];
+    pol custPoseidonInput6 = mask00 * a[6] + mask01 * a[2] + mask10 * a[10];
+    pol custPoseidonInput7 = mask00 * a[7] + mask01 * a[3] + mask10 * a[11];
+    pol custPoseidonInput8 = (mask00 + mask01) * a[8] + mask10 * a[0];
+    pol custPoseidonInput9 = (mask00 + mask01) * a[9] + mask10 * a[1];
+    pol custPoseidonInput10 = (mask00 + mask01) * a[10] + mask10 * a[2];
+    pol custPoseidonInput11 = (mask00 + mask01) * a[11] + mask10 * a[3];
 
-    pol checkBinary = a[8] * (a[8] - 1);
+    pol checkBinary = a[18] * (a[18] - 1);
+    pol checkBinary2 = a[18]' * (a[18]' - 1);
     POSEIDONCUSTFIRST * checkBinary = 0;
 
     pol custInitialPoseidonInput0 = 5*custPoseidonInput0 + 7*custPoseidonInput1 +   custPoseidonInput2 + 3*custPoseidonInput3;
@@ -446,7 +455,7 @@ namespace Compressor(%N);
 <% 
     let a = [];
     let S = [];
-    for(let i = 0; i < 18; ++i) {
+    for(let i = 0; i < 19; ++i) {
         a.push(`a[${i}]`);
         S.push(`S[${i}]`);
     }

@@ -14,7 +14,7 @@ const { generateFixedCols } = require("../../utils/witnessCalculator.js");
     Compress plonk constraints and verifies custom gates using 18 committed polynomials
 */
 module.exports = async function plonkSetup(F, r1cs, pil2, options) {
-    const committedPols = 18;
+    const committedPols = 19;
     
     const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(F, r1cs, committedPols);
 
@@ -73,7 +73,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     // Remember that there are 18 committed polynomials and the number of rows is stored in NUsed
     const sMap = [];
     for (let i=0;i<committedPols; i++) {
-        sMap[i] = new Uint32Array(N);
+        sMap[i] = new Uint32Array(N).fill(0);
     }
 
     const extraRows = [];
@@ -157,12 +157,16 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
 
             r+=6;
         } else if(cgu.id == customGatesInfo.CustPoseidon12Id) {
-            assert(cgu.signals.length == 9 + 10*12);
+            assert(cgu.signals.length == 11*12 + 2);
             let counterS = 0;
+            let first_bit = cgu.signals[12];
+            let second_bit = cgu.signals[13];
             for (let i = 0; i < 6; ++i) {
                 for (let j = 0; j<12; j++) {
-                    sMap[j][r+i] = (i === 0 && (j === 9 || j === 10 || j === 11)) ? 0 : cgu.signals[counterS++];
+                    sMap[j][r+i] = cgu.signals[counterS++];
                 }
+
+                if (i == 0) counterS += 2;
 
                 // Poseidon custom gates store all intermediate rounds (each round uses 12 inputs), but in C18 
                 // we are verifying two rounds at a time. Therefore, we skip intermediate values that aren't used

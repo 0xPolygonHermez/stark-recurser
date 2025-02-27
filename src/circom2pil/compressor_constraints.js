@@ -52,7 +52,7 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(F, r
         console.log(`Number of plonk constraints new rows: ${CPlonkConstraints}`);
         
         NUsed = nPartialRowsCustomGates + CPlonkConstraints;
-    } else if(cols === 18) {
+    } else if(cols === 19) {
         // Each Poseidon12 custom gate uses 6 rows (Input -> Round 2 -> Round 4 -> Round 26 -> Round 28 -> Output)
         
         nCMulRows = customGatesInfo.nCMul/2;
