@@ -90,21 +90,21 @@ namespace Compressor(%N);
     // Order the each of the GL Poseidon inputs according to the key, which is stored in a[8]
     
     pol mask00 = (1 - a[18]) * (1 - a[18]');
-    pol mask01 = (1 - a[18]) * a[18]';
     pol mask10 = a[18] * (1 - a[18]');
+    pol mask01 = (1 - a[18]) * a[18]';
     
-    pol custPoseidonInput0 = (mask00 + mask10) * a[0] + mask01 * a[4];
-    pol custPoseidonInput1 = (mask00 + mask10) * a[1] + mask01 * a[5];
-    pol custPoseidonInput2 = (mask00 + mask10) * a[2] + mask01 * a[6];
-    pol custPoseidonInput3 = (mask00 + mask10) * a[3] + mask01 * a[7];
-    pol custPoseidonInput4 = mask00 * a[4] + mask01 * a[0] + mask10 * a[8];
-    pol custPoseidonInput5 = mask00 * a[5] + mask01 * a[1] + mask10 * a[9];
-    pol custPoseidonInput6 = mask00 * a[6] + mask01 * a[2] + mask10 * a[10];
-    pol custPoseidonInput7 = mask00 * a[7] + mask01 * a[3] + mask10 * a[11];
-    pol custPoseidonInput8 = (mask00 + mask01) * a[8] + mask10 * a[0];
-    pol custPoseidonInput9 = (mask00 + mask01) * a[9] + mask10 * a[1];
-    pol custPoseidonInput10 = (mask00 + mask01) * a[10] + mask10 * a[2];
-    pol custPoseidonInput11 = (mask00 + mask01) * a[11] + mask10 * a[3];
+    pol custPoseidonInput0 =  mask00 * a[0]  + mask10 * a[4]  + mask01 * a[4]; 
+    pol custPoseidonInput1 =  mask00 * a[1]  + mask10 * a[5]  + mask01 * a[5]; 
+    pol custPoseidonInput2 =  mask00 * a[2]  + mask10 * a[6]  + mask01 * a[6]; 
+    pol custPoseidonInput3 =  mask00 * a[3]  + mask10 * a[7]  + mask01 * a[7]; 
+    pol custPoseidonInput4 =  mask00 * a[4]  + mask10 * a[0]  + mask01 * a[8]; 
+    pol custPoseidonInput5 =  mask00 * a[5]  + mask10 * a[1]  + mask01 * a[9]; 
+    pol custPoseidonInput6 =  mask00 * a[6]  + mask10 * a[2]  + mask01 * a[10];
+    pol custPoseidonInput7 =  mask00 * a[7]  + mask10 * a[3]  + mask01 * a[11]; 
+    pol custPoseidonInput8 =  mask00 * a[8]  + mask10 * a[8]  + mask01 * a[0]; 
+    pol custPoseidonInput9 =  mask00 * a[9]  + mask10 * a[9]  + mask01 * a[1]; 
+    pol custPoseidonInput10 = mask00 * a[10] + mask10 * a[10] + mask01 * a[2];
+    pol custPoseidonInput11 = mask00 * a[11] + mask10 * a[11] + mask01 * a[3];
 
     pol checkBinary = a[18] * (a[18] - 1);
     pol checkBinary2 = a[18]' * (a[18]' - 1);

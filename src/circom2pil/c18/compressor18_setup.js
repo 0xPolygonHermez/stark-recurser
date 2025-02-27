@@ -161,6 +161,10 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
             let counterS = 0;
             let first_bit = cgu.signals[12];
             let second_bit = cgu.signals[13];
+
+            sMap[18][r] = first_bit;
+            sMap[18][r+1] = second_bit;
+            
             for (let i = 0; i < 6; ++i) {
                 for (let j = 0; j<12; j++) {
                     sMap[j][r+i] = cgu.signals[counterS++];
