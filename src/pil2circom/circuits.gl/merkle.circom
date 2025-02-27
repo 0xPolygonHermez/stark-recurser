@@ -35,7 +35,7 @@ template Merkle(arity, nLevels) {
             hash[i].in[k+4] <== siblings[i][k];
         }
 
-        hash[i].key[k] <== key[k];
+        hash[i].key <== key[i];
     }
 
     root <== hash[nLevels-1].out;

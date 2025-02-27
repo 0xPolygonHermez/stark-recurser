@@ -973,10 +973,10 @@ template <%- verifierName %>() {
     ///////////
     // Verify Merkle Roots
     ///////////
-    signal queriesFRITernary[128][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- Math.log2(starkInfo.starkStruct.merkleTreeArity) %>];
+    signal {binary} queriesFRITernary[128][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- Math.ceil(Math.log2(starkInfo.starkStruct.merkleTreeArity)) %>];
     signal queriesFRINum[128];
     for(var i = 0; i < 128; i++) {
-        queriesFRINum[i] <== Bits2Num(starkStruct.steps[0].nBits)(queriesFRI[i]);
+        queriesFRINum[i] <== Bits2Num(<%- starkStruct.steps[0].nBits %>)(queriesFRI[i]);
         queriesFRITernary[i] <== Num2Ternary(<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) %>)(queriesFRINum[i]);
     }
 
@@ -1008,12 +1008,12 @@ template <%- verifierName %>() {
 <% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
     signal {binary} s<%- s %>_keys_merkle[<%- starkStruct.nQueries %>][<%- starkStruct.steps[s].nBits %>];
     signal s<%- s %>_keys_merkle_num[<%- starkStruct.nQueries %>];
-    signal {binary} s<%- s %>_keys_merkle_ternary[<%- starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- Math.log2(starkInfo.starkStruct.merkleTreeArity) %>];
+    signal {binary} s<%- s %>_keys_merkle_ternary[<%- starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- Math.ceil(Math.log2(starkInfo.starkStruct.merkleTreeArity)) %>];
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
         // Calculate merkle root for s<%- s %> vals
         for(var i = 0; i < <%-starkStruct.steps[s].nBits %>; i++) { s<%- s %>_keys_merkle[q][i] <== queriesFRI[q][i]; }
-        s<%- s %>_keys_merkleNum[q] <== Bits2Num(<%- starkStruct.steps[s].nBits %>)(s<%- s %>_keys_merkle[q]);
-        s<%- s %>_keys_merkle_ternary[q] <== Num2Ternary(<%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>)(s<%- s %>_keys_merkleNum[q]);
+        s<%- s %>_keys_merkle_num[q] <== Bits2Num(<%- starkStruct.steps[s].nBits %>)(s<%- s %>_keys_merkle[q]);
+        s<%- s %>_keys_merkle_ternary[q] <== Num2Ternary(<%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>)(s<%- s %>_keys_merkle_num[q]);
         VerifyMerkleHash(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle_ternary[q], s<%- s %>_root, enabled);
     }
 <% } -%>
