@@ -13,9 +13,9 @@ const { generateFixedCols } = require("../../utils/witnessCalculator.js");
     Compress plonk constraints and verifies custom gates using 12 committed polynomials
 */
 module.exports = async function plonkSetup(F, r1cs, pil2, options) {
-    const committedPols = 12;
+    const committedPols = 13;
 
-    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(F, r1cs, committedPols);
+    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(F, r1cs, 12);
     
     let nPublics = r1cs.nOutputs + r1cs.nPubInputs;
     const nPublicRows = Math.floor((nPublics + 11)/12); 
@@ -74,7 +74,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     // Remember that there are 12 committed polynomials and the number of rows is stored in NUsed
     const sMap = [];
     for (let i=0;i<committedPols; i++) {
-        sMap[i] = new Uint32Array(N);
+        sMap[i] = new Uint32Array(N).fill(0);
     }
 
     const extraRows = [];
@@ -141,18 +141,25 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
 
             r+=11;
         } else if(cgu.id == customGatesInfo.CustPoseidon12Id) {
-            assert(cgu.signals.length == 9 + 10*12);
+            assert(cgu.signals.length == 11*12 + 2);
             let counterC = 0;
             let counterS = 0;
 
             for (let i = 0; i < 11; ++i) {
                 for (let j = 0; j<12; j++) {
-                    sMap[j][r+i] = (i === 0 && (j === 9 || j === 10 || j === 11)) ? 0 : cgu.signals[counterS++];
+                    sMap[j][r+i] = cgu.signals[counterS++];
                     // Partial rounds rows verify 11 rounds, and hence only 11 constants are needed. 
                     // For the last two rounds no constants are required according to the implementation
                     constPols.Compressor.C[j][r+i] = (i === 4 && j === 11) || (i === 5 && j === 11) || i == 10 ? 0n : BigInt(C[counterC++]);
                 }
 
+                if(i == 0) {
+                    let first_bit = cgu.signals[counterS++];
+                    let second_bit = cgu.signals[counterS++];
+
+                    sMap[12][r] = first_bit;
+                    sMap[12][r+1] = second_bit;
+                }
                 constPols.Compressor.GATE[r+i] = 0n;
                 constPols.Compressor.POSEIDONFULLROUND[r+i] = [0,1,2,3,6,7,8,9].includes(i) ? 1n : 0n;
                 constPols.Compressor.POSEIDONCUSTFIRST[r+i] = i === 0 ? 1n : 0n; // Input -> Round 1

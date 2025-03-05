@@ -9,7 +9,7 @@ namespace Global(%N);
 <% } -%>
 
 namespace Compressor(%N);
-    pol constant S[12];
+    pol constant S[13];
     pol constant C[12];
     pol constant POSEIDONCUSTFIRST;
     pol constant POSEIDONFIRST;
@@ -20,7 +20,7 @@ namespace Compressor(%N);
     pol constant EVPOL4;
     pol constant FFT4;
     pol constant TREESELECTOR4;
-    pol commit a[12];
+    pol commit a[13];
 
 <% for (let i=0; i<nPublics; i++) { -%>
     public pub<%- i%> = a[<%- i%12 %>](<%- Math.floor(i/12) %>);
@@ -74,39 +74,53 @@ namespace Compressor(%N);
     
     // Order the each of the GL Poseidon inputs according to the key, which is stored in a[8]
     
-    pol custPoseidonInput0 = a[8] * (a[0] - a[4]) + a[4];
-    pol custPoseidonInput1 = a[8] * (a[1] - a[5]) + a[5];
-    pol custPoseidonInput2 = a[8] * (a[2] - a[6]) + a[6];
-    pol custPoseidonInput3 = a[8] * (a[3] - a[7]) + a[7];
-    pol custPoseidonInput4 = a[8] * (a[4] - a[0]) + a[0];
-    pol custPoseidonInput5 = a[8] * (a[5] - a[1]) + a[1];
-    pol custPoseidonInput6 = a[8] * (a[6] - a[2]) + a[2];
-    pol custPoseidonInput7 = a[8] * (a[7] - a[3]) + a[3];
-
-    pol checkBinary = a[8] * (a[8] - 1);
-    POSEIDONCUSTFIRST * checkBinary = 0;
-
-    pol custInitialPoseidonInput0 = 5*custPoseidonInput0 + 7*custPoseidonInput1 +   custPoseidonInput2 + 3*custPoseidonInput3;
-    pol custInitialPoseidonInput1 = 4*custPoseidonInput0 + 6*custPoseidonInput1 +   custPoseidonInput2 +   custPoseidonInput3;
-    pol custInitialPoseidonInput2 =   custPoseidonInput0 + 3*custPoseidonInput1 + 5*custPoseidonInput2 + 7*custPoseidonInput3;
-    pol custInitialPoseidonInput3 =   custPoseidonInput0 +   custPoseidonInput1 + 4*custPoseidonInput2 + 6*custPoseidonInput3;
-    pol custInitialPoseidonInput4 = 5*custPoseidonInput4 + 7*custPoseidonInput5 +   custPoseidonInput6 + 3*custPoseidonInput7;
-    pol custInitialPoseidonInput5 = 4*custPoseidonInput4 + 6*custPoseidonInput5 +   custPoseidonInput6 +   custPoseidonInput7;
-    pol custInitialPoseidonInput6 =   custPoseidonInput4 + 3*custPoseidonInput5 + 5*custPoseidonInput6 + 7*custPoseidonInput7;
-    pol custInitialPoseidonInput7 =   custPoseidonInput4 +   custPoseidonInput5 + 4*custPoseidonInput6 + 6*custPoseidonInput7;
+    pol mask00 = (1 - a[12]) * (1 - a[12]');
+    pol mask10 = a[12] * (1 - a[12]');
+    pol mask01 = (1 - a[12]) * a[12]';
     
-    pol custAccInitialPoseidonInput0 = 2*custInitialPoseidonInput0 +   custInitialPoseidonInput4;
-    pol custAccInitialPoseidonInput1 = 2*custInitialPoseidonInput1 +   custInitialPoseidonInput5;
-    pol custAccInitialPoseidonInput2 = 2*custInitialPoseidonInput2 +   custInitialPoseidonInput6;
-    pol custAccInitialPoseidonInput3 = 2*custInitialPoseidonInput3 +   custInitialPoseidonInput7;
-    pol custAccInitialPoseidonInput4 =   custInitialPoseidonInput0 + 2*custInitialPoseidonInput4;
-    pol custAccInitialPoseidonInput5 =   custInitialPoseidonInput1 + 2*custInitialPoseidonInput5;
-    pol custAccInitialPoseidonInput6 =   custInitialPoseidonInput2 + 2*custInitialPoseidonInput6;
-    pol custAccInitialPoseidonInput7 =   custInitialPoseidonInput3 + 2*custInitialPoseidonInput7;
-    pol custAccInitialPoseidonInput8 =   custInitialPoseidonInput0 + custInitialPoseidonInput4;
-    pol custAccInitialPoseidonInput9 =   custInitialPoseidonInput1 + custInitialPoseidonInput5;
-    pol custAccInitialPoseidonInput10 =   custInitialPoseidonInput2 + custInitialPoseidonInput6;
-    pol custAccInitialPoseidonInput11 =   custInitialPoseidonInput3 + custInitialPoseidonInput7;
+    pol custPoseidonInput0 =  mask00 * a[0]  + mask10 * a[4]  + mask01 * a[4]; 
+    pol custPoseidonInput1 =  mask00 * a[1]  + mask10 * a[5]  + mask01 * a[5]; 
+    pol custPoseidonInput2 =  mask00 * a[2]  + mask10 * a[6]  + mask01 * a[6]; 
+    pol custPoseidonInput3 =  mask00 * a[3]  + mask10 * a[7]  + mask01 * a[7]; 
+    pol custPoseidonInput4 =  mask00 * a[4]  + mask10 * a[0]  + mask01 * a[8]; 
+    pol custPoseidonInput5 =  mask00 * a[5]  + mask10 * a[1]  + mask01 * a[9]; 
+    pol custPoseidonInput6 =  mask00 * a[6]  + mask10 * a[2]  + mask01 * a[10];
+    pol custPoseidonInput7 =  mask00 * a[7]  + mask10 * a[3]  + mask01 * a[11]; 
+    pol custPoseidonInput8 =  mask00 * a[8]  + mask10 * a[8]  + mask01 * a[0]; 
+    pol custPoseidonInput9 =  mask00 * a[9]  + mask10 * a[9]  + mask01 * a[1]; 
+    pol custPoseidonInput10 = mask00 * a[10] + mask10 * a[10] + mask01 * a[2];
+    pol custPoseidonInput11 = mask00 * a[11] + mask10 * a[11] + mask01 * a[3];
+
+    pol checkBinary = a[12] * (a[12] - 1);
+    pol checkBinary2 = a[12]' * (a[12]' - 1);
+    POSEIDONCUSTFIRST * checkBinary = 0;
+    POSEIDONCUSTFIRST * checkBinary2 = 0;
+
+    pol custInitialPoseidonInput0 = 5*custPoseidonInput0 + 7*custPoseidonInput1 +   custPoseidonInput2  + 3*custPoseidonInput3;
+    pol custInitialPoseidonInput1 = 4*custPoseidonInput0 + 6*custPoseidonInput1 +   custPoseidonInput2  +   custPoseidonInput3;
+    pol custInitialPoseidonInput2 =   custPoseidonInput0 + 3*custPoseidonInput1 + 5*custPoseidonInput2  + 7*custPoseidonInput3;
+    pol custInitialPoseidonInput3 =   custPoseidonInput0 +   custPoseidonInput1 + 4*custPoseidonInput2  + 6*custPoseidonInput3;
+    pol custInitialPoseidonInput4 = 5*custPoseidonInput4 + 7*custPoseidonInput5 +   custPoseidonInput6  + 3*custPoseidonInput7;
+    pol custInitialPoseidonInput5 = 4*custPoseidonInput4 + 6*custPoseidonInput5 +   custPoseidonInput6  +   custPoseidonInput7;
+    pol custInitialPoseidonInput6 =   custPoseidonInput4 + 3*custPoseidonInput5 + 5*custPoseidonInput6  + 7*custPoseidonInput7;
+    pol custInitialPoseidonInput7 =   custPoseidonInput4 +   custPoseidonInput5 + 4*custPoseidonInput6  + 6*custPoseidonInput7;
+    pol custInitialPoseidonInput8 = 5*custPoseidonInput8 + 7*custPoseidonInput9 +   custPoseidonInput10 + 3*custPoseidonInput11;
+    pol custInitialPoseidonInput9 = 4*custPoseidonInput8 + 6*custPoseidonInput9 +   custPoseidonInput10 +   custPoseidonInput11;
+    pol custInitialPoseidonInput10 =  custPoseidonInput8 + 3*custPoseidonInput9 + 5*custPoseidonInput10 + 7*custPoseidonInput11;
+    pol custInitialPoseidonInput11 =  custPoseidonInput8 +   custPoseidonInput9 + 4*custPoseidonInput10 + 6*custPoseidonInput11;
+    
+    pol custAccInitialPoseidonInput0 = 2*custInitialPoseidonInput0 +   custInitialPoseidonInput4 + custInitialPoseidonInput8;
+    pol custAccInitialPoseidonInput1 = 2*custInitialPoseidonInput1 +   custInitialPoseidonInput5 + custInitialPoseidonInput9;
+    pol custAccInitialPoseidonInput2 = 2*custInitialPoseidonInput2 +   custInitialPoseidonInput6 + custInitialPoseidonInput10;
+    pol custAccInitialPoseidonInput3 = 2*custInitialPoseidonInput3 +   custInitialPoseidonInput7 + custInitialPoseidonInput11;
+    pol custAccInitialPoseidonInput4 =   custInitialPoseidonInput0 + 2*custInitialPoseidonInput4 + custInitialPoseidonInput8;
+    pol custAccInitialPoseidonInput5 =   custInitialPoseidonInput1 + 2*custInitialPoseidonInput5 + custInitialPoseidonInput9;
+    pol custAccInitialPoseidonInput6 =   custInitialPoseidonInput2 + 2*custInitialPoseidonInput6 + custInitialPoseidonInput10;
+    pol custAccInitialPoseidonInput7 =   custInitialPoseidonInput3 + 2*custInitialPoseidonInput7 + custInitialPoseidonInput11;
+    pol custAccInitialPoseidonInput8 =   custInitialPoseidonInput0 + custInitialPoseidonInput4 + 2*custInitialPoseidonInput8;
+    pol custAccInitialPoseidonInput9 =   custInitialPoseidonInput1 + custInitialPoseidonInput5 + 2*custInitialPoseidonInput9;
+    pol custAccInitialPoseidonInput10 =   custInitialPoseidonInput2 + custInitialPoseidonInput6 + 2*custInitialPoseidonInput10;
+    pol custAccInitialPoseidonInput11 =   custInitialPoseidonInput3 + custInitialPoseidonInput7 + 2*custInitialPoseidonInput11;
 
     pol initialPoseidonInput0 = 5*a[0] + 7*a[1] +    a[2] +  3*a[3];
     pol initialPoseidonInput1 = 4*a[0] + 6*a[1] +    a[2] +    a[3];
@@ -378,7 +392,7 @@ namespace Compressor(%N);
 <% 
     let a = [];
     let S = [];
-    for(let i = 0; i < 12; ++i) {
+    for(let i = 0; i < 13; ++i) {
         a.push(`a[${i}]`);
         S.push(`S[${i}]`);
     }
