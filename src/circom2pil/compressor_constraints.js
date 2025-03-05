@@ -59,7 +59,7 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(F, r
     } else if(cols === 21) {
         // Each Poseidon12 custom gate uses 6 rows (Input -> Round 2 -> Round 4 -> Round 26 -> Round 28 -> Output)
         nPublicRows = Math.floor((nPublics + 20)/21);
-        nCMulRows = customGatesInfo.nCMul/2;
+        nCMulRows = Math.ceil(customGatesInfo.nCMul/2);
         nPoseidon12Rows = customGatesInfo.nPoseidon12*6;
         nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*6;
         nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
