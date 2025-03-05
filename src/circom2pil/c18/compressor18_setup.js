@@ -502,7 +502,8 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
 
             halfRows.push({
                 row: r,
-                nUsed: 2
+                nUsed: 2,
+                useLast: true,
             });
 
             for(let i = 6; i < 10; ++i) {
