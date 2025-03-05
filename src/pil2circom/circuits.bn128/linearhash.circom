@@ -81,16 +81,16 @@ template LinearHash(nInputs, eSize, arity) {
 
         for (var i=0; i<nHashes-1;i++) {
             if (i==0) {
-                hash[i].initialState <== 0;
+                hash[i].inputs[arity - 1] <== 0;
             } else {
-                hash[i].initialState <== hash[i-1].out[0];
+                hash[i].inputs[arity - 1] <== hash[i-1].out[0];
             }
             _ <== hash[i].out;
         }
         if (nHashes == 1) {
-            lastHash.initialState <== 0;
+            lastHash.inputs[arity - 1] <== 0;
         } else {
-            lastHash.initialState <== hash[nHashes-2].out[0];
+            lastHash.inputs[arity - 1] <== hash[nHashes-2].out[0];
         }
 
         _ <== lastHash.out;

@@ -60,7 +60,7 @@ class Transcript {
             this.pending.push("0");
         }
         const poseidon = custom ? `CustomPoseidon(${transcriptArity})` : `Poseidon2(${transcriptArity}, ${transcriptArity})`;
-        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[${Number(transcriptArity)}] <== ${poseidon}([${this.pending.join(',')}], ${this.state});`);
+        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[${Number(transcriptArity)}] <== ${poseidon}([${this.pending.join(',')}, ${this.state}]);`);
         for (let i=0; i<transcriptArity; i++) {
             this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         }
