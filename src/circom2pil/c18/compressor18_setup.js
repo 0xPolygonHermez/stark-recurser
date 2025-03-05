@@ -76,9 +76,9 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
         sMap[i] = new Uint32Array(N).fill(0);
     }
 
-    const extraRows = [];
-    const extraRows2 = [];
-
+    const threeExtraConstraints = [];
+    const twoExtraConstraints = [];
+    const oneExtraConstraints = [];
     
     let partialRowsCMul = -1;
 
@@ -115,7 +115,6 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
     }
     
     let r = nPublicRows;
-
 
     // Generate Custom Gates
     for (let i=0; i<r1cs.customGatesUses.length; i++) {
@@ -154,8 +153,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
                 
                 // Add each row to extraRows so that a[12], a[13], a[14] and a[15], a[16] and a[17] along with C[6], C[7], C[8], C[9], C[10] 
                 // can be used to verify two sets of plonk constraints
-                extraRows.push(r+i);
-                extraRows2.push(r+i);
+                threeExtraConstraints.push(r+i);
             }
 
             r+=6;
@@ -198,8 +196,11 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
 
                 // Add each row to extraRows so that a[12], a[13], a[14] and a[15], a[16] and a[17] along with C[6], C[7], C[8], C[9], C[10] 
                 // can be used to verify two sets of plonk constraints
-                extraRows.push(r+i);
-                if(i != 0) extraRows2.push(r+i);
+                if(i != 0) {
+                    threeExtraConstraints.push(r+i);
+                } else {
+                    twoExtraConstraints.push(r+i);
+                }
             }
 
             r+=6;
@@ -231,7 +232,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
                     constPols.Compressor.C[k][r] = 0n;
                 }
                 partialRowsCMul = r;
-                extraRows2.push(r);
+                oneExtraConstraints.push(r);
                 r+= 1;
             }
         } else if ( typeof customGatesInfo.FFT4Parameters[cgu.id] !== "undefined") {
@@ -300,8 +301,8 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
                 constPols.Compressor.C[k][r] = 0n;
                 constPols.Compressor.C[k][r+1] = 0n;
             }
-            extraRows.push(r);
-            extraRows.push(r+1);
+            threeExtraConstraints.push(r);
+            threeExtraConstraints.push(r+1);
 
             r+= 2;
         } else if (cgu.id == customGatesInfo.EvPol4Id) {
@@ -347,7 +348,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
             for (let k=0; k<10; k++) {
                 constPols.Compressor.C[k][r] = 0n;
             }
-            extraRows2.push(r);
+            oneExtraConstraints.push(r);
             r += 1;
         } else {
             throw new Error("Custom gate not defined", cgu.id);
@@ -375,10 +376,8 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
             sMap[pr.nUsed*3+2][pr.row] = c[2];
            
             if(pr.nUsed === 6) constPols.Compressor.GATE3[pr.row] = 1n;
-            partialRows[k].nUsed++;
-            if(pr.nUsed === 2) {
-                pr.nUsed = 6;
-            } else if(pr.nUsed === 6 || pr.nUsed === 7) {
+            pr.nUsed++;
+            if(pr.nUsed === 2 || (pr.nUsed == 6 && !pr.useLast) || pr.nUsed === 7) {
                 delete partialRows[k];
             }
         // If the constraint is not stored in partialRows (which means that there is no other row that is using this very same set of constraints and is not full)
@@ -410,8 +409,8 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
             } else {
                 assert(false);
             }
-        } else if(extraRows.length > 0) {
-            const row = extraRows.shift();
+        } else if(threeExtraConstraints.length > 0) {
+            const row = threeExtraConstraints.shift();
             constPols.Compressor.GATE2[row] = 1n;
             
             constPols.Compressor.C[5][row] = c[3];
@@ -426,21 +425,46 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
             sMap[15][row] = c[0];
             sMap[16][row] = c[1];
             sMap[17][row] = c[2];
+            sMap[18][row] = c[0];
+            sMap[19][row] = c[1];
+            sMap[20][row] = c[2];
             
             partialRows[k] = {
                 row: row,
-                nUsed: 5
+                nUsed: 5,
+                useLast: true,
             };
-        } else if(extraRows2.length > 0) {
-            const row = extraRows2.shift();
+        } else if(twoExtraConstraints.length > 0) {
+            const row = twoExtraConstraints.shift();
+            constPols.Compressor.GATE2[row] = 1n;
+            
+            constPols.Compressor.C[5][row] = c[3];
+            constPols.Compressor.C[6][row] = c[4];
+            constPols.Compressor.C[7][row] = c[5];
+            constPols.Compressor.C[8][row] = c[6];
+            constPols.Compressor.C[9][row] = c[7];
+            
+            sMap[12][row] = c[0];
+            sMap[13][row] = c[1];
+            sMap[14][row] = c[2];
+            sMap[15][row] = c[0];
+            sMap[16][row] = c[1];
+            sMap[17][row] = c[2];
+            partialRows[k] = {
+                row: row,
+                nUsed: 5,
+                useLast: false,
+            };
+        } else if(oneExtraConstraints.length > 0) {
+            const row = oneExtraConstraints.shift();
             constPols.Compressor.GATE3[row] = 1n;
-            
-            constPols.Compressor.C[0][row] = c[3];
-            constPols.Compressor.C[1][row] = c[4];
-            constPols.Compressor.C[2][row] = c[5];
-            constPols.Compressor.C[3][row] = c[6];
-            constPols.Compressor.C[4][row] = c[7];
-            
+
+            constPols.Compressor.C[5][row] = c[3];
+            constPols.Compressor.C[6][row] = c[4];
+            constPols.Compressor.C[7][row] = c[5];
+            constPols.Compressor.C[8][row] = c[6];
+            constPols.Compressor.C[9][row] = c[7];
+
             sMap[18][row] = c[0];
             sMap[19][row] = c[1];
             sMap[20][row] = c[2];

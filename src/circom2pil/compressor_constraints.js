@@ -68,7 +68,7 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(F, r
         nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
         
         // Calculate how many groups of two plonk constraints can be made 
-        const CPlonkConstraints = calculatePlonkConstraintsRowsC21(plonkConstraints,nTotalPoseidon12Rows + nFFT4Rows,customGatesInfo.nPoseidon12*6 + customGatesInfo.nCustPoseidon12 * 5 + nCMulRows + nTreeSelector4Rows);
+        const CPlonkConstraints = calculatePlonkConstraintsRowsC21(plonkConstraints, customGatesInfo.nPoseidon12*6 + customGatesInfo.nCustPoseidon12*5 + nFFT4Rows, customGatesInfo.nCustPoseidon12, nCMulRows + nTreeSelector4Rows);
 
         console.log(`Number of plonk constraints: ${plonkConstraints.length}`); 
         console.log(`Number of Plonk constraints stored in rows -> ${CPlonkConstraints}`);

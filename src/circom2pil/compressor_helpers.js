@@ -29,7 +29,7 @@ module.exports ={
         return constraints;
     },
 
-    calculatePlonkConstraintsRowsC21: function(plonkConstraints, extraRowsHalfs, extraRowsPartial) {
+    calculatePlonkConstraintsRowsC21: function(plonkConstraints, threeExtraConstraints, twoExtraConstraints, oneExtraConstraint) {
         let partialRows = {};
         let halfRows = false;
         let r = 0;
@@ -41,22 +41,23 @@ module.exports ={
             const c = plonkConstraints[i]; 
             const k= c.slice(3, 8).map( a=> a.toString(16)).join(","); //Calculate
             if(partialRows[k]) {
-                ++partialRows[k];
-                if(partialRows[k] === 2) {
-                    partialRows[k] = 6;
-                } else if(partialRows[k] == 6 || partialRows[k] == 7) {
+                ++partialRows[k].nUsed;
+                if(partialRows[k].nUsed === 2 || (partialRows[k].nUsed == 6 && !partialRows[k].useLast) || partialRows[k].nUsed == 7 ) {
                     delete partialRows[k];
                 }  
             } else if(halfRows) {
-                partialRows[k] = 3;
+                partialRows[k] = {nUsed: 3, useLast: true};
                 halfRows = false;
-            } else if(extraRowsHalfs > 0) {
-                --extraRowsHalfs;
-                partialRows[k] = 5;
-            } else if(extraRowsPartial > 0) {
-                --extraRowsPartial;
+            } else if(threeExtraConstraints > 0) {
+                --threeExtraConstraints;
+                partialRows[k] = {nUsed: 5, useLast: true};
+            } else if(twoExtraConstraints > 0) {
+                --twoExtraConstraints;
+                partialRows[k] = {nUsed: 5, useLast: false};
+            } else if(oneExtraConstraint > 0) {
+                --oneExtraConstraint;
             } else {
-                partialRows[k] = 1;
+                partialRows[k] = {nUsed: 1};
                 halfRows = true;
                 r++;
             }
