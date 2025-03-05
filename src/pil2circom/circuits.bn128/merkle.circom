@@ -2,7 +2,7 @@ pragma circom 2.1.0;
 
 include "bitify.circom";
 include "comparators.circom";
-include "poseidon.circom";
+include "poseidon2.circom";
 
 /*
     Given a leaf value, its sibling path and a key indicating the hashing position for each element in the path, calculate the merkle tree root 
@@ -46,7 +46,7 @@ template Merkle(keyBits, arity) {
             s[i] <== IsEqual()([keyNum.out, i]);
         }
 
-        hash = Poseidon(arity);
+        hash = Poseidon2(arity);
 
         for (var i=0; i<arity; i++) {
             hash.inputs[i] <== s[i] * (value - siblings[0][i]) + siblings[0][i];

@@ -1,10 +1,10 @@
 pragma circom 2.1.0;
 
-include "poseidon.circom";
+include "poseidon2.circom";
 
 // Given a list on inputs over GL³, compute the linear hash of the list, mapping from GL³ to BN
 // via the map (x,y,z) |-> x + y·2⁶⁴ + z·2¹²⁸, which is injective but not surjective;
-// and hashing the resulting BN elements in chunks of ${arity} using Poseidon.
+// and hashing the resulting BN elements in chunks of ${arity} using Poseidon2.
 template LinearHash(nInputs, eSize, arity) {
     signal input in[nInputs][eSize];
     signal output out;
@@ -25,8 +25,7 @@ template LinearHash(nInputs, eSize, arity) {
         out <== sAc;
         nHashes = 0;
     } else {
-
-        nHashes = (nElements256 - 1)\arity +1;
+        nHashes = (nElements256 - 1)\(arity - 1) +1;
     }
 
     component hash[nHashes>0 ? nHashes-1 : 0];
@@ -34,12 +33,12 @@ template LinearHash(nInputs, eSize, arity) {
     component lastHash;
 
     for (var i=0; i<nHashes-1; i++) {
-        hash[i] = PoseidonEx(arity, 1);
+        hash[i] = Poseidon2(arity, 1);
     }
 
     if (nHashes>0) {
-        nLastHash = nElements256 - (nHashes - 1)*arity;
-        lastHash = PoseidonEx(nLastHash, 1);
+        nLastHash = nElements256 - (nHashes - 1)*(arity - 1);
+        lastHash = Poseidon2(nLastHash, 1);
     }
 
     var curHash =0;
@@ -60,7 +59,7 @@ template LinearHash(nInputs, eSize, arity) {
                     sAc =0;
                     nAc =0;
                     curHashIdx ++;
-                    if (curHashIdx == arity) {
+                    if (curHashIdx == arity - 1) {
                         curHash++;
                         curHashIdx = 0;
                     }
@@ -74,7 +73,7 @@ template LinearHash(nInputs, eSize, arity) {
                 hash[curHash].inputs[curHashIdx] <== sAc;
             }
             curHashIdx ++;
-            if (curHashIdx == arity) {
+            if (curHashIdx == arity - 1) {
                 curHash = 0;
                 curHashIdx = 0;
             }

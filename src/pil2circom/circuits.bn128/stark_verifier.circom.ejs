@@ -50,18 +50,18 @@ class Transcript {
         if(this.name) signalName += "_" + this.name;
         if(this.hCnt > 0) {
             const firstUnused = Math.max(this.hiCnt, 1);
-            if(firstUnused < (transcriptArity + 1)) {
-                this.code.push(`for(var i = ${firstUnused}; i < ${transcriptArity + 1}; i++){
+            if(firstUnused < transcriptArity) {
+                this.code.push(`for(var i = ${firstUnused}; i < ${transcriptArity}; i++){
         _ <== ${signalName}_${this.hCnt -1}[i]; // Unused transcript values        
     }`)
             }
         }
-        while (this.pending.length < transcriptArity) {
+        while (this.pending.length < (transcriptArity - 1)) {
             this.pending.push("0");
         }
-        const poseidon = custom ? `CustomPoseidon(${transcriptArity})` : `PoseidonEx(${transcriptArity}, ${transcriptArity + 1})`;
-        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[${Number(transcriptArity) + 1}] <== ${poseidon}([${this.pending.join(',')}], ${this.state});`);
-        for (let i=0; i<transcriptArity+1; i++) {
+        const poseidon = custom ? `CustomPoseidon(${transcriptArity})` : `Poseidon2(${transcriptArity}, ${transcriptArity})`;
+        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[${Number(transcriptArity)}] <== ${poseidon}([${this.pending.join(',')}], ${this.state});`);
+        for (let i=0; i<transcriptArity; i++) {
             this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         }
         this.state = `${signalName}_${this.hCnt-1}[0]`;
@@ -83,7 +83,7 @@ class Transcript {
     _add1(a) {
         this.out = [];
         this.pending.push(a);
-        if (this.pending.length == transcriptArity) {
+        if (this.pending.length == (transcriptArity - 1)) {
             this.updateState();
         }
     }
@@ -98,8 +98,8 @@ class Transcript {
             n2b[i] = `transcriptN2b_${this.n2bCnt++}`;
             this.code.push(`signal {binary} ${n2b[i]}[254] <== Num2Bits_strictT()(${f});`);
         }
-        if(this.hiCnt < transcriptArity + 1) {
-            this.code.push(`for(var i = ${this.hiCnt}; i < ${transcriptArity + 1}; i++){
+        if(this.hiCnt < transcriptArity) {
+            this.code.push(`for(var i = ${this.hiCnt}; i < ${transcriptArity}; i++){
         _ <== ${signalName}_${this.hCnt - 1}[i]; // Unused transcript values           
     }\n`)
         }
@@ -278,7 +278,7 @@ include "fft.circom";
 include "gl.circom";
 include "lessthangl.circom";
 include "merklehash.circom";
-include "poseidon.circom";
+include "poseidon2.circom";
 <% } -%>
 include "bitifyT.circom";
 include "bn1togl3.circom";
