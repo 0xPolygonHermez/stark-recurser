@@ -59,7 +59,7 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(F, r
     } else if(cols === 21) {
         // Each Poseidon12 custom gate uses 6 rows (Input -> Round 2 -> Round 4 -> Round 26 -> Round 28 -> Output)
         nPublicRows = Math.floor((nPublics + 20)/21);
-        nCMulRows = Math.ceil(customGatesInfo.nCMul/2);
+        nCMulRows = customGatesInfo.nCMul/2;
         nPoseidon12Rows = customGatesInfo.nPoseidon12*6;
         nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*6;
         nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
@@ -68,7 +68,7 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(F, r
         nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
         
         // Calculate how many groups of two plonk constraints can be made 
-        const CPlonkConstraints = calculatePlonkConstraintsRowsC21(plonkConstraints,nTotalPoseidon12Rows,customGatesInfo.nPoseidon12*6 + customGatesInfo.nCustPoseidon12 * 5 + nCMulRows + nTreeSelector4Rows);
+        const CPlonkConstraints = calculatePlonkConstraintsRowsC21(plonkConstraints,nTotalPoseidon12Rows + nFFT4Rows,customGatesInfo.nPoseidon12*6 + customGatesInfo.nCustPoseidon12 * 5 + nCMulRows + nTreeSelector4Rows);
 
         console.log(`Number of plonk constraints: ${plonkConstraints.length}`); 
         console.log(`Number of Plonk constraints stored in rows -> ${CPlonkConstraints}`);

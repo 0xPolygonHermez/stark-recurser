@@ -276,28 +276,33 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
                 constPols.Compressor.C[2][r] = F.mul(scale, firstW);
                 constPols.Compressor.C[3][r] = F.mul(scale, F.mul(firstW, firstW2));
                 constPols.Compressor.C[4][r] = F.mul(scale, F.mul(firstW, incW));
-                constPols.Compressor.C[5][r] = F.mul(F.mul(scale,firstW), F.mul(firstW2, incW));
-                constPols.Compressor.C[6][r] = 0n;
-                constPols.Compressor.C[7][r] = 0n;
-                constPols.Compressor.C[8][r] = 0n;
+                constPols.Compressor.C[0][r+1] = F.mul(F.mul(scale,firstW), F.mul(firstW2, incW));
+                constPols.Compressor.C[1][r+1] = 0n;
+                constPols.Compressor.C[2][r+1] = 0n;
+                constPols.Compressor.C[3][r+1] = 0n;
+                constPols.Compressor.C[4][r+1] = 0n;
             } else if (type == 2n) {
                 constPols.Compressor.C[0][r] = 0n;
                 constPols.Compressor.C[1][r] = 0n;
                 constPols.Compressor.C[2][r] = 0n;
                 constPols.Compressor.C[3][r] = 0n;
                 constPols.Compressor.C[4][r] = 0n;
-                constPols.Compressor.C[5][r] = 0n;
-                constPols.Compressor.C[6][r] = scale;
-                constPols.Compressor.C[7][r] = F.mul(scale, firstW);
-                constPols.Compressor.C[8][r] = F.mul(scale, F.mul(firstW, incW));
+                constPols.Compressor.C[0][r+1] = 0n;
+                constPols.Compressor.C[1][r+1] = scale;
+                constPols.Compressor.C[2][r+1] = F.mul(scale, firstW);
+                constPols.Compressor.C[3][r+1] = F.mul(scale, F.mul(firstW, incW));
+                constPols.Compressor.C[4][r+1] = 0n;
             } else {
                 throw new Error("Invalid FFT4 type: "+cgu.parameters[0]);
             }
 
-            constPols.Compressor.C[9][r] = 0n;
-            for (let k=0; k<10; k++) {
+            for (let k=5; k<10; k++) {
+                constPols.Compressor.C[k][r] = 0n;
                 constPols.Compressor.C[k][r+1] = 0n;
             }
+            extraRows.push(r);
+            extraRows.push(r+1);
+
             r+= 2;
         } else if (cgu.id == customGatesInfo.EvPol4Id) {
             for (let i=0; i<21; i++) {
