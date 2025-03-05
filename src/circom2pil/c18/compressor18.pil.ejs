@@ -4,13 +4,13 @@ constant %N = 2**<%- nBits %>;
 // It is used to store various polynomials representing small lookup tables 
 namespace Global(%N);
     pol constant L1;
-<% for (let i=12; i<nPublics; i+=12) { -%>
-    pol constant L<%- Math.floor(i/12) +1 %>;
+<% for (let i=21; i<nPublics; i+=21) { -%>
+    pol constant L<%- Math.floor(i/21) +1 %>;
 <% } -%>
 
 namespace Compressor(%N);
-    pol constant S[19];
-    pol constant C[15];
+    pol constant S[21];
+    pol constant C[10];
     pol constant POSEIDONCUSTFIRST;
     pol constant POSEIDONFIRST;
     pol constant POSEIDONPARTIALROUND;
@@ -18,17 +18,18 @@ namespace Compressor(%N);
     pol constant POSEIDONFULLROUND;
     pol constant GATE;
     pol constant GATE2;
+    pol constant GATE3;
     pol constant CMUL;
     pol constant EVPOL4;
     pol constant FFT4;
     pol constant TREESELECTOR4;
-    pol commit a[19];
+    pol commit a[21];
 
 <% for (let i=0; i<nPublics; i++) { -%>
-    public pub<%- i%> = a[<%- i%12 %>](<%- Math.floor(i/12) %>);
+    public pub<%- i%> = a[<%- i%21 %>](<%- Math.floor(i/21) %>);
 <% } -%>
 <% for (let i=0; i<nPublics; i++) { -%>
-    Global.L<%- Math.floor(i/12)+1 %> * (a[<%- i%12 %>] - :pub<%- i %>) = 0;
+    Global.L<%- Math.floor(i/21)+1 %> * (a[<%- i%21 %>] - :pub<%- i %>) = 0;
 <% } -%>
 
     // Normal plonk gates
@@ -44,12 +45,6 @@ namespace Compressor(%N);
     // C[7] -> Qr2
     // C[8] -> Qo2
     // C[9]-> Qc2
-
-    // C[10] -> Qm3
-    // C[11] -> Ql3
-    // C[12] -> Qr3
-    // C[13] -> Qo3
-    // C[14] -> Qc3
 
 
     pol a01 = a[0]*a[1];
@@ -69,12 +64,16 @@ namespace Compressor(%N);
     g91011*GATE = 0;
 
     pol a1213 = a[12]*a[13];
-    pol g121314 = C[10]*a1213 + C[11]*a[12] + C[12]*a[13] + C[13]*a[14] + C[14];
+    pol g121314 = C[5]*a1213 + C[6]*a[12] + C[7]*a[13] + C[8]*a[14] + C[9];
     g121314*GATE2 = 0;
 
     pol a1516 = a[15]*a[16];
-    pol g151617 = C[10]*a1516 + C[11]*a[15] + C[12]*a[16] + C[13]*a[17] + C[14];
+    pol g151617 = C[5]*a1516 + C[6]*a[15] + C[7]*a[16] + C[8]*a[17] + C[9];
     g151617*GATE2 = 0;
+
+    pol a1819 = a[18]*a[19];
+    pol g181920 = C[0]*a1819 + C[1]*a[18] + C[2]*a[19] + C[3]*a[20] + C[4];
+    g181920*GATE3 = 0;
 
 
     // POSEIDON GATE - Check that a GL Poseidon round implemented with Neptune optimization is valid
@@ -89,9 +88,9 @@ namespace Compressor(%N);
     
     // Order the each of the GL Poseidon inputs according to the key, which is stored in a[8]
     
-    pol mask00 = (1 - a[18]) * (1 - a[18]');
-    pol mask10 = a[18] * (1 - a[18]');
-    pol mask01 = (1 - a[18]) * a[18]';
+    pol mask00 = (1 - a[18]) * (1 - a[19]);
+    pol mask10 = a[18] * (1 - a[19]);
+    pol mask01 = (1 - a[18]) * a[19];
     
     pol custPoseidonInput0 =  mask00 * a[0]  + mask10 * a[4]  + mask01 * a[4]; 
     pol custPoseidonInput1 =  mask00 * a[1]  + mask10 * a[5]  + mask01 * a[5]; 
@@ -107,7 +106,7 @@ namespace Compressor(%N);
     pol custPoseidonInput11 = mask00 * a[11] + mask10 * a[11] + mask01 * a[3];
 
     pol checkBinary = a[18] * (a[18] - 1);
-    pol checkBinary2 = a[18]' * (a[18]' - 1);
+    pol checkBinary2 = a[19] * (a[19] - 1);
     POSEIDONCUSTFIRST * checkBinary = 0;
     POSEIDONCUSTFIRST * checkBinary2 = 0;
 
@@ -362,13 +361,13 @@ namespace Compressor(%N);
     FFT4 * (a[11]' - g11) = 0;
 
     // EVPOL4 - Check that the polynomial evaluation is valid
-    // Evaluate p(x) = d0*x⁴ + d1*x³ + d2*x²+ d3*x + d4 at point z = a[3]' + a[4]'x + a[5]'x² where
-    // d0 = a[0]' + a[1]' * x + a[2]' * x²
+    // Evaluate p(x) = d0*x⁴ + d1*x³ + d2*x²+ d3*x + d4 at point z = a[15] + a[16]x + a[17]x² where
+    // d0 = a[12] + a[13] * x + a[14] * x²
     // d1 = a[9] + a[10] * x + a[11] * x²
     // d2 = a[6] + a[7] * x + a[8] * x²
     // d3 = a[3] + a[4] * x + a[5] * x²
     // d4 = a[0] + a[1] * x + a[2] * x²
-    // The result must be equal to a[6]' + a[7]' * x + a[8]' * x²
+    // The result must be equal to a[18] + a[19] * x + a[20] * x²
     // The evaluation is performed using the Horner's rule, which means that p(x) is rewritten as
     // p(x) = (d0 * x + d1)*x + d2)*x + d3)*x + d4
     // Note: All operations are performed in Fp³ and so multiplications are performed using CMulAdd
@@ -389,18 +388,18 @@ namespace Compressor(%N);
 } -%>
 
     // Calculate acc = d0 * x + d1 
-<%- CMulAdd("1", "a[0]'", "a[1]'", "a[2]'", "a[3]'", "a[4]'", "a[5]'", "a[9]", "a[10]", "a[11]") -%>
+<%- CMulAdd("1", "a[12]", "a[13]", "a[14]", "a[15]", "a[16]", "a[17]", "a[9]", "a[10]", "a[11]") -%>
     // Calculate acc2 = acc * x + d2 
-<%- CMulAdd("2", "acc1_0", "acc1_1", "acc1_2", "a[3]'", "a[4]'", "a[5]'", "a[6]", "a[7]", "a[8]") -%>
+<%- CMulAdd("2", "acc1_0", "acc1_1", "acc1_2", "a[15]", "a[16]", "a[17]", "a[6]", "a[7]", "a[8]") -%>
     // Calculate acc3 = acc2 * x + d3 
-<%- CMulAdd("3", "acc2_0", "acc2_1", "acc2_2", "a[3]'", "a[4]'", "a[5]'", "a[3]", "a[4]", "a[5]") -%>
+<%- CMulAdd("3", "acc2_0", "acc2_1", "acc2_2", "a[15]", "a[16]", "a[17]", "a[3]", "a[4]", "a[5]") -%>
     // Calculate p = acc4 * x + d4 
-<%- CMulAdd("4", "acc3_0", "acc3_1", "acc3_2", "a[3]'", "a[4]'", "a[5]'", "a[0]", "a[1]", "a[2]") -%>
+<%- CMulAdd("4", "acc3_0", "acc3_1", "acc3_2", "a[15]", "a[16]", "a[17]", "a[0]", "a[1]", "a[2]") -%>
 
     // Whenever EVPOL4 = 1, check that the evaluation result matches with the values stored in a[6]', a[7]' and a[8]' respectively
-    EVPOL4 * (a[6]' - acc4_0) = 0;
-    EVPOL4 * (a[7]' - acc4_1) = 0;
-    EVPOL4 * (a[8]' - acc4_2) = 0;
+    EVPOL4 * (a[18] - acc4_0) = 0;
+    EVPOL4 * (a[19] - acc4_1) = 0;
+    EVPOL4 * (a[20] - acc4_2) = 0;
 
     // TREESELECTOR4 GATE - Check that given 4 values and a key, checks that the output is correct
     // The tree is created as follows: if key = 0, even values are pushed up the tree, if the key = 1 the odd ones are pushed.
@@ -460,7 +459,7 @@ namespace Compressor(%N);
 <% 
     let a = [];
     let S = [];
-    for(let i = 0; i < 19; ++i) {
+    for(let i = 0; i < 21; ++i) {
         a.push(`a[${i}]`);
         S.push(`S[${i}]`);
     }
