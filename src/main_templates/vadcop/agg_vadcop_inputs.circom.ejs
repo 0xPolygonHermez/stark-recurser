@@ -14,16 +14,7 @@
         <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValuesNull()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
     }
 <%  } -%>
-
-<%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) { -%>
-        <%- prefix %>_root<%- i+1 %> <== AggregateValuesNull()(<%- prefix1 %>_root<%- i+1 %>, <%- prefix2 %>_root<%- i+1 %>, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
-<%  } -%>
-
-    <%- prefix %>_evalsHash <== AggregateValuesNull()(<%- prefix1 %>_evalsHash, <%- prefix2 %>_evalsHash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
-<%      for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
-    <%- prefix %>_s<%- i %>_root <== AggregateValuesNull()(<%- prefix1 %>_s<%- i %>_root, <%- prefix2 %>_s<%- i %>_root, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
-<%  } -%>
-<%- prefix %>_finalPolHash <== AggregateValuesNull()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+    <%- prefix %>_stage1Hash <== AggregateValuesNull()(<%- prefix1 %>_stage1Hash, <%- prefix2 %>_stage1Hash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
 <%  } else { -%>
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
@@ -31,13 +22,5 @@
     }
 <%  } -%>
 
-<%  for (let i = 0; i < vadcopInfo.numChallenges.length + 1; ++i) { -%>
-        <%- prefix %>_root<%- i+1 %> <== AggregateValues()(<%- prefix1 %>_root<%- i+1 %>, <%- prefix2 %>_root<%- i+1 %>);
-<%  } -%>
-
-    <%- prefix %>_evalsHash <== AggregateValues()(<%- prefix1 %>_evalsHash, <%- prefix2 %>_evalsHash);
-<%      for(let i = 1; i < vadcopInfo.stepsFRI.length; i++) { -%>
-    <%- prefix %>_s<%- i %>_root <== AggregateValues()(<%- prefix1 %>_s<%- i %>_root, <%- prefix2 %>_s<%- i %>_root);
-<%  } -%>
-    <%- prefix %>_finalPolHash <== AggregateValues()(<%- prefix1 %>_finalPolHash, <%- prefix2 %>_finalPolHash);
+    <%- prefix %>_stage1Hash <== AggregateValues()(<%- prefix1 %>_stage1Hash, <%- prefix2 %>__stage1Hash);
 <%  } -%>
