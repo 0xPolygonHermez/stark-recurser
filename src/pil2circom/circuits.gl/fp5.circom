@@ -4,7 +4,7 @@ pragma circom 2.2.0;
     Circuits that implement operations for the extension field Fp⁵ = F[X]/(X⁵-3)
 */
 
-// Given a,b ∈ Fp⁵, check c == a+b ∈ Fp⁵
+// Given a,b,c ∈ Fp⁵, checks c == a+b
 // Cost: 5 (5 add)
 template AddFp5() {
     signal input a[5];
@@ -16,7 +16,7 @@ template AddFp5() {
     }
 }
 
-// Given a,b ∈ Fp⁵, check c == a-b ∈ Fp⁵
+// Given a,b,c ∈ Fp⁵, checks c == a-b
 // Cost: 5 (5 sub)
 template SubFp5() {
     signal input a[5];
@@ -29,7 +29,7 @@ template SubFp5() {
 }
 
 
-// Given a,b ∈ Fp⁵, check c == a·b ∈ Fp⁵
+// Given a,b,c ∈ Fp⁵, checks c == a·b
 // Cost: 49 (25 mul, 20 add, 4 scalar mul)
 template MulFp5() {
     signal input a[5];
@@ -63,7 +63,7 @@ template MulFp5() {
     c[4] <== a[0]*b[4] + a1b3 + a2b2 + a3b1 + a4b0;
 }
 
-// Given a ∈ Fp⁵, check c == a² ∈ Fp⁵
+// Given a,c ∈ Fp⁵, checks c == a²
 // Cost: 34 (15 mul, 10 add, 9 scalar mul)
 template SquareFp5() {
     signal input a[5];
@@ -86,7 +86,7 @@ template SquareFp5() {
     c[4] <== 2*(a[0]*a[4] + a1a3) + a2a2;
 }
 
-// Given NON-ZERO a ∈ Fp⁵, check c == 1/a ∈ Fp⁵
+// Given NON-ZERO a,c ∈ Fp⁵, checks c == 1/a
 // Cost: 126 (72 mul, 44 add, 9 scalar mul, 1 div)
 template InvFp5() {
     signal input a[5];
@@ -100,7 +100,7 @@ template InvFp5() {
     ac === [1, 0, 0, 0, 0];
 }
 
-// Given a ∈ Fp⁵ and NON-ZERO b ∈ Fp⁵, check c == a/b ∈ Fp⁵
+// Given a,c ∈ Fp⁵ and NON-ZERO b ∈ Fp⁵, checks c == a/b
 // Cost: 175 (97 mul, 64 add, 13 scalar mul, 1 div)
 template DivFp5() {
     signal input a[5];
@@ -108,11 +108,7 @@ template DivFp5() {
     signal output c[5];
 
     // Get the inverse of b
-    signal b_inv[5] <-- get_inverse_fp5(b);
-
-    // Check that b·b_inv == 1
-    signal bb[5] <== MulFp5()(b, b_inv);
-    bb === [1, 0, 0, 0, 0];
+    signal b_inv[5] <== InvFp5()(b);
 
     // Check that c == a·b^(-1)
     for (var i = 0; i < 5; i++) {
