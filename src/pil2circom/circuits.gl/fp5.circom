@@ -1,8 +1,38 @@
 pragma circom 2.2.0;
 
+include "iszero.circom";
+
 /*
     Circuits that implement operations for the extension field Fp⁵ = F[X]/(X⁵-3)
 */
+
+// Given a ∈ Fp⁵, c ∈ {0,1}, checks c == (a == 0)
+// Cost: 18 (6 sub, 12 mul)
+template IsZeroFp5() {
+    signal input a[5];
+    signal output {binary} out;
+
+    signal is_zero[5];
+    var is_zero_sum = 0;
+    for (var i = 0; i < 5; i++) {
+        is_zero[i] <== IsZero()(a[i]);
+        is_zero_sum += is_zero[i];
+    }
+    log(is_zero_sum);
+
+    out <== IsZero()(5 - is_zero_sum);
+}
+
+// Given a,c ∈ Fp⁵, checks c == -a
+// Cost: 5 (5 neg)
+template NegFp5() {
+    signal input a[5];
+    signal output c[5];
+
+    for (var i = 0; i < 5; i++) {
+        c[i] <== -a[i];
+    }
+}
 
 // Given a,b,c ∈ Fp⁵, checks c == a+b
 // Cost: 5 (5 add)
@@ -114,6 +144,19 @@ template DivFp5() {
     for (var i = 0; i < 5; i++) {
         c[i] <== a[i] * b_inv[i];
     }
+}
+
+template SqrtRatioFp5() {
+    signal input a[5];
+    signal input b[5];
+    signal output {binary} is_square;
+    signal output c[5];
+}
+
+template SignCompareFp5() {
+    signal input a[5];
+    signal input b[5];
+    signal output {binary} c;
 }
 
 // Helper functions
