@@ -1,26 +1,26 @@
 pragma circom 2.2.0;
 
 include "iszero.circom";
+include "fp.circom";
 
 /*
     Circuits that implement operations for the extension field Fp⁵ = F[X]/(X⁵-3)
 */
 
-// Given a ∈ Fp⁵, c ∈ {0,1}, checks c == (a == 0)
+// Given a ∈ Fp⁵, is_zero ∈ {0,1}, checks is_zero == (a == 0)
 // Cost: 18 (6 sub, 12 mul)
 template IsZeroFp5() {
     signal input a[5];
-    signal output {binary} out;
+    signal output {binary} is_zero;
 
-    signal is_zero[5];
+    signal is_zero_i[5];
     var is_zero_sum = 0;
     for (var i = 0; i < 5; i++) {
-        is_zero[i] <== IsZero()(a[i]);
-        is_zero_sum += is_zero[i];
+        is_zero_i[i] <== IsZero()(a[i]);
+        is_zero_sum += is_zero_i[i];
     }
-    log(is_zero_sum);
 
-    out <== IsZero()(5 - is_zero_sum);
+    is_zero <== IsZero()(5 - is_zero_sum);
 }
 
 // Given a,c ∈ Fp⁵, checks c == -a
@@ -130,6 +130,24 @@ template InvFp5() {
     ac === [1, 0, 0, 0, 0];
 }
 
+template Inv0Fp5() {
+    signal input a[5];
+    signal output {binary} a_is_zero;
+    signal output c[5];
+
+    // Check if a is zero
+    a_is_zero <== IsZeroFp5()(a);
+
+    // Get the inverse of a
+    c <-- is_zero_fp5(a) ? [0, 0, 0, 0, 0] : get_inverse_fp5(a);
+    signal ac[5] <== MulFp5()(a, c);
+
+    // If a is zero, check c == 0; otherwise, check a·c == 1
+    for (var i = 0; i < 5; i++) {
+        a_is_zero * (c[i] - (ac[i] - 1)) + (ac[i] - 1) === 0;
+    }
+}
+
 // Given a,c ∈ Fp⁵ and NON-ZERO b ∈ Fp⁵, checks c == a/b
 // Cost: 175 (97 mul, 64 add, 13 scalar mul, 1 div)
 template DivFp5() {
@@ -146,11 +164,76 @@ template DivFp5() {
     }
 }
 
-template SqrtRatioFp5() {
+// Given a,c ∈ Fp⁵, checks c == aᵖ
+// Cost: 4 (4 mul)
+template FirstFrobenius() {
     signal input a[5];
-    signal input b[5];
-    signal output {binary} is_square;
     signal output c[5];
+
+    c[0] <== a[0];
+    c[1] <== a[1] * 1041288259238279555;
+    c[2] <== a[2] * 15820824984080659046;
+    c[3] <== a[3] * 211587555138949697;
+    c[4] <== a[4] * 1373043270956696022;
+}
+
+// Given a,c ∈ Fp⁵, checks c == aᵖ･ᵖ
+// Cost: 4 (4 mul)
+template SecondFrobenius() {
+    signal input a[5];
+    signal output c[5];
+
+    c[0] <== a[0];
+    c[1] <== a[1] * 15820824984080659046;
+    c[2] <== a[2] * 1373043270956696022;
+    c[3] <== a[3] * 1041288259238279555;
+    c[4] <== a[4] * 211587555138949697;
+}
+
+// Given a ∈ Fp⁵ and c ∈ Fp, checks c == a^(p⁴ + p³ + p² + p + 1)
+template ExpFifthCyclotomicFp5() {
+    signal input a[5];
+    signal output c;
+
+    signal t0[5] <== FirstFrobenius()(a);   // a^p
+    signal t1[5] <== SecondFrobenius()(a);  // a^(p²)
+    signal t2[5] <== MulFp5()(t1, t0);      // a^(p² + p)
+    signal t3[5] <== SecondFrobenius()(t2); // a^(p⁴ + p³)
+
+    // c = a^(p⁴ + p³ + p² + p + 1)
+    signal a1t34 <== a[1] * t3[4];
+    signal a2t33 <== a[2] * t3[3];
+    signal a3t32 <== a[3] * t3[2];
+    signal a4t31 <== a[4] * t3[1];
+    c <== a[0] * a[1] + 3 * (a1t34 + a2t33 + a3t32 + a4t31);
+}
+
+// Given a ∈ Fp⁵ and is_square ∈ {0,1}, checks is_square == (a^((p⁵-1)/2) == 1)
+template IsSquareFp5() {
+    signal input a[5];
+    signal output pow;
+    signal output {binary} is_square;
+
+    // Compute pow = a^(p⁴ + p³ + p² + p + 1)
+    pow <== ExpFifthCyclotomicFp5()(a);
+
+    // Check if pow is a square over Fp
+    is_square <== IsSquareFp()(pow);
+}
+
+// Given a,c ∈ Fp⁵, checks c == sqrt(a)
+template SqrtFp5() {
+    signal input a[5];
+    signal output c[5];
+
+    // Get a square root of a
+    c <-- get_sqrt_fp5(a);
+
+    // Check that c² == a
+    signal mul[5] <== MulFp5()(c, c);
+    for (var i = 0; i < 5; i++) {
+        mul[i] === a[i];
+    }
 }
 
 template SignCompareFp5() {
@@ -160,6 +243,10 @@ template SignCompareFp5() {
 }
 
 // Helper functions
+
+function is_zero_fp5(a) {
+    return ((a[0] == 0) && (a[1] == 0) && (a[2] == 0) && (a[3] == 0) && (a[4] == 0));
+}
 
 // Given a,b ∈ Fp⁵, computes c := a+b ∈ Fp⁵
 function add_fp5(a, b) {
@@ -183,8 +270,28 @@ function mul_fp5(a, b) {
     return c;
 }
 
+function square_fp5(a) {
+    var c[5];
+
+    c[0] = a[0]*a[0] + 6*(a[1]*a[4] + a[2]*a[3]);
+    c[1] = 2*a[0]*a[1] + 3*(2*a[2]*a[4] + a[3]*a[3]);
+    c[2] = 2*a[0]*a[2] + a[1]*a[1] + 6*a[3]*a[4];
+    c[3] = 2*(a[0]*a[3] + a[1]*a[2]) + 3*a[4]*a[4];
+    c[4] = 2*(a[0]*a[4] + a[1]*a[3]) + a[2]*a[2];
+
+    return c;
+}
+
+function exp_pow_of_two_fp5(a, power_log) {
+    var c[5] = a;
+    for (var i = 0; i < power_log; i++) {
+        c = square_fp5(c);
+    }
+
+    return c;
+}
+
 // Given a ∈ Fp⁵, compute c := aᵖ ∈ Fp⁵
-// Cost: 4 (4 mul)
 function first_frobenius(a) {
     var c[5];
 
@@ -198,7 +305,6 @@ function first_frobenius(a) {
 }
 
 // Given a ∈ Fp⁵, compute c := aᵖ･ᵖ ∈ Fp⁵
-// Cost: 4 (4 mul)
 function second_frobenius(a) {
     var c[5];
 
@@ -211,12 +317,18 @@ function second_frobenius(a) {
     return c;
 }
 
+function exp_fifth_cyclotomic_fp5(a) {
+    var t0[5] = mul_fp5(second_frobenius(a), first_frobenius(a)); // a^(p² + p)
+    var t1[5] = second_frobenius(t0);                             // a^(p⁴ + p³)
+    var t2[5] = mul_fp5(t0, t1);                                  // a^(p⁴ + p³ + p² + p)
+
+    return a[0] * t2[0] + 3 * (a[1] * t2[4] + a[2] * t2[3] + a[3] * t2[2] + a[4] * t2[1]); // a^x
+}
+
 // Given NON-ZERO a ∈ Fp⁵, compute c := 1/a ∈ Fp⁵
 // as 1/a = a^(x-1) / a^x, where x = p⁴ + p³ + p² + p + 1
 // Cost: 126 (72 mul, 44 add, 9 scalar mul, 1 div)
 function get_inverse_fp5(a) {
-    var c[5];
-
     var t0[5] = mul_fp5(second_frobenius(a), first_frobenius(a)); // a^(p² + p)
     var t1[5] = second_frobenius(t0);                             // a^(p⁴ + p³)
     var t2[5] = mul_fp5(t0, t1);                                  // a^(p⁴ + p³ + p² + p)
@@ -227,9 +339,51 @@ function get_inverse_fp5(a) {
     // var t4 =  (t3 != 0) ? 1 / t3 : 0;
 
     // a^(x-1) * a^(-x)
+    var c[5];
     for (var i = 0; i < 5; i++) {
         c[i] = t2[i] * t4;
     }
 
     return c;
+}
+
+function div_fp5(a, b) {
+    var b_inv[5] = get_inverse_fp5(b);
+    var c[5] = mul_fp5(a, b_inv);
+
+    return c;
+}
+
+function get_sqrt_fp5(a) {
+    // We compute the square root using the identity:
+    //      1     p⁴ + p³ + p² + p + 1       p+1          p+1
+    //     --- + ----------------------  = (-----)·p³ + (-----)·p + 1
+    //      2              2                  2            2
+
+    // sqrt(0) = 0 and sqrt(1) = 1
+    if (((a[0] == 0) && (a[1] == 0) && (a[2] == 0) && (a[3] == 0) && (a[4] == 0))
+        || ((a[0] == 1) && (a[1] == 0) && (a[2] == 0) && (a[3] == 0) && (a[4] == 0))) {
+        return a;
+    }
+
+    // First Part: Compute the square root of a^-(p⁴ + p³ + p² + p + 1) ∈ Fp
+    var pow_x = exp_fifth_cyclotomic_fp5(a); // a^x
+    var x = get_square_fp(1 / pow_x); // sqrt(1 / a^x)
+
+    // Second Part: Compute a^(((p+1)/2)p³ + ((p+1)/2)p + 1)
+
+    // 1] Compute a^((p+1)/2). Notice (p+1)/2 = 2^63 - 2^31 + 1
+    var pow_31[5] = exp_pow_of_two_fp5(a, 31);
+    var pow_63[5] = exp_pow_of_two_fp5(pow_31, 32);
+    var pow[5] = mul_fp5(a, div_fp5(pow_63, pow_31));
+
+    // 2] Compute the rest using Frobenius
+    var pow_frob[5] = first_frobenius(pow);
+    var y[5] = pow_frob;
+
+    pow_frob = second_frobenius(pow_frob);
+    y = mul_fp5(y, pow_frob);
+    y = mul_fp5(y, a);
+
+    return [x*y[0], x*y[1], x*y[2], x*y[3], x*y[4]];
 }
