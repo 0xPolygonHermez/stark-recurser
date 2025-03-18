@@ -17,6 +17,8 @@ module.exports = class F5g {
         this.g = [2n, 1n, 0n, 0n, 0n];
         this.zero = this.F.zero;
         this.one = this.F.one;
+        this.two = this.F.two;
+        this.negone = this.F.negone;
 
         this.bitLength1 = this.F.bitLength;
     }

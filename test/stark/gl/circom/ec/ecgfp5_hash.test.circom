@@ -12,7 +12,7 @@ template EcGFp5Hash() {
 
     signal input x[5];
     signal input y[5];
-    output PointFp5() R <== HashToCurve(A, B, Z, C1, C2)(x,y);
+    signal output R[2][5] <== HashToCurve(A, B, Z, C1, C2)(x,y);
 }
 
 component main = EcGFp5Hash();

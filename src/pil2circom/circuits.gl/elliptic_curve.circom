@@ -10,50 +10,59 @@ include "fp5.circom";
     defined over the extension field Fp⁵ = F[X]/(X⁵-3)
 */
 
-bus PointFp5(){
-    signal x[5];
-    signal y[5];
-}
+// TODO: Use buses when errors get corrected!
+// bus PointFp5(){
+//     signal x[5];
+//     signal y[5];
+// }
 
 // Given P,Q,R ∈ E(Fp⁵), checks R == P+Q
 // It assumes P,Q,R != 𝒪, Q != P,-P
 template AddECFp5() {
-    input PointFp5() P;
-    input PointFp5() Q;
-    output PointFp5() R;
+    signal input P[2][5];
+    signal input Q[2][5];
+    signal output R[2][5];
 
-    signal slope_num[5] <== SubFp5()(Q.y, P.y);
-    signal slope_den[5] <== SubFp5()(Q.x, P.x);
+    var Px[5] = P[0];
+    var Py[5] = P[1];
+    var Qx[5] = Q[0];
+    var Qy[5] = Q[1];
+
+    signal slope_num[5] <== SubFp5()(Qy, Py);
+    signal slope_den[5] <== SubFp5()(Qx, Px);
     signal slope[5] <== DivFp5()(slope_num, slope_den);
 
     signal slope_sq[5] <== SquareFp5()(slope);
-    signal xRa[5] <== SubFp5()(slope_sq, P.x);
-    R.x <== SubFp5()(xRa, Q.x);
+    signal xRa[5] <== SubFp5()(slope_sq, Px);
+    R[0] <== SubFp5()(xRa, Qx);
 
-    signal xdiff[5] <== SubFp5()(P.x, R.x);
+    signal xdiff[5] <== SubFp5()(Px, R[0]);
     signal yRa[5] <== MulFp5()(slope, xdiff);
-    R.y <== SubFp5()(yRa, P.y);
+    R[1] <== SubFp5()(yRa, Py);
 }
 
 // Given P,R ∈ E(Fp⁵), checks R == 2·P
-// It assumes P,R != 𝒪, P.y != 0
-template DoubleFp5(A) {
-    input PointFp5() P;
-    output PointFp5() R;
+// It assumes P,R != 𝒪, Py != 0
+template DoubleECFp5(A) {
+    signal input P[2][5];
+    signal output R[2][5];
 
-    signal x_sq[5] <== SquareFp5()(P.x);
-    signal slope_num_a[5] <== MulFp5()(x_sq, [3, 0, 0, 0, 0]); // TODO: Optimize this
+    var Px[5] = P[0];
+    var Py[5] = P[1];
+
+    signal x_sq[5] <== SquareFp5()(Px);
+    signal slope_num_a[5] <== ScalarMulFp5()(x_sq, 3);
     signal slope_num[5] <== AddFp5()(slope_num_a, A);
-    signal slope_den[5] <== MulFp5()(P.y, [2, 0, 0, 0, 0]); // TODO: Optimize this
+    signal slope_den[5] <== ScalarMulFp5()(Py, 2);
     signal slope[5] <== DivFp5()(slope_num, slope_den);
 
     signal slope_sq[5] <== SquareFp5()(slope);
-    signal xRa[5] <== SubFp5()(slope_sq, P.x);
-    R.x <== SubFp5()(xRa, P.x);
+    signal xRa[5] <== SubFp5()(slope_sq, Px);
+    R[0] <== SubFp5()(xRa, Px);
 
-    signal xdiff[5] <== SubFp5()(P.x, R.x);
+    signal xdiff[5] <== SubFp5()(Px, R[0]);
     signal yRa[5] <== MulFp5()(slope, xdiff);
-    R.y <== SubFp5()(yRa, P.y);
+    R[1] <== SubFp5()(yRa, Py);
 }
 
 // Given x,y ∈ Fp⁵ and S ∈ E(Fp⁵), checks S == hash_to_curve(x,y)
@@ -61,11 +70,11 @@ template DoubleFp5(A) {
 template HashToCurve(A, B, Z, C1, C2) {
     signal input x[5];
     signal input y[5];
-    output PointFp5() S;
+    signal output S[2][5];
 
-    PointFp5() P <== MapToCurve(A, B, Z, C1, C2)(x); // P != 𝒪 by assumption
-    PointFp5() Q <== MapToCurve(A, B, Z, C1, C2)(y); // Q != 𝒪 by assumption
-    PointFp5() R <== AddECFp5()(P, Q);       // Q != P,-P and R != 𝒪 by assumption
+    signal P[2][5] <== MapToCurve(A, B, Z, C1, C2)(x); // P != 𝒪 by assumption
+    signal Q[2][5] <== MapToCurve(A, B, Z, C1, C2)(y); // Q != 𝒪 by assumption
+    signal R[2][5] <== AddECFp5()(P, Q);       // Q != P,-P and R != 𝒪 by assumption
     S <== ClearCofactor(A, B)(R);                // ord(R) > h and S != 𝒪 by assumption
 }
 
@@ -73,7 +82,7 @@ template HashToCurve(A, B, Z, C1, C2) {
 // It assumes R != 𝒪
 template MapToCurve(A, B, Z, C1, C2) {
     signal input u[5];
-    output PointFp5() R;
+    signal output R[2][5];
 
     signal tv1a[5] <== SquareFp5()(u);      // tv1 = u²
     signal tv1[5] <== MulFp5()(Z, tv1a);    // tv1 = Z·u²
@@ -110,22 +119,22 @@ template MapToCurve(A, B, Z, C1, C2) {
     signal {binary} e3 <== sign_u * sign_y + nor_sign; // e3 = 1 if sign_u == sign_y, else e3 = 0
     signal y_neg[5] <== NegFp5()(y);
 
-    R.x <== x;
-    R.y <== MultiMux1(5)([y_neg, y], e3);
+    R[0] <== x;
+    R[1] <== MultiMux1(5)([y_neg, y], e3);
 }
 
 // Given P,R ∈ E(Fp⁵), checks R = h·P, where h is the cofactor of the curve
 // It assumes P,R != 𝒪 and ord(P) > h
 template ClearCofactor(A, B) {
-    input PointFp5() P;
-    output PointFp5() R;
+    signal input P[2][5];
+    signal output R[2][5];
 
     // If it is the EcGFp5 curve
     if ((A[0] == 6148914689804861439) && (A[1] == 263) && (A[2] == 0) && (A[3] == 0) && (A[4] == 0) 
          && (B[0] == 15713893096167979237) && (B[1] == 6148914689804861265) && (B[2] == 0) && (B[3] == 0) && (B[4] == 0)) 
     {
         // Cofactor is 2, just double P
-        R <== DoubleFp5(A)(P);
+        R <== DoubleECFp5(A)(P);
     } 
     // If it is the EcMasFp5 curve
     else if ((A[0] == 3) && (A[1] == 0) && (A[2] == 0) && (A[3] == 0) && (A[4] == 0) 

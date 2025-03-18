@@ -18,7 +18,7 @@ template ExpPowOfTwoFp(power_log) {
     c <== im[power_log];
 }
 
-// Given a ∈ Fp and is_square ∈ {0,1}, checks is_square == (a^((p-1)/2) == 1)
+// Given NON-ZERO a ∈ Fp and is_square ∈ {0,1}, checks is_square == (a^((p-1)/2) == 1)
 template IsSquareFp() {
     signal input a;
     signal output {binary} is_square;
@@ -34,6 +34,7 @@ template IsSquareFp() {
     2 * is_square === 1 + legendre;
 }
 
+// Given a ∈ Fp and sign ∈ {0,1}, checks sign == sign(a) := a % 2
 template SignFp() {
     signal input a;
     signal output {binary} sign;
@@ -69,9 +70,11 @@ function get_square_fp(a) {
     var g = 7; // Goldilocks multiplicative generator
     var x = 1;
     var non_residue = x - a;
-    while (is_square_fp(non_residue)) {
+    var is_square = is_square_fp(non_residue);
+    while (is_square) {
         x *= g;
         non_residue = x**2 - a;
+        is_square = is_square_fp(non_residue);
     }
 
     // 2] Compute (x + sqrt(x² - a))^((p+1)/2)

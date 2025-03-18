@@ -2,10 +2,9 @@ pragma circom 2.2.0;
 
 include "../../../../../src/pil2circom/circuits.gl/fp5.circom";
 
-template SignCompare() {
+template Sign() {
     signal input a[5];
-    signal input b[5];
-    signal output a_sign_b <== SignCompareFp5()(a, b);
+    signal output a_sign <== SignFp5()(a);
 }
 
-component main = SignCompare();
+component main = Sign();

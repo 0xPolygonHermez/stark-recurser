@@ -93,6 +93,18 @@ template MulFp5() {
     c[4] <== a[0]*b[4] + a1b3 + a2b2 + a3b1 + a4b0;
 }
 
+// Given a,b,c ∈ Fp⁵, checks c == a·b
+// Cost: 49 (25 mul, 20 add, 4 scalar mul)
+template ScalarMulFp5() {
+    signal input a[5];
+    signal input b;
+    signal output c[5];
+
+    for (var i = 0; i < 5; i++) {
+        c[i] <== a[i] * b;
+    }
+}
+
 // Given a,c ∈ Fp⁵, checks c == a²
 // Cost: 34 (15 mul, 10 add, 9 scalar mul)
 template SquareFp5() {
@@ -159,9 +171,7 @@ template DivFp5() {
     signal b_inv[5] <== InvFp5()(b);
 
     // Check that c == a·b^(-1)
-    for (var i = 0; i < 5; i++) {
-        c[i] <== a[i] * b_inv[i];
-    }
+    c <== MulFp5()(a, b_inv);
 }
 
 // Given a,c ∈ Fp⁵, checks c == aᵖ
@@ -199,16 +209,17 @@ template ExpFifthCyclotomicFp5() {
     signal t1[5] <== SecondFrobenius()(a);  // a^(p²)
     signal t2[5] <== MulFp5()(t1, t0);      // a^(p² + p)
     signal t3[5] <== SecondFrobenius()(t2); // a^(p⁴ + p³)
+    signal t4[5] <== MulFp5()(t2, t3);      // a^(p⁴ + p³ + p² + p)
 
     // c = a^(p⁴ + p³ + p² + p + 1)
-    signal a1t34 <== a[1] * t3[4];
-    signal a2t33 <== a[2] * t3[3];
-    signal a3t32 <== a[3] * t3[2];
-    signal a4t31 <== a[4] * t3[1];
-    c <== a[0] * a[1] + 3 * (a1t34 + a2t33 + a3t32 + a4t31);
+    signal a1t44 <== a[1] * t4[4];
+    signal a2t43 <== a[2] * t4[3];
+    signal a3t42 <== a[3] * t4[2];
+    signal a4t41 <== a[4] * t4[1];
+    c <== a[0] * t4[0] + 3 * (a1t44 + a2t43 + a3t42 + a4t41);
 }
 
-// Given a ∈ Fp⁵ and is_square ∈ {0,1}, checks is_square == (a^((p⁵-1)/2) == 1)
+// Given NON-ZERO a ∈ Fp⁵ and is_square ∈ {0,1}, checks is_square == (a^((p⁵-1)/2) == 1)
 template IsSquareFp5() {
     signal input a[5];
     signal output pow;
@@ -221,7 +232,7 @@ template IsSquareFp5() {
     is_square <== IsSquareFp()(pow);
 }
 
-// Given a,c ∈ Fp⁵, checks c == sqrt(a)
+// Given a SQUARE a ∈ Fp⁵ and c ∈ Fp⁵, checks c == sqrt(a)
 template SqrtFp5() {
     signal input a[5];
     signal output c[5];
