@@ -34,6 +34,16 @@ template IsSquareFp() {
     2 * is_square === 1 + legendre;
 }
 
+template SignFp() {
+    signal input a;
+    signal output {binary} sign;
+
+    sign <-- a % 2;
+    sign * (1 - sign) === 0;
+    signal q <-- a \ 2;
+    a === 2 * q + sign;
+}
+
 // Helper functions
 
 function exp_pow_of_two_fp(a, power_log) {

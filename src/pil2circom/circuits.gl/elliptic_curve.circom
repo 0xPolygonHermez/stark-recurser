@@ -35,6 +35,27 @@ template AddECFp5() {
     R.y <== SubFp5()(yRa, P.y);
 }
 
+// Given P,R ∈ E(Fp⁵), checks R == 2·P
+// It assumes P,R != 𝒪, P.y != 0
+template DoubleFp5(A) {
+    input PointFp5() P;
+    output PointFp5() R;
+
+    signal x_sq[5] <== SquareFp5()(P.x);
+    signal slope_num_a[5] <== MulFp5()(x_sq, [3, 0, 0, 0, 0]); // TODO: Optimize this
+    signal slope_num[5] <== AddFp5()(slope_num_a, A);
+    signal slope_den[5] <== MulFp5()(P.y, [2, 0, 0, 0, 0]); // TODO: Optimize this
+    signal slope[5] <== DivFp5()(slope_num, slope_den);
+
+    signal slope_sq[5] <== SquareFp5()(slope);
+    signal xRa[5] <== SubFp5()(slope_sq, P.x);
+    R.x <== SubFp5()(xRa, P.x);
+
+    signal xdiff[5] <== SubFp5()(P.x, R.x);
+    signal yRa[5] <== MulFp5()(slope, xdiff);
+    R.y <== SubFp5()(yRa, P.y);
+}
+
 // Given x,y ∈ Fp⁵ and S ∈ E(Fp⁵), checks S == hash_to_curve(x,y)
 // It inherits the assumptions of MapToCurve, AddECFp5 and ClearCofactor
 template HashToCurve(A, B, Z, C1, C2) {
@@ -45,7 +66,7 @@ template HashToCurve(A, B, Z, C1, C2) {
     PointFp5() P <== MapToCurve(A, B, Z, C1, C2)(x); // P != 𝒪 by assumption
     PointFp5() Q <== MapToCurve(A, B, Z, C1, C2)(y); // Q != 𝒪 by assumption
     PointFp5() R <== AddECFp5()(P, Q);       // Q != P,-P and R != 𝒪 by assumption
-    S <== ClearCofactor()(R);                // ord(R) > h and S != 𝒪 by assumption
+    S <== ClearCofactor(A, B)(R);                // ord(R) > h and S != 𝒪 by assumption
 }
 
 // Given a ∈ Fp⁵ and R ∈ E(Fp⁵), checks R == map_to_curve(a)
@@ -83,16 +104,39 @@ template MapToCurve(A, B, Z, C1, C2) {
     signal y[5] <== SqrtFp5()(y2); // y = sqrt(y2)
 
     // Fix the sign of y
-    signal {binary} e3 <== SignCompareFp5()(u, y);
+    signal {binary} sign_u <== SignFp5()(u);
+    signal {binary} sign_y <== SignFp5()(y);
+    signal {binary} nor_sign <== (1 - sign_u) * (1 - sign_y);
+    signal {binary} e3 <== sign_u * sign_y + nor_sign; // e3 = 1 if sign_u == sign_y, else e3 = 0
     signal y_neg[5] <== NegFp5()(y);
 
     R.x <== x;
-    R.y <== MultiMux1(5)([y, y_neg], e3);
+    R.y <== MultiMux1(5)([y_neg, y], e3);
 }
 
 // Given P,R ∈ E(Fp⁵), checks R = h·P, where h is the cofactor of the curve
 // It assumes P,R != 𝒪 and ord(P) > h
-template ClearCofactor() {
+template ClearCofactor(A, B) {
     input PointFp5() P;
     output PointFp5() R;
+
+    // If it is the EcGFp5 curve
+    if ((A[0] == 6148914689804861439) && (A[1] == 263) && (A[2] == 0) && (A[3] == 0) && (A[4] == 0) 
+         && (B[0] == 15713893096167979237) && (B[1] == 6148914689804861265) && (B[2] == 0) && (B[3] == 0) && (B[4] == 0)) 
+    {
+        // Cofactor is 2, just double P
+        R <== DoubleFp5(A)(P);
+    } 
+    // If it is the EcMasFp5 curve
+    else if ((A[0] == 3) && (A[1] == 0) && (A[2] == 0) && (A[3] == 0) && (A[4] == 0) 
+         && (B[0] == 0) && (B[1] == 0) && (B[2] == 0) && (B[3] == 0) && (B[4] == 8)) 
+    {
+        // Cofactor is 1
+        R <== P;
+    } 
+    else 
+    {
+        log("ClearCofactor: Unsupported curve A = [", A[0], A[1], A[2], A[3], A[4], "], B = [", B[0], B[1], B[2], B[3], B[4], "]");
+        assert(1 == 0);
+    }
 }

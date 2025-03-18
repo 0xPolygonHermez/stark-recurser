@@ -236,10 +236,24 @@ template SqrtFp5() {
     }
 }
 
-template SignCompareFp5() {
+template SignFp5() {
     signal input a[5];
-    signal input b[5];
-    signal output {binary} c;
+    signal output {binary} sign;
+
+    signal sign_i[5];
+    signal is_zero_i[5];
+    for (var i = 0; i < 5; i++) {
+        sign_i[i] <== SignFp()(a[i]);
+        is_zero_i[i] <== IsZero()(a[i]);
+    }
+
+    // sign(a[0]) || (a[0] == 0 && sign(a[1])) || (a[0] == 0 && a[1] == 0 && sign(a[2])) 
+    // || (a[0] == 0 && a[1] == 0 && a[2] == 0 && sign(a[3])) 
+    // || (a[0] == 0 && a[1] == 0 && a[2] == 0 && a[3] == 0 && sign(a[4]))
+    signal sign_3_sign_4 <== sign_i[3] + is_zero_i[3] * sign_i[4];
+    signal sign_2_sign_3_sign_4 <== sign_i[2] + is_zero_i[2] * sign_3_sign_4;
+    signal sign_1_sign_2_sign_3_sign_4 <== sign_i[1] + is_zero_i[1] * sign_2_sign_3_sign_4;
+    sign <== sign_i[0] + is_zero_i[0] * sign_1_sign_2_sign_3_sign_4;
 }
 
 // Helper functions
