@@ -142,6 +142,7 @@ template InvFp5() {
     ac === [1, 0, 0, 0, 0];
 }
 
+// Given a,c ∈ Fp⁵, checks c == 1/a
 template Inv0Fp5() {
     signal input a[5];
     signal output {binary} a_is_zero;
@@ -151,12 +152,11 @@ template Inv0Fp5() {
     a_is_zero <== IsZeroFp5()(a);
 
     // Get the inverse of a
-    c <-- is_zero_fp5(a) ? [0, 0, 0, 0, 0] : get_inverse_fp5(a);
+    c <-- get_inverse_fp5(a);
     signal ac[5] <== MulFp5()(a, c);
-
     // If a is zero, check c == 0; otherwise, check a·c == 1
     for (var i = 0; i < 5; i++) {
-        a_is_zero * (c[i] - (ac[i] - 1)) + (ac[i] - 1) === 0;
+        a_is_zero * (c[i] - (ac[i] - (i == 0))) + (ac[i] - (i == 0)) === 0;
     }
 }
 
@@ -350,10 +350,14 @@ function exp_fifth_cyclotomic_fp5(a) {
     return a[0] * t2[0] + 3 * (a[1] * t2[4] + a[2] * t2[3] + a[3] * t2[2] + a[4] * t2[1]); // a^x
 }
 
-// Given NON-ZERO a ∈ Fp⁵, compute c := 1/a ∈ Fp⁵
+// Given a ∈ Fp⁵, compute c := 1/a ∈ Fp⁵
 // as 1/a = a^(x-1) / a^x, where x = p⁴ + p³ + p² + p + 1
 // Cost: 126 (72 mul, 44 add, 9 scalar mul, 1 div)
 function get_inverse_fp5(a) {
+    if (is_zero_fp5(a)) {
+        return [0, 0, 0, 0, 0];
+    }
+
     var t0[5] = mul_fp5(second_frobenius(a), first_frobenius(a)); // a^(p² + p)
     var t1[5] = second_frobenius(t0);                             // a^(p⁴ + p³)
     var t2[5] = mul_fp5(t0, t1);                                  // a^(p⁴ + p³ + p² + p)

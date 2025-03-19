@@ -6,9 +6,8 @@ template Inv() {
     signal input a[5];
     signal input b[5];
     signal output a_inv[5] <== InvFp5()(a);
-    // TODO: Finish when available
     signal output b_inv[5];
-    // (_, b_inv) <== Inv0Fp5()(b);
+    (_, b_inv) <== Inv0Fp5()(b);
 }
 
 component main = Inv();

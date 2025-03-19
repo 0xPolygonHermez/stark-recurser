@@ -73,6 +73,11 @@ describe("Fp5 arithmetic over GL", function () {
                         ? [K.zero, K.zero, K.zero, K.zero, K.zero]
                         : K.random(),
             };
+            if (i > 0) {
+                while (K.isZero(input.b)) {
+                    input.b = K.random();
+                }
+            }
 
             const witness = await circuit.calculateWitness(input, true);
             let output = await circuit.getOutput(witness, {
@@ -87,8 +92,12 @@ describe("Fp5 arithmetic over GL", function () {
                 [K.one, K.zero, K.zero, K.zero, K.zero],
                 K.mul(input.a, a_div)
             );
-            // TODO: Finish when available
-            // assert.deepEqual([K.one, K.zero, K.zero, K.zero, K.zero], K.mul(input.b, b_div));
+            assert.deepEqual(
+                i == 0
+                    ? [K.zero, K.zero, K.zero, K.zero, K.zero]
+                    : [K.one, K.zero, K.zero, K.zero, K.zero],
+                K.mul(input.b, b_div)
+            );
         }
     });
 
@@ -196,7 +205,10 @@ describe("Fp5 arithmetic over GL", function () {
 
         for (let i = 0; i < 256; i++) {
             let input = {
-                a: (i == 0) ? [K.zero, K.zero, K.zero, K.zero, K.zero] : K.random()
+                a:
+                    i == 0
+                        ? [K.zero, K.zero, K.zero, K.zero, K.zero]
+                        : K.random(),
             };
 
             let a_sign = 0;
