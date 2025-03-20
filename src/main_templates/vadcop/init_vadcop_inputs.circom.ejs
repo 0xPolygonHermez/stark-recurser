@@ -18,7 +18,7 @@
 <%  } -%>
 
 <%  if(starkInfo.airValuesMap.filter(a => a.stage == 1).length > 0) { -%>
-    <%- prefix_ %>stage1Hash <== CalculateStage1Hash()(<%- componentName %>.rootC, <%- prefixStark_%>root1, <%- prefixStark_ %>airvalues);
+    <%- prefix_ %>stage1HashToEC <== CalculateStage1HashToEC()(<%- componentName %>.rootC, <%- prefixStark_%>root1, <%- prefixStark_ %>airvalues);
 <%  } else { -%>
-    <%- prefix_ %>stage1Hash <== CalculateStage1Hash()(<%- componentName %>.rootC, <%- prefixStark_%>root1);
+    <%- prefix_ %>stage1HashToEC <== CalculateStage1HashToEC()(<%- componentName %>.rootC, <%- prefixStark_%>root1);
 <%  } -%>

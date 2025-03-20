@@ -54,7 +54,6 @@ template Final() {
 
     // Calculate transcript and check that matches with the global challenges
     component verifyChallenges = VerifyGlobalChallenges();
-    verifyChallenges.globalChallenge <== globalChallenge;
 <%  if(vadcopInfo.nPublics > 0) { -%>
     verifyChallenges.publics <== publics;
 <%  } -%>
@@ -62,8 +61,9 @@ template Final() {
     verifyChallenges.proofValues <== proofValues;
 <%  } -%>
 <%      for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-    verifyChallenges.stage1Hash[<%- i %>] <== s<%- i %>_sv_stage1Hash;
+    verifyChallenges.stage1HashToEC[<%- i %>] <== s<%- i %>_sv_stage1HashToEC;
 <%      } -%>
+    verifyChallenges.globalChallenge <== globalChallenge;
 
     // Verify global constraints
     component verifyGlobalConstraints = VerifyGlobalConstraints();

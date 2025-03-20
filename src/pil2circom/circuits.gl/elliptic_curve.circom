@@ -16,6 +16,17 @@ include "fp5.circom";
 //     signal y[5];
 // }
 
+// Give P ∈ E(Fp⁵), checks if P == 𝒪
+// It assumes that 𝒪 can be represented as (0,0) in the curve
+template IsInfinityECFp5() {
+    signal input P[2][5];
+    signal output {binary} is_inf;
+
+    signal {binary} is_inf_x <== IsZeroFp5()(P[0]);
+    signal {binary} is_inf_y <== IsZeroFp5()(P[1]);
+    is_inf <== is_inf_x * is_inf_y;
+}
+
 // Given P,Q,R ∈ E(Fp⁵), checks R == P+Q
 // It assumes P,Q,R != 𝒪, Q != P,-P
 template AddECFp5() {
