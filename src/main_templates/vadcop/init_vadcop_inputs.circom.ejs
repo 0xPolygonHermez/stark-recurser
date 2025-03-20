@@ -4,6 +4,7 @@
 
     <%- componentName %>.globalChallenge <== globalChallenge;
 
+    // --> Assign the VADCOP data
 <%  let circuitType = (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
     <%- prefix_ %>circuitType <== <%- circuitType %>;
     

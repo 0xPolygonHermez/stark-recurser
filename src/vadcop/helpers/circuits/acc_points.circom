@@ -8,6 +8,7 @@ template AccumulatePoints() {
     signal input pointA[2][5];
     signal input pointB[2][5];
 
+    // Compute the addition of pointA and pointB
     signal output pointAB[2][5] <== AddECFp5()(pointA,pointB);
 }
 

@@ -9,21 +9,25 @@ include "elliptic_curve.circom";
 <%- include('src/vadcop/helpers/templates/calculate_hashes.circom.ejs', { starkInfo, vadcopInfo }); %>
 
 template Compressor() {
-
 <%  if(vadcopInfo.nPublics > 0) { -%>
+    // --> AIR public inputs
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
 
+    // --> VADCOP inputs
 <%  if(vadcopInfo.numProofValues > 0) { -%>
     signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
 <%  } -%>
 
     signal input globalChallenge[3];
-   
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "sv", airgroupId: starkInfo.airgroupId, options: {...options, isInput: false} }); %>
 
+    // --> AIR STARK proof data
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false} }); %>
 
+    // --> VADCOP outputs
+    <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "sv", airgroupId: starkInfo.airgroupId, options: {...options, isInput: false} }); %>
+
+    // --> Verify the STARK proof
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics,  options: { addPublics: false } }); %>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
@@ -33,7 +37,6 @@ template Compressor() {
 <%  } -%>
 
 <%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", airgroupId: starkInfo.airgroupId, starkInfo, vadcopInfo }); %>
-
 }
 
 <%  let pubNames = []; -%>
