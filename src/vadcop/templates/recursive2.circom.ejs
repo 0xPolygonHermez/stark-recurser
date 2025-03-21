@@ -16,28 +16,33 @@ template Recursive2() {
     rootCBasics[<%- i %>] = [<%- basicVK[i].join(",") %>];
 <%  } -%>
 
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "a_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
-
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "b", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "b_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true, isAggregation: true} }); %>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "sv", vadcopInfo, airgroupId, starkInfo, options: {...options, isInput: false} }); %>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
 
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
+<%  if(vadcopInfo.numProofValues > 0) { -%>
+    signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
+<%  } -%>
+
+    signal input globalChallenge[3];
 
     signal input rootCAgg[4];
 
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "a_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true} }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
+
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "b_sv", vadcopInfo, airgroupId, starkInfo, options: {...options, addPublics: false, isInput: true} }); %>
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "b", starkInfo, nPublics: vadcopInfo.nPublics, addPublics: false }); %>
+
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
-    signal input aggregationTypes[<%- vadcopInfo.aggTypes[airgroupId].length %>];
+    signal aggregationTypes[<%- vadcopInfo.aggTypes[airgroupId].length %>];
+    for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
+        aggregationTypes[i] <== a_sv_aggregationTypes[i];
+        a_sv_aggregationTypes[i] === b_sv_aggregationTypes[i];
+    }
 <%  } -%>
-
-
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: "sv", vadcopInfo, airgroupId, starkInfo, options: {...options, isInput: false} }); %>
-
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vA", prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics }); %>
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vB", prefix: "b", starkInfo, nPublics: vadcopInfo.nPublics }); %>
 
@@ -60,5 +65,9 @@ template Recursive2() {
     }
 }
 
-
-component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>challenges, challengesFRISteps, rootCAgg]} = Recursive2();
+<%  let pubNames = []; -%>
+<%    if(vadcopInfo.nPublics > 0) pubNames.push("publics"); -%>
+<%    if(vadcopInfo.numProofValues > 0) pubNames.push("proofValues"); -%>
+<%    pubNames.push("globalChallenge"); -%>
+<%    pubNames.push("rootCAgg"); -%>
+component main {public [<%- pubNames.join(", ") %>]} = Recursive2();
