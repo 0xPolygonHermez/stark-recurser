@@ -4,37 +4,40 @@ class Transcript {
         this.state = ["0", "0", "0", "0"];
         this.pending = [];
         this.out = [];
-        this.stCnt =0;
-        this.hCnt =0;
-        this.hiCnt =0;
-        this.n2bCnt =0;
+        this.hCnt = 0;
         this.lastCodePrinted = 0;
         this.name = name;
 
         this.code = [];
     }
 
-
-    getField(v) {
-        this.code.push(`${v} <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);
-    }
-
-    getState(v) {
-        this.code.push(`${v} <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);    
+    getState(v, l) {
+        let curveConstants = vadcopInfo.curveConstants;
+        this.code.push(`signal x[${l}] <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);
+        this.code.push(`signal y[${l}] <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];\n`);
+        this.code.push(`// Constants for the ${vadcopInfo.curve} curve`);
+        this.code.push(`var A[5] = [${curveConstants.A}];`);
+        this.code.push(`var B[5] = [${curveConstants.B}];`);
+        this.code.push(`var Z[5] = [${curveConstants.Z}];`);
+        this.code.push(`var C1[5] = [${curveConstants.C1}];`);
+        this.code.push(`var C2[5] = [${curveConstants.C2}];`);
+        this.code.push(`${v} <== HashToCurve(A, B, Z, C1, C2)(x,y);`);    
     }
 
     updateState()  {
         let signalName = "transcriptHash";
-        if(this.name) signalName += "_" + this.name;
-        if(this.hCnt > 0) {
-            const firstUnused = Math.max(this.hiCnt, 4);
-            if(firstUnused < 12) {
-                this.code.push(`for(var i = ${firstUnused}; i < 12; i++){
-        _ <== ${signalName}_${this.hCnt -1}[i]; // Unused transcript values 
-    }`)
-            }  
-        }
-        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[12] <== Poseidon2(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+        if (this.name) signalName += "_" + this.name;
+        this.code.push(`signal ${signalName}_${this.hCnt++}[12] <== Poseidon2(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+
+        // Add unused transcript values
+        let count = starkInfo.airValuesMap.reduce((acc, item) => acc + (item.stage === 1 ? 1 : 0), 0);
+        const used_vals = (this.hCnt < Math.ceil(count / 8) + 1) ? 4 : 10;
+        if (used_vals < 12) {
+            this.code.push(`for (var i = ${used_vals}; i < 12; i++) {`);
+            this.code.push(`    _ <== ${signalName}_${this.hCnt-1}[i]; // Unused transcript values`);
+            this.code.push(`}\n`);
+        } 
+
         for (let i=0; i<12; i++) {
             this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         }
@@ -42,7 +45,6 @@ class Transcript {
             this.state[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         } 
         this.pending = [];
-        this.hiCnt = 0;
     }
 
     getFields1() {
@@ -52,9 +54,7 @@ class Transcript {
             }
             this.updateState();
         }
-        const res = this.out.shift();
-        this.hiCnt++;
-        return res;
+        return this.out.shift();
     }
 
     put(a, l) {
@@ -75,44 +75,6 @@ class Transcript {
         }
     }
 
-    getPermutations(v, n, nBits) {
-        let signalName = "transcriptHash";
-        if(this.name) signalName += "_" + this.name;
-        const totalBits = n*nBits;
-        const n2b = [];
-        for (let i=0; i<NFields; i++) {
-            const f = this.getFields1();
-            n2b[i] = `transcriptN2b_${this.n2bCnt++}`;
-            this.code.push(`signal {binary} ${n2b[i]}[64] <== Num2Bits_strict()(${f});`);
-        }
-        if(this.hiCnt < 12) {
-            this.code.push(`for(var i = ${this.hiCnt}; i < 12; i++){
-        _ <== ${signalName}_${this.hCnt - 1}[i]; // Unused transcript values        
-    }\n`)
-        }
-        this.code.push(`// From each transcript hash converted to bits, we assign those bits to queriesFRI[q] to define the query positions`)
-        this.code.push(`var q = 0; // Query number `)
-        this.code.push(`var b = 0; // Bit number `)
-        for(let i = 0; i<NFields; i++) {
-            const nBits = i + 1 == NFields ? totalBits - 63*i : 63;
-            this.code.push(`for(var j = 0; j < ${nBits}; j++) {
-        ${v}[q][b] <== ${n2b[i]}[j];
-        b++;
-        if(b == ${starkStruct.steps[0].nBits}) {
-            b = 0; 
-            q++;
-        }
-    }`);
-            if(nBits === 63) {
-                this.code.push(`_ <== ${n2b[i]}[63]; // Unused last bit\n`); 
-            } else {
-                this.code.push(`for(var j = ${nBits}; j < 64; j++) {
-        _ <== ${n2b[i]}[j]; // Unused bits        
-    }`);
-            }
-        }
-    }
-
     getCode() {
         for (let i=this.lastCodePrinted; i<this.code.length; i++) this.code[i] = "    "+this.code[i];
         let code = this.code.slice(this.lastCodePrinted, this.code.length).join("\n");
@@ -122,7 +84,7 @@ class Transcript {
 }
 -%>
 
-template CalculateStage1Hash() {
+template CalculateStage1HashToEC() {
     signal input rootC[4];
     signal input root1[4];
 
@@ -130,7 +92,7 @@ template CalculateStage1Hash() {
     signal input airValues[<%- starkInfo.airValuesMap.length %>][3];
 <%  } -%>
 
-    signal output stageHash[4];
+    signal output P[2][5];
 
 <%  const transcriptStage = new Transcript(); -%>
 <%  transcriptStage.put("rootC", 4); -%>
@@ -139,9 +101,10 @@ template CalculateStage1Hash() {
 <%        if(starkInfo.airValuesMap[j].stage == 1) { -%>
 <%            transcriptStage.put(`airValues[${j}]`, 1); -%>
 <%        } else { -%>
-   _ <== airValues[<%- j %>];
+    _ <== airValues[<%- j %>]; // Unused air values at stage 1
 <%        } -%>
 <%    } -%>
-<%    transcriptStage.getState(`stageHash`); -%>
+
+<%    transcriptStage.getState("P", 5); -%>
 <%-     transcriptStage.getCode(); %>
 }
