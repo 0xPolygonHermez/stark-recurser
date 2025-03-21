@@ -12,10 +12,10 @@ class Transcript {
     }
 
     getState(v, l) {
-        let curveConstants = starkInfo.starkStruct.curveConstants;
+        let curveConstants = vadcopInfo.curveConstants;
         this.code.push(`signal x[${l}] <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);
         this.code.push(`signal y[${l}] <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];\n`);
-        this.code.push(`// Constants for the ${starkInfo.starkStruct.curve} curve`);
+        this.code.push(`// Constants for the ${vadcopInfo.curve} curve`);
         this.code.push(`var A[5] = [${curveConstants.A}];`);
         this.code.push(`var B[5] = [${curveConstants.B}];`);
         this.code.push(`var Z[5] = [${curveConstants.Z}];`);
