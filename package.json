@@ -46,7 +46,7 @@
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "ffjavascript": "^0.3.1",
-    "circom_tester": "https://github.com/iden3/circom_tester.git#feature/get-output",
+    "circom_tester": "^0.0.21",
     "ejs": "^3.1.6",
     "logplease": "^1.2.15",
     "mocha": "^10.0.0",

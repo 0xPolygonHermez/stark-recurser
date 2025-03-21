@@ -174,6 +174,21 @@ template DivFp5() {
     c <== MulFp5()(a, b_inv);
 }
 
+// Given a,b,c ∈ Fp⁵, checks c == a/b
+template Div0Fp5() {
+    signal input a[5];
+    signal input b[5];
+    signal output c[5];
+
+    // Get the inverse of b
+    // If b is zero, b^(-1) is zero
+    signal b_inv[5];
+    (_, b_inv) <== Inv0Fp5()(b);
+
+    // Check that c == a·b^(-1)
+    c <== MulFp5()(a, b_inv);
+}
+
 // Given a,c ∈ Fp⁵, checks c == aᵖ
 // Cost: 4 (4 mul)
 template FirstFrobenius() {

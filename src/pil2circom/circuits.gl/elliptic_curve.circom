@@ -28,7 +28,10 @@ template IsInfinityECFp5() {
 }
 
 // Given P,Q,R ∈ E(Fp⁵), checks R == P+Q
-// It assumes P,Q,R != 𝒪, Q != P,-P
+// It supports the cases where P or Q are 𝒪 (represented as (0,0)) 
+// or where Q == P,-P. However, the result will be incorrect in these cases.
+// Exception: When P == Q == 𝒪, the result will correctly be 𝒪.
+// So, extra care must be taken when using this circuit.
 template AddECFp5() {
     signal input P[2][5];
     signal input Q[2][5];
@@ -41,7 +44,7 @@ template AddECFp5() {
 
     signal slope_num[5] <== SubFp5()(Qy, Py);
     signal slope_den[5] <== SubFp5()(Qx, Px);
-    signal slope[5] <== DivFp5()(slope_num, slope_den);
+    signal slope[5] <== Div0Fp5()(slope_num, slope_den);
 
     signal slope_sq[5] <== SquareFp5()(slope);
     signal xRa[5] <== SubFp5()(slope_sq, Px);
@@ -77,16 +80,16 @@ template DoubleECFp5(A) {
 }
 
 // Given x,y ∈ Fp⁵ and S ∈ E(Fp⁵), checks S == hash_to_curve(x,y)
-// It inherits the assumptions of MapToCurve, AddECFp5 and ClearCofactor
+// It assumes x != y and S != 𝒪
 template HashToCurve(A, B, Z, C1, C2) {
     signal input x[5];
     signal input y[5];
     signal output S[2][5];
 
-    signal P[2][5] <== MapToCurve(A, B, Z, C1, C2)(x); // P != 𝒪 by assumption
-    signal Q[2][5] <== MapToCurve(A, B, Z, C1, C2)(y); // Q != 𝒪 by assumption
-    signal R[2][5] <== AddECFp5()(P, Q);       // Q != P,-P and R != 𝒪 by assumption
-    S <== ClearCofactor(A, B)(R);                // ord(R) > h and S != 𝒪 by assumption
+    signal P[2][5] <== MapToCurve(A, B, Z, C1, C2)(x); // P != 𝒪
+    signal Q[2][5] <== MapToCurve(A, B, Z, C1, C2)(y); // Q != 𝒪
+    signal R[2][5] <== AddECFp5()(P, Q);               // (w.h.p. over x,y) Q != P,-P => R != 𝒪
+    S <== ClearCofactor(A, B)(R);                      // (w.h.p. over x,y) ord(R) > h => S != 𝒪
 }
 
 // Given a ∈ Fp⁵ and R ∈ E(Fp⁵), checks R == map_to_curve(a)

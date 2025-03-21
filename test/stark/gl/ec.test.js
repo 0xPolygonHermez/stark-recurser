@@ -16,12 +16,14 @@ function is_on_curve(A, B, P) {
 describe("Elliptic curve arithmetic over the fifth extension of GL", function () {
     let g;
     let base_dir;
+    let infinity;
 
     this.timeout(10000000);
 
     before(async () => {
         g = K.g;
         base_dir = path.join(__dirname, "circom/ec");
+        infinity = [[K.zero, K.zero, K.zero, K.zero, K.zero], [K.zero, K.zero, K.zero, K.zero, K.zero]];
     });
 
     describe("Should check EcGFp5 arithmetic", async () => {
@@ -86,8 +88,47 @@ describe("Elliptic curve arithmetic over the fifth extension of GL", function ()
                 { prime: "goldilocks" }
             );
 
-            // G + G + G
+            // 𝒪 + 𝒪
             let input = {
+                P: infinity,
+                Q: infinity,
+            };
+
+            let witness = await circuit.calculateWitness(input, true);
+
+            await circuit.checkConstraints(witness);
+            await circuit.assertOut(witness, { R: infinity });
+
+            // NOT HANDLED BY THE CIRCUIT
+            // // 𝒪 + G
+            // input = {
+            //     P: infinity,
+            //     Q: G,
+            // };
+
+            // witness = await circuit.calculateWitness(input, true);
+
+            // await circuit.checkConstraints(witness);
+            // await circuit.assertOut(witness, { R: infinity });
+
+            // NOT HANDLED BY THE CIRCUIT
+            // // G + 𝒪
+            // input = {
+            //     P: G,
+            //     Q: infinity,
+            // };
+
+            // witness = await circuit.calculateWitness(input, true);
+            // let output = await circuit.getOutput(witness, {
+            //     R: [2, 5],
+            // });
+            // console.log(output);
+
+            // await circuit.checkConstraints(witness);
+            // await circuit.assertOut(witness, { R: G });
+
+            // G + G + G
+            input = {
                 P: G,
                 Q: [
                     [
@@ -107,11 +148,11 @@ describe("Elliptic curve arithmetic over the fifth extension of GL", function ()
                 ],
             };
 
-            let witness = await circuit.calculateWitness(input, true);
+            witness = await circuit.calculateWitness(input, true);
 
             await circuit.checkConstraints(witness);
 
-            let R_real = [
+            R_real = [
                 [
                     6535296575033610464n,
                     10296938272802226861n,
@@ -315,8 +356,43 @@ describe("Elliptic curve arithmetic over the fifth extension of GL", function ()
                 { prime: "goldilocks" }
             );
 
-            // G + G + G
+            // 𝒪 + 𝒪
             let input = {
+                P: infinity,
+                Q: infinity,
+            };
+
+            let witness = await circuit.calculateWitness(input, true);
+
+            await circuit.checkConstraints(witness);
+            await circuit.assertOut(witness, { R: infinity });
+
+            // NOT HANDLED BY THE CIRCUIT
+            // // 𝒪 + G
+            // input = {
+            //     P: infinity,
+            //     Q: G,
+            // };
+
+            // witness = await circuit.calculateWitness(input, true);
+
+            // await circuit.checkConstraints(witness);
+            // await circuit.assertOut(witness, { R: G, is_R_inf: 0 });
+
+            // NOT HANDLED BY THE CIRCUIT
+            // // G + 𝒪
+            // input = {
+            //     P: G,
+            //     Q: infinity,
+            // };
+
+            // witness = await circuit.calculateWitness(input, true);
+
+            // await circuit.checkConstraints(witness);
+            // await circuit.assertOut(witness, { R: G, is_R_inf: 0 });
+
+            // G + G + G
+            input = {
                 P: G,
                 Q: [
                     [0n, 16717361812906967041n, 0n, 0n, 0n],
@@ -324,7 +400,7 @@ describe("Elliptic curve arithmetic over the fifth extension of GL", function ()
                 ],
             };
 
-            let witness = await circuit.calculateWitness(input, true);
+            witness = await circuit.calculateWitness(input, true);
 
             await circuit.checkConstraints(witness);
 
