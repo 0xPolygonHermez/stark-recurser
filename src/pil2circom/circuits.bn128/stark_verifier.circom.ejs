@@ -330,8 +330,6 @@ template calculateFRIQueries() {
 <%- transcriptQueries.getCode(); %>
 }
 
-<% if (!options.inputChallenges) { -%>
-
 /* 
     Calculate the transcript
 */ 
@@ -442,8 +440,6 @@ template Transcript() {
 
     queriesFRI <== calculateFRIQueries()(challengeFRIQueries);
 }
-
-<% } -%>
 
 /*
     Verify that FRI polynomials are built properly
@@ -1037,7 +1033,6 @@ template StarkVerifier() {
     // Each of the queries values represented in binary
     signal {binary} queriesFRIGL[<%- starkStruct.nQueries %>][<%- starkStruct.steps[0].nBits %>];
 
-<% if (!options.inputChallenges) { -%>
     ///////////
     // Calculate challenges, challengesFRISteps and queriesFRI
     ///////////
@@ -1045,37 +1040,6 @@ template StarkVerifier() {
 <%  const stageRoots = []; -%> 
 <%  for(let i = 0; i < starkInfo.nStages; i++) { stageRoots.push(`root${i + 1}`) } -%>
     (<%- challengeNames.join(",") %>,challengesFRIStepsGL,queriesFRIGL) <== Transcript()(<%- starkInfo.nPublics > 0 ? "publicsGL," : "" %>rootC, <%- stageRoots.join(",") %>,root<%- qStage %>,evalsGL<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPolGL);
-
-<% } else { -%>
-<%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
-<%  if(starkInfo.challengesMap.filter(c => c.stage === i + 1).length === 0) continue; -%>
-        signal input challengesStage<%- i + 1 %>[<% starkInfo.challengesMap.filter(c => c.stage === i + 1).length -%>][3];
-<%  }-%>
-
-    signal input challengeQ[3];
-    signal input challengeXi[3];
-    signal input challengesFRI[2][3];
-
-    // challengesFRISteps contains the random value provided by the verifier at each step of the folding so that 
-    // the prover can commit the polynomial.
-    // Remember that, when folding, the prover does as follows: f0 = g_0 + X*g_1 + ... + (X^b)*g_b and then the 
-    // verifier provides a random X so that the prover can commit it. This value is stored here.
-    signal input challengesFRISteps[<%- starkStruct.steps.length -%>][3];
-
-    signal input challengeFRIQueries[3];
-
-<%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
-<%  if(starkInfo.challengesMap.filter(c => c.stage === i + 1).length === 0) continue; -%>
-<%      for(let j = 0; j < starkInfo.challengesMap.filter(c => c.stage === i + 1).length; ++j) { -%>
-    challengesStage<%- i + 1 %>GL[<%- j %>] <== LessThan64Bits()(challengeStage<%- i + 1 %>[<%- j %>]);
-<%  }-%>
-<%  }-%>
-    challengeQGL <== LessThan64Bits()(challengeQ); 
-    challengeXiGL <== LessThan64Bits()(challengeXi);
-    challengesFRIGL[0] <== LessThan64Bits()(challengesFRI[0]);
-    challengesFRIGL[1] <== LessThan64Bits()(challengesFRI[1]);
-    queriesFRIGL[<%- starkStruct.nQueries %>][<%- starkStruct.steps[0].nBits %>] <== calculateFRIQueries()(challengeFRIQueries);
-<% } -%>
 
     var p = 0xFFFFFFFF00000001;
 
@@ -1302,20 +1266,6 @@ template StarkVerifier() {
 
     signal input finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
 
-<% if(options.inputChallenges) { -%>
-<%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
-<%  if(starkInfo.challengesMap.filter(c => c.stage === i + 1).length === 0) continue; -%>
-    signal input challengesStage<%- i + 1 %>[<% starkInfo.challengesMap.filter(c => c.stage === i + 1).length -%>][3];
-<%  }-%>
-    signal input challengeQ[3];
-    signal input challengeXi[3];
-    signal input challengesFRI[2][3];
-
-    signal input challengesFRISteps[<%- starkStruct.steps.length -%>][3];
-
-    signal input challengeFRIQueries[3];
-<% } -%>
-
     component sv = StarkVerifier();
 
 <%  if(starkInfo.nPublics > 0) { -%>
@@ -1355,19 +1305,6 @@ template StarkVerifier() {
     sv.s<%- s %>_siblings <== s<%- s %>_siblings;
 <% }                                                  -%>
     sv.finalPol <== finalPol;
-
-<% if(options.inputChallenges) { -%>
-<%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
-<%  if(starkInfo.challengesMap.filter(c => c.stage === i + 1).length === 0) continue; -%>
-    sv.challengesStage<%- i + 1 %> <== challengesStage<%- i + 1 %>;
-<%  }-%>
-    sv.challengeQ <== challengeQ;
-    sv.challengeXi <== challengeXi;
-    sv.challengesFRI <== challengesFRI;
-
-    sv.challengesFRISteps <== challengesFRISteps;
-    sv.challengeFRIQueries <== challengeFRIQueries;
-<% } -%>
 
     //////
     // Calculate Publics Hash
