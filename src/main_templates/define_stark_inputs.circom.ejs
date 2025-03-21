@@ -28,7 +28,7 @@
 <%  if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
     signal input <%- prefix_ %>s0_siblingsC[<%- starkInfo.starkStruct.nQueries %>][<%- Math.floor((parseInt(starkInfo.starkStruct.steps[0].nBits) - 1)/Math.log2(starkInfo.starkStruct.merkleTreeArity))+1 %>][<%- starkInfo.starkStruct.merkleTreeArity %>];
 <%  } else { -%>
-    signal input <%- prefix_ %>s0_siblingsC[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.starkStruct.steps[0].nBits %>][4];
+    signal input <%- prefix_ %>s0_siblingsC[<%- starkInfo.starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- (starkInfo.starkStruct.merkleTreeArity - 1) * 4 %>];
 <%  } -%>
 
 <%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
@@ -36,7 +36,7 @@
 <%  if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
     signal input <%- prefix_ %>s0_siblings_<%- starkInfo.customCommits[i].name %>_0[<%- starkInfo.starkStruct.nQueries %>][<%- Math.floor((parseInt(starkInfo.starkStruct.steps[0].nBits) - 1)/Math.log2(starkInfo.starkStruct.merkleTreeArity))+1 %>][<%- starkInfo.starkStruct.merkleTreeArity %>];
 <%  } else { -%>
-    signal input <%- prefix_ %>s0_siblings_<%- starkInfo.customCommits[i].name %>_0[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.starkStruct.steps[0].nBits %>][4];
+    signal input <%- prefix_ %>s0_siblings_<%- starkInfo.customCommits[i].name %>_0[<%- starkInfo.starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- (starkInfo.starkStruct.merkleTreeArity - 1) * 4 %>];
 <%  } -%>
 <%  } -%>
 
@@ -46,7 +46,7 @@
 <%          if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>    
     signal input <%- prefix_ %>s0_siblings<%- s %>[<%- starkInfo.starkStruct.nQueries %>][<%- Math.floor((parseInt(starkInfo.starkStruct.steps[0].nBits) - 1)/Math.log2(starkInfo.starkStruct.merkleTreeArity))+1 %>][<%- starkInfo.starkStruct.merkleTreeArity %>];
 <%          } else { -%>
-    signal input <%- prefix_ %>s0_siblings<%- s %>[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.starkStruct.steps[0].nBits %>][4];
+    signal input <%- prefix_ %>s0_siblings<%- s %>[<%- starkInfo.starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- (starkInfo.starkStruct.merkleTreeArity - 1) * 4 %>];
 <%          } -%>
 <%      } -%>
 <% } -%>
@@ -64,7 +64,7 @@
 <%          if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>    
     signal input <%- prefix_ %>s<%- s %>_siblings[<%- starkInfo.starkStruct.nQueries %>][<%- Math.floor((parseInt(starkInfo.starkStruct.steps[s].nBits) -1) /Math.log2(starkInfo.starkStruct.merkleTreeArity)) +1 %>][<%- starkInfo.starkStruct.merkleTreeArity %>];
 <%          } else { -%>
-    signal input <%- prefix_ %>s<%- s %>_siblings[<%- starkInfo.starkStruct.nQueries %>][<%- starkInfo.starkStruct.steps[s].nBits %>][4];
+    signal input <%- prefix_ %>s<%- s %>_siblings[<%- starkInfo.starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- (starkInfo.starkStruct.merkleTreeArity - 1) * 4 %>];
 <%          } -%>
 <% }                                                  -%>
 

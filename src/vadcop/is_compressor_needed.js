@@ -41,7 +41,7 @@ module.exports.isCompressorNeeded = async function isCompressorNeeded(constRoot,
     const F = new F3g();
     const r1cs = await readR1cs(tmpR1csFilename, { F });
 
-    const { NUsed: NUsedC18 } = getCompressorConstraints(F, r1cs, 18);
+    const { NUsed: NUsedC18 } = getCompressorConstraints(F, r1cs, 21);
     
     await fs.promises.unlink(tmpR1csFilename);
     await fs.promises.unlink(tmpCircomFilename);
@@ -53,7 +53,7 @@ module.exports.isCompressorNeeded = async function isCompressorNeeded(constRoot,
     if(nBitsC18 > 17) {
         return { hasCompressor: true, nBits: nBitsC18 };
     } else if(nBitsC18 === 17) {
-        return { hasCompressor: false, nCols: 18 };
+        return { hasCompressor: false, nCols: 21 };
     } else {
         const nRowsPerFri = NUsedC18 / starkInfo.starkStruct.nQueries;
         const minimumQueriesRequired = Math.ceil((2**16 + 2**12) / nRowsPerFri);
@@ -61,6 +61,6 @@ module.exports.isCompressorNeeded = async function isCompressorNeeded(constRoot,
         starkInfo.starkStruct.nQueries = minimumQueriesRequired;
         await fs.promises.writeFile(starkInfoFile, JSON.stringify(starkInfo, null, 1), "utf8");
 
-        return { hasCompressor: false, nCols: 18 };
+        return { hasCompressor: false, nCols: 21 };
     }   
 }
