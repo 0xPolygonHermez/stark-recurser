@@ -4,6 +4,7 @@
 
     <%- componentName %>.globalChallenge <== globalChallenge;
 
+    // --> Assign the VADCOP data
 <%  let circuitType = (vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) ? starkInfo.airId + 2 : starkInfo.airId + 1; -%>
     <%- prefix_ %>circuitType <== <%- circuitType %>;
     
@@ -18,7 +19,7 @@
 <%  } -%>
 
 <%  if(starkInfo.airValuesMap.filter(a => a.stage == 1).length > 0) { -%>
-    <%- prefix_ %>stage1Hash <== CalculateStage1Hash()(<%- componentName %>.rootC, <%- prefixStark_%>root1, <%- prefixStark_ %>airvalues);
+    <%- prefix_ %>stage1HashToEC <== CalculateStage1HashToEC()(<%- componentName %>.rootC, <%- prefixStark_%>root1, <%- prefixStark_ %>airvalues);
 <%  } else { -%>
-    <%- prefix_ %>stage1Hash <== CalculateStage1Hash()(<%- componentName %>.rootC, <%- prefixStark_%>root1);
+    <%- prefix_ %>stage1HashToEC <== CalculateStage1HashToEC()(<%- componentName %>.rootC, <%- prefixStark_%>root1);
 <%  } -%>
