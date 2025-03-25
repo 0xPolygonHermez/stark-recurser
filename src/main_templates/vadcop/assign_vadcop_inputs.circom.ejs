@@ -18,10 +18,12 @@
 <%  nPublicsInps += 3*vadcopInfo.aggTypes[airgroupId].length ; -%>
 <%  } -%>
 
-    for(var i = 0; i < 4; i++) {
-        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>stage1Hash[i];
+    for (var i = 0; i < 2; i++) {
+        for (var j = 0; j < 5; j++) {
+            <%- componentName %>.publics[<%- nPublicsInps %> + 5*i + j] <== <%- prefix_ %>stage1HashToEC[i][j];
+        }
     }
-<%  nPublicsInps += 4 -%>
+<%  nPublicsInps += 10 -%>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {
