@@ -51,7 +51,9 @@ module.exports ={
                 }
             } else if(halfRows.length > 0) {
                 partialRows[k] = halfRows.shift();
+                partialRows[k].nUsed ++;
             } else if(fourExtraConstraints > 0) {
+                --fourExtraConstraints;
                 partialRows[k] = {nUsed: 5};
                 halfRows.push({nUsed: 6});
             } else if(twoExtraConstraints > 0) {
