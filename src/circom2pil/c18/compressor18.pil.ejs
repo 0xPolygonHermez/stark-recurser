@@ -4,12 +4,12 @@ constant %N = 2**<%- nBits %>;
 // It is used to store various polynomials representing small lookup tables 
 namespace Global(%N);
     pol constant L1;
-<% for (let i=21; i<nPublics; i+=21) { -%>
-    pol constant L<%- Math.floor(i/21) +1 %>;
+<% for (let i=24; i<nPublics; i+=24) { -%>
+    pol constant L<%- Math.floor(i/24) +1 %>;
 <% } -%>
 
 namespace Compressor(%N);
-    pol constant S[21];
+    pol constant S[24];
     pol constant C[10];
     pol constant POSEIDONCUSTFIRST;
     pol constant POSEIDONFIRST;
@@ -18,18 +18,17 @@ namespace Compressor(%N);
     pol constant POSEIDONFULLROUND;
     pol constant GATE;
     pol constant GATE2;
-    pol constant GATE3;
     pol constant CMUL;
     pol constant EVPOL4;
     pol constant FFT4;
     pol constant TREESELECTOR4;
-    pol commit a[21];
+    pol commit a[24];
 
 <% for (let i=0; i<nPublics; i++) { -%>
-    public pub<%- i%> = a[<%- i%21 %>](<%- Math.floor(i/21) %>);
+    public pub<%- i%> = a[<%- i%24 %>](<%- Math.floor(i/24) %>);
 <% } -%>
 <% for (let i=0; i<nPublics; i++) { -%>
-    Global.L<%- Math.floor(i/21)+1 %> * (a[<%- i%21 %>] - :pub<%- i %>) = 0;
+    Global.L<%- Math.floor(i/24)+1 %> * (a[<%- i%24 %>] - :pub<%- i %>) = 0;
 <% } -%>
 
     // Normal plonk gates
@@ -64,16 +63,20 @@ namespace Compressor(%N);
     g91011*GATE = 0;
 
     pol a1213 = a[12]*a[13];
-    pol g121314 = C[5]*a1213 + C[6]*a[12] + C[7]*a[13] + C[8]*a[14] + C[9];
+    pol g121314 = C[0]*a1213 + C[1]*a[12] + C[2]*a[13] + C[3]*a[14] + C[4];
     g121314*GATE2 = 0;
 
     pol a1516 = a[15]*a[16];
-    pol g151617 = C[5]*a1516 + C[6]*a[15] + C[7]*a[16] + C[8]*a[17] + C[9];
+    pol g151617 = C[0]*a1516 + C[1]*a[15] + C[2]*a[16] + C[3]*a[17] + C[4];
     g151617*GATE2 = 0;
 
     pol a1819 = a[18]*a[19];
     pol g181920 = C[5]*a1819 + C[6]*a[18] + C[7]*a[19] + C[8]*a[20] + C[9];
     g181920*GATE3 = 0;
+
+    pol a2122 = a[21]*a[22];
+    pol g212223 = C[5]*a2122 + C[6]*a[21] + C[7]*a[22] + C[8]*a[23] + C[9];
+    g212223*GATE3 = 0;
 
 
     // POSEIDON GATE - Check that a GL Poseidon round implemented with Neptune optimization is valid
@@ -88,9 +91,9 @@ namespace Compressor(%N);
     
     // Order the each of the GL Poseidon inputs according to the key, which is stored in a[8]
     
-    pol mask00 = (1 - a[18]) * (1 - a[19]);
-    pol mask10 = a[18] * (1 - a[19]);
-    pol mask01 = (1 - a[18]) * a[19];
+    pol mask00 = (1 - a[12]) * (1 - a[13]);
+    pol mask10 = a[12] * (1 - a[13]);
+    pol mask01 = (1 - a[12]) * a[13];
     
     pol custPoseidonInput0 =  mask00 * a[0]  + mask10 * a[4]  + mask01 * a[4]; 
     pol custPoseidonInput1 =  mask00 * a[1]  + mask10 * a[5]  + mask01 * a[5]; 
@@ -105,8 +108,8 @@ namespace Compressor(%N);
     pol custPoseidonInput10 = mask00 * a[10] + mask10 * a[10] + mask01 * a[2];
     pol custPoseidonInput11 = mask00 * a[11] + mask10 * a[11] + mask01 * a[3];
 
-    pol checkBinary = a[18] * (a[18] - 1);
-    pol checkBinary2 = a[19] * (a[19] - 1);
+    pol checkBinary = a[12] * (a[13] - 1);
+    pol checkBinary2 = a[12] * (a[13] - 1);
     POSEIDONCUSTFIRST * checkBinary = 0;
     POSEIDONCUSTFIRST * checkBinary2 = 0;
 
@@ -332,33 +335,33 @@ namespace Compressor(%N);
 
     // FFT4
 
-    pol g0  = C[0]*a[0] + C[1]*a[3] + C[2]*a[6] + C[3]*a[9]  + C[1]'*a[0] + C[2]'*a[3];
-    pol g3  = C[0]*a[0] - C[1]*a[3] + C[4]*a[6] - C[0]'*a[9]  + C[1]'*a[0] - C[2]'*a[3];
-    pol g6  = C[0]*a[0] + C[1]*a[3] - C[2]*a[6] - C[3]*a[9]  + C[1]'*a[6] + C[3]'*a[9];
-    pol g9  = C[0]*a[0] - C[1]*a[3] - C[4]*a[6] + C[0]'*a[9]  + C[1]'*a[6] - C[3]'*a[9];
+    pol g0  = C[0]*a[0] + C[1]*a[3] + C[2]*a[6] + C[3]*a[9]  + C[6]*a[0] + C[7]*a[3];
+    pol g3  = C[0]*a[0] - C[1]*a[3] + C[4]*a[6] - C[5]*a[9]  + C[6]*a[0] - C[7]*a[3];
+    pol g6  = C[0]*a[0] + C[1]*a[3] - C[2]*a[6] - C[3]*a[9]  + C[6]*a[6] + C[8]*a[9];
+    pol g9  = C[0]*a[0] - C[1]*a[3] - C[4]*a[6] + C[5]*a[9]  + C[6]*a[6] - C[8]*a[9];
 
-    pol g1  = C[0]*a[1] + C[1]*a[4] + C[2]*a[7] + C[3]*a[10] + C[1]'*a[1] + C[2]'*a[4];
-    pol g4  = C[0]*a[1] - C[1]*a[4] + C[4]*a[7] - C[0]'*a[10] + C[1]'*a[1] - C[2]'*a[4];
-    pol g7  = C[0]*a[1] + C[1]*a[4] - C[2]*a[7] - C[3]*a[10] + C[1]'*a[7] + C[3]'*a[10];
-    pol g10 = C[0]*a[1] - C[1]*a[4] - C[4]*a[7] + C[0]'*a[10] + C[1]'*a[7] - C[3]'*a[10];
+    pol g1  = C[0]*a[1] + C[1]*a[4] + C[2]*a[7] + C[3]*a[10] + C[6]*a[1] + C[7]*a[4];
+    pol g4  = C[0]*a[1] - C[1]*a[4] + C[4]*a[7] - C[5]*a[10] + C[6]*a[1] - C[7]*a[4];
+    pol g7  = C[0]*a[1] + C[1]*a[4] - C[2]*a[7] - C[3]*a[10] + C[6]*a[7] + C[8]*a[10];
+    pol g10 = C[0]*a[1] - C[1]*a[4] - C[4]*a[7] + C[5]*a[10] + C[6]*a[7] - C[8]*a[10];
 
-    pol g2  = C[0]*a[2] + C[1]*a[5] + C[2]*a[8] + C[3]*a[11] + C[1]'*a[2] + C[2]'*a[5];
-    pol g5  = C[0]*a[2] - C[1]*a[5] + C[4]*a[8] - C[0]'*a[11] + C[1]'*a[2] - C[2]'*a[5];
-    pol g8  = C[0]*a[2] + C[1]*a[5] - C[2]*a[8] - C[3]*a[11] + C[1]'*a[8] + C[3]'*a[11];
-    pol g11 = C[0]*a[2] - C[1]*a[5] - C[4]*a[8] + C[0]'*a[11] + C[1]'*a[8] - C[3]'*a[11];
+    pol g2  = C[0]*a[2] + C[1]*a[5] + C[2]*a[8] + C[3]*a[11] + C[6]*a[2] + C[7]*a[5];
+    pol g5  = C[0]*a[2] - C[1]*a[5] + C[4]*a[8] - C[5]*a[11] + C[6]*a[2] - C[7]*a[5];
+    pol g8  = C[0]*a[2] + C[1]*a[5] - C[2]*a[8] - C[3]*a[11] + C[6]*a[8] + C[8]*a[11];
+    pol g11 = C[0]*a[2] - C[1]*a[5] - C[4]*a[8] + C[5]*a[11] + C[6]*a[8] - C[8]*a[11];
 
-    FFT4 * (a[0]' - g0) = 0;
-    FFT4 * (a[1]' - g1) = 0;
-    FFT4 * (a[2]' - g2) = 0;
-    FFT4 * (a[3]' - g3) = 0;
-    FFT4 * (a[4]' - g4) = 0;
-    FFT4 * (a[5]' - g5) = 0;
-    FFT4 * (a[6]' - g6) = 0;
-    FFT4 * (a[7]' - g7) = 0;
-    FFT4 * (a[8]' - g8) = 0;
-    FFT4 * (a[9]' - g9) = 0;
-    FFT4 * (a[10]' - g10) = 0;
-    FFT4 * (a[11]' - g11) = 0;
+    FFT4 * (a[12] - g0) = 0;
+    FFT4 * (a[13] - g1) = 0;
+    FFT4 * (a[14] - g2) = 0;
+    FFT4 * (a[15] - g3) = 0;
+    FFT4 * (a[16] - g4) = 0;
+    FFT4 * (a[17] - g5) = 0;
+    FFT4 * (a[18] - g6) = 0;
+    FFT4 * (a[19] - g7) = 0;
+    FFT4 * (a[20] - g8) = 0;
+    FFT4 * (a[21] - g9) = 0;
+    FFT4 * (a[22] - g10) = 0;
+    FFT4 * (a[23] - g11) = 0;
 
     // EVPOL4 - Check that the polynomial evaluation is valid
     // Evaluate p(x) = d0*x⁴ + d1*x³ + d2*x²+ d3*x + d4 at point z = a[15] + a[16]x + a[17]x² where
@@ -459,7 +462,7 @@ namespace Compressor(%N);
 <% 
     let a = [];
     let S = [];
-    for(let i = 0; i < 21; ++i) {
+    for(let i = 0; i < 24; ++i) {
         a.push(`a[${i}]`);
         S.push(`S[${i}]`);
     }

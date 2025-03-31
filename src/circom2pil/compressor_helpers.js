@@ -29,9 +29,9 @@ module.exports ={
         return constraints;
     },
 
-    calculatePlonkConstraintsRowsC21: function(plonkConstraints, threeExtraConstraints, twoExtraConstraints, oneExtraConstraint) {
+    calculatePlonkConstraintsRowsC24: function(plonkConstraints, fourExtraConstraints, twoExtraConstraints) {
         let partialRows = {};
-        let halfRows = false;
+        let halfRows = [];
         let r = 0;
         for (let i=0; i<plonkConstraints.length; i++) {
             if ((i%10000) == 0) {
@@ -42,23 +42,24 @@ module.exports ={
             const k= c.slice(3, 8).map( a=> a.toString(16)).join(","); //Calculate
             if(partialRows[k]) {
                 ++partialRows[k].nUsed;
-                if(partialRows[k].nUsed === 2 || (partialRows[k].nUsed == 6 && !partialRows[k].useLast) || partialRows[k].nUsed == 7 ) {
+                if(partialRows[k].nUsed === 6 || partialRows[k].nUsed === 8) {
                     delete partialRows[k];
-                }  
-            } else if(halfRows) {
-                partialRows[k] = {nUsed: 3, useLast: true};
-                halfRows = false;
-            } else if(threeExtraConstraints > 0) {
-                --threeExtraConstraints;
-                partialRows[k] = {nUsed: 5, useLast: true};
+                } else if(partialRows[k].nUsed == 4) {
+                    partialRows[k].nUsed = 6;
+                } else if(partialRows[k].nUsed == 2) {
+                    partialRows[k].nUsed = 4;
+                }
+            } else if(halfRows.length > 0) {
+                partialRows[k] = halfRows.shift();
+            } else if(fourExtraConstraints > 0) {
+                partialRows[k] = {nUsed: 5};
+                halfRows.push({nUsed: 6});
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
-                partialRows[k] = {nUsed: 5, useLast: false};
-            } else if(oneExtraConstraint > 0) {
-                --oneExtraConstraint;
+                partialRows[k] = {nUsed: 7};
             } else {
                 partialRows[k] = {nUsed: 1};
-                halfRows = true;
+                halfRows.push({nUsed: 2});
                 r++;
             }
         };
