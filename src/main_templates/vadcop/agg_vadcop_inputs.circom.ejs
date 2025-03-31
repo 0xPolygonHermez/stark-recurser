@@ -11,7 +11,7 @@
 <%  } -%>
 <%  if(vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) { -%>
 
-    signal AB_isNull <== IsZero()(2 - <%- prefix1%>_isNull - <%- prefix2%>_isNull);
+    signal {binary} AB_isNull <== IsZero()(2 - <%- prefix1%>_isNull - <%- prefix2%>_isNull);
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     signal airgroupValues_AB[<%- vadcopInfo.aggTypes[airgroupId].length  %>][3];
     for (var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
