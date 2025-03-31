@@ -109,7 +109,7 @@ namespace Compressor(%N);
     pol custPoseidonInput10 = mask00 * a[10] + mask10 * a[10] + mask01 * a[2];
     pol custPoseidonInput11 = mask00 * a[11] + mask10 * a[11] + mask01 * a[3];
 
-    pol checkBinary = a[12] * (a[23] - 1);
+    pol checkBinary = a[12] * (a[12] - 1);
     pol checkBinary2 = a[13] * (a[13] - 1);
     POSEIDONCUSTFIRST * checkBinary = 0;
     POSEIDONCUSTFIRST * checkBinary2 = 0;
