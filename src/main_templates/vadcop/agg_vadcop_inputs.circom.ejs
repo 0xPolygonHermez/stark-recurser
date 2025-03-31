@@ -10,20 +10,27 @@
 
 <%  } -%>
 <%  if(vadcopInfo.air_groups.length > 1 || vadcopInfo.airs[0].length > 1) { -%>
+
+    signal AB_isNull <== IsZero()(2 - <%- prefix1%>_isNull - <%- prefix2%>_isNull);
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
+    signal airgroupValues_AB[<%- vadcopInfo.aggTypes[airgroupId].length  %>][3];
     for (var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
-        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValuesNull()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+        airgroupValues_AB[i] <== AggregateAirgroupValuesNull()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i], <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValuesNull()(airgroupValues_AB[i], <%- prefix3 %>_airgroupvalues[i], aggTypes[i], AB_isNull, <%- prefix3%>_isNull);
     }
 
 <%  } -%>
-    <%- prefix %>_stage1HashToEC <== AccumulatePointsNull()(<%- prefix1 %>_stage1HashToEC, <%- prefix2 %>_stage1HashToEC, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+    signal AB_stage1HashToEC[2][5] <== AccumulatePointsNull()(<%- prefix1 %>_stage1HashToEC, <%- prefix2 %>_stage1HashToEC, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+    <%- prefix %>_stage1HashToEC <== AccumulatePointsNull()(AB_stage1HashToEC, <%- prefix3 %>_stage1HashToEC, AB_isNull,  <%- prefix3%>_isNull);
 <%  } else { -%>
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     for (var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
-        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValues()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i]);
+        signal airgroupValuesAB[3] <== AggregateAirgroupValues()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i]);
+        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValues()(airgroupValuesAB, <%- prefix3 %>_airgroupvalues[i], aggTypes[i]);
     }
 
 <%  } -%>
 
-    <%- prefix %>_stage1HashToEC <== AccumulatePoints()(<%- prefix1 %>_stage1HashToEC, <%- prefix2 %>_stage1HashToEC);
+    signal AB_stage1HashToEC[2][5] <== AccumulatePoints()(<%- prefix1 %>_stage1HashToEC, <%- prefix2 %>_stage1HashToEC);
+    <%- prefix %>_stage1HashToEC <== AccumulatePoints()(AB_stage1HashToEC[2][5], <%- prefix3 %>_stage1HashToEC);
 <%  } -%>
