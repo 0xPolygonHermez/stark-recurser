@@ -68,7 +68,7 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(F, r
         nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
         
         // Calculate how many groups of two plonk constraints can be made 
-        const CPlonkConstraints = calculatePlonkConstraintsRowsC24(plonkConstraints, customGatesInfo.nPoseidon12*6 + customGatesInfo.nCustPoseidon12*5, customGatesInfo.nCustPoseidon12 + nCMulRows + nTreeSelector4Rows);
+        const CPlonkConstraints = calculatePlonkConstraintsRowsC24(plonkConstraints, customGatesInfo.nPoseidon12*6 + customGatesInfo.nCustPoseidon12*5, customGatesInfo.nCustPoseidon12 + nCMulRows + nTreeSelector4Rows, customGatesInfo.nCustPoseidon12);
 
         NUsed = CPlonkConstraints + nPublicRows + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows;
     } else throw new Error("Invalid number of cols");

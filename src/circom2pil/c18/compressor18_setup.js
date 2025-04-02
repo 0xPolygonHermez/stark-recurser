@@ -78,6 +78,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
 
     const fourExtraConstraints = [];
     const twoExtraConstraints = [];
+    const extraConstraint = [];
     
     let partialRowsCMul = -1;
 
@@ -199,6 +200,7 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
                     fourExtraConstraints.push(r+i);
                 } else {
                     twoExtraConstraints.push(r+i);
+                    extraConstraint.push(r+i);
                 }
             }
 
@@ -441,6 +443,19 @@ module.exports = async function plonkSetup(F, r1cs, pil2, options) {
                 row,
                 nUsed: 7,
             };
+        } else if(extraConstraint.length > 0) {
+            const row = extraConstraint.shift();
+            
+            constPols.Compressor.C[0][row] = c[3];
+            constPols.Compressor.C[1][row] = c[4];
+            constPols.Compressor.C[2][row] = c[5];
+            constPols.Compressor.C[3][row] = c[6];
+            constPols.Compressor.C[4][row] = c[7];
+
+            sMap[15][row] = c[0];
+            sMap[16][row] = c[1];
+            sMap[17][row] = c[2];
+            
         // If the constraint is not stored in partialRows and all previous rows are full, start a new one
         } else {
             constPols.Compressor.C[0][r] = c[3];

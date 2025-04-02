@@ -29,7 +29,7 @@ module.exports ={
         return constraints;
     },
 
-    calculatePlonkConstraintsRowsC24: function(plonkConstraints, fourExtraConstraints, twoExtraConstraints) {
+    calculatePlonkConstraintsRowsC24: function(plonkConstraints, fourExtraConstraints, twoExtraConstraints, extraConstraint) {
         let partialRows = {};
         let halfRows = [];
         let r = 0;
@@ -73,6 +73,9 @@ module.exports ={
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
                 partialRows[k] = {nUsed: 7, custom: true};
+                constraintsCustomRows++;
+            } else if(extraConstraint > 0) {
+                --extraConstraint;
                 constraintsCustomRows++;
             } else {
                 partialRows[k] = {nUsed: 1, custom: false};
