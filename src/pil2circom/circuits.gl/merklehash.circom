@@ -28,7 +28,7 @@ template MerkleHash(eSize, elementsInLinear, arity, nLevels) {
 }
 
 
-template parallel VerifyMerkleHash(eSize, elementsInLinear, arity, nLevels) {
+template VerifyMerkleHash(eSize, elementsInLinear, arity, nLevels) {
     var nBits = log2(arity);
     signal input values[elementsInLinear][eSize]; // Values that are contained in a leaf
     signal input siblings[nLevels][(arity - 1) * 4]; // Sibling path to calculate the merkle root given a set of values

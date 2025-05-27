@@ -44,7 +44,7 @@ function matmul_external(in) {
 }
 
 // Custom gate that calculates Poseidon hash of three inputs using Neptune optimization
-template custom Poseidon12() {
+template custom extern_c Poseidon12() {
     signal input in[12];
     signal output im[9][12];
     signal output out[12];
@@ -100,7 +100,7 @@ template custom Poseidon12() {
 
 // Custom gate that calculates Poseidon hash of two inputs using Neptune optimization
 // The two inputs are sent unordered and the key that determines its position is also sent as an input
-template custom CustPoseidon12() {
+template custom extern_c CustPoseidon12() {
     signal input in[12];
     signal input key[2];
     signal output im[9][12];
