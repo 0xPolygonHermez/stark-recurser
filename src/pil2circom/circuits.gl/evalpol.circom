@@ -23,7 +23,7 @@ function CMulAddF(ina, inb, inc) {
 // Evaluate a Polynomial of degree 4 (with 5 coefficients) and each coefficient made of 3 values at x using Horner's rule
 // Given the polynomial p(x) = coefs[4]*x⁴ + coefs[3]*x³ + coefs[2]*x² + coefs[1]*x + coefs[0], we can calculate
 // its value by doing p(x) = ((((coefs[4]*x + coefs[3])*x + coefs[2])*x + coefs[1])*x + coefs[0]) 
-template custom EvPol4() {
+template custom extern_c EvPol4() {
     signal input coefs[5][3]; // Coeficients in the extended field
     signal input x[3]; // Point at which we are evaluating the polynomial
     signal output out[3]; 
