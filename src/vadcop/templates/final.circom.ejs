@@ -21,13 +21,12 @@ template Final() {
     signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
 <%  } -%>
 
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1%>][3];
+    signal input globalChallenge[3];
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%  let starkInfoRecursive2 = (vadcopInfo.air_groups.length > 1) ? starkInfo[i] : starkInfo; -%>
+<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `s${i}_sv`, vadcopInfo, starkInfo: starkInfoRecursive2, airgroupId: i, options: {...options, addPublics: false, isInput: true } }); %>
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: `s${i}`, starkInfo: starkInfoRecursive2, nPublics: vadcopInfo.nPublics, options: { addPublics: false } }); %>
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { prefix: `s${i}_sv`, vadcopInfo, starkInfo: starkInfoRecursive2, airgroupId: i, options: {...options, addPublics: false, isInput: true, isAggregation: false } }); %>
 <%  } -%>
 
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
@@ -55,31 +54,26 @@ template Final() {
 
     // Calculate transcript and check that matches with the global challenges
     component verifyChallenges = VerifyGlobalChallenges();
-    verifyChallenges.challenges <== challenges;
-    verifyChallenges.challengesFRISteps <== challengesFRISteps;
 <%  if(vadcopInfo.nPublics > 0) { -%>
     verifyChallenges.publics <== publics;
 <%  } -%>
-<%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%      for (let j = 0; j < vadcopInfo.numChallenges.length + 1; ++j) { -%>
-    verifyChallenges.root<%- j + 1 %>[<%- i %>] <== s<%- i %>_sv_root<%- j+1 %>;
-<%      } -%>
-    verifyChallenges.evalsHash[<%- i %>] <== s<%- i %>_sv_evalsHash;
-<%      for (let j = 1; j < vadcopInfo.stepsFRI.length; ++j) { -%>
-    verifyChallenges.s<%- j %>_root[<%- i %>] <== s<%- i %>_sv_s<%- j %>_root;
-<%      } -%>
-    verifyChallenges.finalPolHash[<%- i %>] <== s<%- i %>_sv_finalPolHash;
+<%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
+    verifyChallenges.proofValues <== proofValues;
 <%  } -%>
+<%      for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
+    verifyChallenges.stage1HashToEC[<%- i %>] <== s<%- i %>_sv_stage1HashToEC;
+<%      } -%>
+    verifyChallenges.globalChallenge <== globalChallenge;
 
     // Verify global constraints
     component verifyGlobalConstraints = VerifyGlobalConstraints();
 <%  if(vadcopInfo.nPublics > 0) { -%>
     verifyGlobalConstraints.publics <== publics;
 <%  } -%>
-<%  if(vadcopInfo.numProofValues> 0) { -%>
+<%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
     verifyGlobalConstraints.proofValues <== proofValues;
 <%  } -%>
-    verifyGlobalConstraints.challenges <== challenges;
+    verifyGlobalConstraints.globalChallenge <== globalChallenge;
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
 <%  if(vadcopInfo.aggTypes[i].length > 0) { -%>
     verifyGlobalConstraints.s<%- i %>_airgroupvalues <== s<%- i %>_sv_airgroupvalues;

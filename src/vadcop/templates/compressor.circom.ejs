@@ -2,24 +2,32 @@ pragma circom 2.1.0;
 pragma custom_templates;
 
 <% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
-    include "<%- verifierFilenames[i] %>";
+include "<%- verifierFilenames[i] %>";
 <% } -%>
 
+include "elliptic_curve.circom";
 <%- include('src/vadcop/helpers/templates/calculate_hashes.circom.ejs', { starkInfo, vadcopInfo }); %>
 
 template Compressor() {
-
-<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false} }); %>
-
 <%  if(vadcopInfo.nPublics > 0) { -%>
+    // --> AIR public inputs
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
 
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length  + 1 %>][3];
-   
-<%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "sv", airgroupId: starkInfo.airgroupId, options: {...options, isInput: false} }); %>
+    // --> VADCOP inputs
+<%  if(vadcopInfo.numProofValues > 0) { -%>
+    signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
+<%  } -%>
 
+    signal input globalChallenge[3];
+
+    // --> AIR STARK proof data
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: vadcopInfo.nPublics, options: { addPublics: false} }); %>
+
+    // --> VADCOP outputs
+    <%- include('src/main_templates/vadcop/define_vadcop_inputs.circom.ejs', { vadcopInfo, starkInfo, prefix: "sv", airgroupId: starkInfo.airgroupId, options: {...options, isInput: false} }); %>
+
+    // --> Verify the STARK proof
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: vadcopInfo.nPublics,  options: { addPublics: false } }); %>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
@@ -29,7 +37,10 @@ template Compressor() {
 <%  } -%>
 
 <%- include('src/main_templates/vadcop/init_vadcop_inputs.circom.ejs', { componentName: "sV", prefix: "sv", prefixStark: "", airgroupId: starkInfo.airgroupId, starkInfo, vadcopInfo }); %>
-
 }
 
-component main {public [<%- vadcopInfo.nPublics > 0 ? "publics," : "" %>challenges, challengesFRISteps]} = Compressor();
+<%  let pubNames = []; -%>
+<%    if(vadcopInfo.nPublics > 0) pubNames.push("publics"); -%>
+<%    if(vadcopInfo.numProofValues > 0) pubNames.push("proofValues"); -%>
+<%    pubNames.push("globalChallenge"); -%>
+component main {public [<%- pubNames.join(", ") %>]} = Compressor();

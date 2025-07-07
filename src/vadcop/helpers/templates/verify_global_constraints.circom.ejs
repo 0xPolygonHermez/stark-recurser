@@ -1,12 +1,149 @@
-<% function unrollCode(code) {                                                          -%>
 <%
-    function ref(r) {
+class Transcript {
+    constructor(name) {
+        this.state = ["0", "0", "0", "0"];
+        this.pending = [];
+        this.out = [];
+        this.stCnt =0;
+        this.hCnt =0;
+        this.hiCnt =0;
+        this.n2bCnt =0;
+        this.lastCodePrinted = 0;
+        this.name = name;
+
+        this.code = [];
+    }
+
+
+    getField(v) {
+        this.code.push(`${v} <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);
+    }
+
+    getState(v) {
+        this.code.push(`${v} <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);    
+    }
+
+    updateState()  {
+        let signalName = "transcriptHash";
+        if(this.name) signalName += "_" + this.name;
+        if(this.hCnt > 0) {
+            const firstUnused = Math.max(this.hiCnt, 4);
+            if(firstUnused < 12) {
+                this.code.push(`for(var i = ${firstUnused}; i < 12; i++){
+        _ <== ${signalName}_${this.hCnt -1}[i]; // Unused transcript values 
+    }`)
+            }  
+        }
+        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[12] <== Poseidon2(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+        for (let i=0; i<12; i++) {
+            this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
+        }
+        for (let i=0; i<4; i++) {
+            this.state[i] = `${signalName}_${this.hCnt-1}[${i}]`;
+        } 
+        this.pending = [];
+        this.hiCnt = 0;
+    }
+
+    getFields1() {
+        if (this.out.length == 0) {
+            while (this.pending.length<8) {
+                this.pending.push("0");
+            }
+            this.updateState();
+        }
+        const res = this.out.shift();
+        this.hiCnt++;
+        return res;
+    }
+
+    put(a, l) {
+        if (typeof l !== "undefined") {
+            for (let i=0; i<l; i++) {
+                this._add1(`${a}[${i}]`);
+            }
+        } else {
+            this._add1(a);
+        }
+    }
+
+    _add1(a) {
+        this.out = [];
+        this.pending.push(a);
+        if (this.pending.length == 8) {
+            this.updateState();
+        }
+    }
+
+    getPermutations(v, n, nBits) {
+        let signalName = "transcriptHash";
+        if(this.name) signalName += "_" + this.name;
+        const totalBits = n*nBits;
+        const n2b = [];
+        for (let i=0; i<NFields; i++) {
+            const f = this.getFields1();
+            n2b[i] = `transcriptN2b_${this.n2bCnt++}`;
+            this.code.push(`signal {binary} ${n2b[i]}[64] <== Num2Bits_strict()(${f});`);
+        }
+        if(this.hiCnt < 12) {
+            this.code.push(`for(var i = ${this.hiCnt}; i < 12; i++){
+        _ <== ${signalName}_${this.hCnt - 1}[i]; // Unused transcript values        
+    }\n`)
+        }
+        this.code.push(`// From each transcript hash converted to bits, we assign those bits to queriesFRI[q] to define the query positions`)
+        this.code.push(`var q = 0; // Query number `)
+        this.code.push(`var b = 0; // Bit number `)
+        for(let i = 0; i<NFields; i++) {
+            const nBits = i + 1 == NFields ? totalBits - 63*i : 63;
+            this.code.push(`for(var j = 0; j < ${nBits}; j++) {
+        ${v}[q][b] <== ${n2b[i]}[j];
+        b++;
+        if(b == ${starkStruct.steps[0].nBits}) {
+            b = 0; 
+            q++;
+        }
+    }`);
+            if(nBits === 63) {
+                this.code.push(`_ <== ${n2b[i]}[63]; // Unused last bit\n`); 
+            } else {
+                this.code.push(`for(var j = ${nBits}; j < 64; j++) {
+        _ <== ${n2b[i]}[j]; // Unused bits        
+    }`);
+            }
+        }
+    }
+
+    getCode() {
+        for (let i=this.lastCodePrinted; i<this.code.length; i++) this.code[i] = "    "+this.code[i];
+        let code = this.code.slice(this.lastCodePrinted, this.code.length).join("\n");
+        this.lastCodePrinted = this.code.length;
+        return code;
+    }
+}
+-%>
+
+<% let MIN_CHUNK_SIZE = 50; -%>
+<% let tmps = {}; -%>
+<% function unrollCode(code, initialized = []) {                                                          -%>
+<%
+    function ref(r, dest, initialized = []) {
         if (r.type == "public") {
             return "publics[" + r.id + "]";
         } else if (r.type == "proofvalue") {
+            if(r.dim == 1) {
+                return "proofValues[" + r.id + "][0]";
+            }
             return "proofValues[" + r.id + "]";
         } else if (r.type == "tmp") {
-            return "tmp_"+r.id;
+            if(dest && !initialized.includes(r.id)) {
+                if(r.dim == 1) {
+                    return "signal tmp_"+r.id;
+                } else {
+                    return "signal tmp_"+r.id+"[3]";
+                }
+            } else {
+                return "tmp_"+r.id;
+            }
         } else if (r.type == "number") {
             return r.value;
         } else if (r.type == "challenge") {
@@ -23,51 +160,131 @@
 <%      if (inst.dest.type == "tmp" && ![1,3].includes(inst.dest.dim)) {                -%>
 <%          throw new Error("Invalid dimension");                                       -%>
 <%      }                                                                               -%>
-<%      if(inst.src[0] && inst.src[0].type === "proofvalue") inst.src[0].dim = 3;       -%>
-<%      if(inst.src[1] && inst.src[1].type === "proofvalue") inst.src[1].dim = 3;       -%>
 <%      if (inst.op == "add") {                                                         -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
-    signal <%- ref(inst.dest) %> <== <%- ref(inst.src[0]) %> + <%- ref(inst.src[1]) %>;
+    <%- ref(inst.dest, true, initialized) %> <== <%- ref(inst.src[0]) %> + <%- ref(inst.src[1]) %>;
 <%          } else if ((inst.src[0].dim==1) && (inst.src[1].dim==3)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== [<%- ref(inst.src[0]) %> + <%- ref(inst.src[1]) %>[0], <%- ref(inst.src[1]) %>[1],  <%- ref(inst.src[1]) %>[2]];
+    <%- ref(inst.dest, true, initialized) %> <== [<%- ref(inst.src[0]) %> + <%- ref(inst.src[1]) %>[0], <%- ref(inst.src[1]) %>[1],  <%- ref(inst.src[1]) %>[2]];
 <%          } else if ((inst.src[0].dim==3) && (inst.src[1].dim==1)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== [<%- ref(inst.src[0]) %>[0] + <%- ref(inst.src[1]) %>, <%- ref(inst.src[0]) %>[1], <%- ref(inst.src[0]) %>[2]];
+    <%- ref(inst.dest, true, initialized) %> <== [<%- ref(inst.src[0]) %>[0] + <%- ref(inst.src[1]) %>, <%- ref(inst.src[0]) %>[1], <%- ref(inst.src[0]) %>[2]];
 <%          } else if ((inst.src[0].dim==3) && (inst.src[1].dim==3)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== [<%- ref(inst.src[0]) %>[0] + <%- ref(inst.src[1]) %>[0], <%- ref(inst.src[0]) %>[1] + <%- ref(inst.src[1]) %>[1], <%- ref(inst.src[0]) %>[2] + <%- ref(inst.src[1]) %>[2]];
+    <%- ref(inst.dest, true, initialized) %> <== [<%- ref(inst.src[0]) %>[0] + <%- ref(inst.src[1]) %>[0], <%- ref(inst.src[0]) %>[1] + <%- ref(inst.src[1]) %>[1], <%- ref(inst.src[0]) %>[2] + <%- ref(inst.src[1]) %>[2]];
 <%          } else throw new Error("Invalid src dimensions");                          -%>
 <%      } else if (inst.op == "sub") {                                                  -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
-    signal <%- ref(inst.dest) %> <== <%- ref(inst.src[0]) %> - <%- ref(inst.src[1]) %>;
+    <%- ref(inst.dest, true, initialized) %> <== <%- ref(inst.src[0]) %> - <%- ref(inst.src[1]) %>;
 <%          } else if ((inst.src[0].dim==1) && (inst.src[1].dim==3)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== [<%- ref(inst.src[0]) %> - <%- ref(inst.src[1]) %>[0], -<%- ref(inst.src[1]) %>[1], -<%- ref(inst.src[1]) %>[2]];
+    <%- ref(inst.dest, true, initialized) %> <== [<%- ref(inst.src[0]) %> - <%- ref(inst.src[1]) %>[0], -<%- ref(inst.src[1]) %>[1], -<%- ref(inst.src[1]) %>[2]];
 <%          } else if ((inst.src[0].dim==3) && (inst.src[1].dim==1)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== [<%- ref(inst.src[0]) %>[0] - <%- ref(inst.src[1]) %>, <%- ref(inst.src[0]) %>[1], <%- ref(inst.src[0]) %>[2]];
+    <%- ref(inst.dest, true, initialized) %> <== [<%- ref(inst.src[0]) %>[0] - <%- ref(inst.src[1]) %>, <%- ref(inst.src[0]) %>[1], <%- ref(inst.src[0]) %>[2]];
 <%          } else if ((inst.src[0].dim==3) && (inst.src[1].dim==3)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== [<%- ref(inst.src[0]) %>[0] - <%- ref(inst.src[1]) %>[0], <%- ref(inst.src[0]) %>[1] - <%- ref(inst.src[1]) %>[1], <%- ref(inst.src[0]) %>[2] - <%- ref(inst.src[1]) %>[2]];
+    <%- ref(inst.dest, true, initialized) %> <== [<%- ref(inst.src[0]) %>[0] - <%- ref(inst.src[1]) %>[0], <%- ref(inst.src[0]) %>[1] - <%- ref(inst.src[1]) %>[1], <%- ref(inst.src[0]) %>[2] - <%- ref(inst.src[1]) %>[2]];
 <%          } else throw new Error("Invalid src dimensions");                          -%>
 <%      } else if (inst.op == "mul") {                                                  -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
-    signal <%- ref(inst.dest) %> <== <%- ref(inst.src[0]) %> * <%- ref(inst.src[1]) %>;
+    <%- ref(inst.dest, true, initialized) %> <== <%- ref(inst.src[0]) %> * <%- ref(inst.src[1]) %>;
 <%          } else if ((inst.src[0].dim==1) && (inst.src[1].dim==3)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== [<%- ref(inst.src[0]) %> * <%- ref(inst.src[1]) %>[0], <%- ref(inst.src[0]) %> * <%- ref(inst.src[1]) %>[1], <%- ref(inst.src[0]) %> * <%- ref(inst.src[1]) %>[2]];
+    <%- ref(inst.dest, true, initialized) %> <== [<%- ref(inst.src[0]) %> * <%- ref(inst.src[1]) %>[0], <%- ref(inst.src[0]) %> * <%- ref(inst.src[1]) %>[1], <%- ref(inst.src[0]) %> * <%- ref(inst.src[1]) %>[2]];
 <%          } else if ((inst.src[0].dim==3) && (inst.src[1].dim==1)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== [<%- ref(inst.src[0]) %>[0] * <%- ref(inst.src[1]) %>, <%- ref(inst.src[0]) %>[1] * <%- ref(inst.src[1]) %>, <%- ref(inst.src[0]) %>[2] * <%- ref(inst.src[1]) %>];
+    <%- ref(inst.dest, true, initialized) %> <== [<%- ref(inst.src[0]) %>[0] * <%- ref(inst.src[1]) %>, <%- ref(inst.src[0]) %>[1] * <%- ref(inst.src[1]) %>, <%- ref(inst.src[0]) %>[2] * <%- ref(inst.src[1]) %>];
 <%          } else if ((inst.src[0].dim==3) && (inst.src[1].dim==3)) {                  -%>
-    signal <%- ref(inst.dest) %>[3] <== CMul()(<%- ref(inst.src[0]) %>, <%- ref(inst.src[1]) %>);
+    <%- ref(inst.dest, true, initialized) %> <== CMul()(<%- ref(inst.src[0]) %>, <%- ref(inst.src[1]) %>);
 <%          } else throw new Error("Invalid src dimensions");                              -%>
 <%      } else if (inst.op == "copy") {                                                 -%>
 <%          if (inst.src[0].dim==1) {                                                   -%>
-    signal <%- ref(inst.dest) %> <== <%- ref(inst.src[0]) %>;
+    <%- ref(inst.dest, true, initialized) %> <== <%- ref(inst.src[0]) %>;
 <%          } else if (inst.src[0].dim==3) {                                            -%>
-    signal <%- ref(inst.dest) %>[3] <== <%- ref(inst.src[0]) %>;
+    <%- ref(inst.dest, true, initialized) %> <== <%- ref(inst.src[0]) %>;
 <%          } else throw new Error("Invalid src dimensions");                          -%>
 <%      } else throw new Error("Invalid op");                                           -%>
 <% }                                                                                    -%>
-<% return ref(code[code.length-1].dest);                                                -%>
 <% }                                                                                    -%>
 
-template VerifyGlobalConstraints() {
+<% let globalConstraintsChunks = []; -%>
+<% for(let c = 0; c < vadcopInfo.globalConstraints.length; c++) { -%>
+<%  let code = vadcopInfo.globalConstraints[c].code;
+    for(let i=0; i<code.length; i++) {
+        let inst = code[i];
+        if (inst.dest.type != "tmp" || ![1,3].includes(inst.dest.dim)) {
+            throw new Error("Invalid dimension");
+        }
+        tmps[inst.dest.id] = {lastPos: i, dim: inst.dest.dim};        
+        if(inst.src[0].type == "tmp") {
+            tmps[inst.src[0].id].lastPos = i;     
+        }
+        if(inst.src[1].type == "tmp") {
+            tmps[inst.src[1].id].lastPos = i;               
+        }
+    }
 
+    let liveTmps = new Set();
+    let previousLiveTmps = new Set();
+    let chunks = [];
+    let currentChunk = [];
+    let initChunk = 0;
+
+    let inputs = new Set();
+    let outputs = new Set();
+    
+    for(let i=0; i<code.length; i++) {
+        let inst = code[i];
+        currentChunk.push(inst);
+
+        if(inst.dest.type == "tmp") {
+            liveTmps.add(inst.dest.id);
+            outputs.add(inst.dest.id);
+        }
+        if(inst.src[0].type == "tmp") {
+            if(i == tmps[inst.src[0].id].lastPos) {
+                liveTmps.delete(inst.src[0].id);
+                outputs.delete(inst.src[0].id);
+            }
+            if(previousLiveTmps.has(inst.src[0].id)) {
+                inputs.add(inst.src[0].id);
+                if(i == tmps[inst.src[0].id].lastPos) {
+                    previousLiveTmps.delete(inst.src[0].id)
+                }
+            }
+        }
+        if(inst.src[1].type == "tmp") {
+            if(i == tmps[inst.src[1].id].lastPos) {
+                liveTmps.delete(inst.src[1].id);
+                outputs.delete(inst.src[1].id);
+            }
+            if(previousLiveTmps.has(inst.src[1].id)) {
+                inputs.add(inst.src[1].id);
+                if(i == tmps[inst.src[1].id].lastPos) {
+                    previousLiveTmps.delete(inst.src[1].id)
+                }
+            }
+        }
+
+        if(currentChunk.length + 1 >= MIN_CHUNK_SIZE) {
+            let chunk = {chunk: currentChunk, inputs: [...inputs].sort((a,b) => a - b), outputs: [...outputs].sort((a,b) => a - b)};
+            chunks.push(chunk);
+
+            currentChunk = [];
+            initChunk = i;
+            previousLiveTmps = new Set([...previousLiveTmps, ...liveTmps]);
+            liveTmps = new Set();
+            outputs = new Set();
+            inputs = new Set();
+        }
+    }
+
+    if (currentChunk.length > 0) {
+        let chunk = {chunk: currentChunk, inputs: [...inputs].sort((a,b) => a - b), outputs: [...outputs].sort((a,b) => a - b)};
+        chunks.push(chunk);
+    }
+    globalConstraintsChunks.push(chunks);
+} -%>
+
+
+<% for(let c = 0; c < vadcopInfo.globalConstraints.length; c++) { -%>
+<%    let chunks = globalConstraintsChunks[c]; -%>
+<%    for(let i = 0; i < chunks.length; i++) { -%>
+<%        let chunk = chunks[i]; -%>
+template GlobalConstraint<%- c %>_chunk<%- i %>() {
 <%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
     signal input s<%- i %>_airgroupvalues[<%- vadcopInfo.aggTypes[i].length %>][3];
 <%  } -%>
@@ -78,13 +295,76 @@ template VerifyGlobalConstraints() {
     signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
 <%  } -%>
 
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
+    signal input challenges[<%- vadcopInfo.numChallenges[1] %>][3];
+
+<%  for(let j = 0; j < chunk.inputs.length; j++) { -%>
+<%  if(tmps[chunk.inputs[j]].dim == 1) { -%>
+    signal input tmp_<%- chunk.inputs[j] %>;
+<%  } else { -%>
+    signal input tmp_<%- chunk.inputs[j] %>[3];
+<%  } -%> 
+<%  } -%>
+
+<%  for(let j = 0; j < chunk.outputs.length; j++) { -%>
+<%  if(tmps[chunk.outputs[j]].dim == 1) { -%>
+    signal output tmp_<%- chunk.outputs[j] %>;
+<%  } else { -%>
+    signal output tmp_<%- chunk.outputs[j] %>[3];
+<%  } -%> 
+<%  } -%>
+
+<%  unrollCode(chunk.chunk, [...chunk.inputs, ...chunk.outputs]); -%>
+}
+<%    } -%>
+<% } -%>
+
+template VerifyGlobalConstraints() {
+
+<%  let inputs = []; -%>
+<%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
+    signal input s<%- i %>_airgroupvalues[<%- vadcopInfo.aggTypes[i].length %>][3];
+<%  inputs.push(`s${i}_airgroupvalues`); -%>
+<%  } -%>
+<%  if(vadcopInfo.nPublics > 0) { -%>
+    signal input publics[<%- vadcopInfo.nPublics %>];
+<%  inputs.push(`publics`); -%>
+<%  } -%>
+<%  if(vadcopInfo.numProofValues> 0) { -%>
+    signal input proofValues[<%- vadcopInfo.numProofValues %>][3];
+<%  inputs.push(`proofValues`); -%>
+<%  } -%>
+
+    signal input globalChallenge[3];
+
+    signal challenges[<%- vadcopInfo.numChallenges[1] %>][3];
+<%  let transcript = new Transcript();
+    transcript.put("globalChallenge", 3);
+    for(let i = 0; i < vadcopInfo.numChallenges[1]; ++i) {
+        transcript.getField("challenges[" + i + "]"); 
+    } -%>
+<%- transcript.getCode() %>
+<%  inputs.push(`challenges`); -%>
 
     // Verify global constraints
 <% for(let i = 0; i < vadcopInfo.globalConstraints.length; i++) { -%>
-<% const c = unrollCode(vadcopInfo.globalConstraints[i].code) -%>
-    <%- c %>[0] === 0;
-    <%- c %>[1] === 0;
-    <%- c %>[2] === 0;
+<%    let chunks = globalConstraintsChunks[i]; -%>
+<%    for(let j = 0; j < chunks.length; j++) { -%>
+<%      for(let o = 0; o < chunks[j].outputs.length; ++o) { -%>
+<%  if(tmps[chunks[j].outputs[o]].dim == 1) { -%>
+    signal output tmp_<%- chunks[j].outputs[o] %>;
+<%  } else { -%>
+    signal output tmp_<%- chunks[j].outputs[o] %>[3];
+<%  } -%> 
+<%      } -%>
+    (<%- chunks[j].outputs.map(p => `tmp_${p}`).join(",") %>) <== GlobalConstraint<%- i %>_chunk<%- j %>()(<%- [...inputs,...chunks[j].inputs.map(p => `tmp_${p}`)].join(",") %>);
+<%  -%>
+<%  } -%>
+<% if(vadcopInfo.globalConstraints[i].code[vadcopInfo.globalConstraints[i].code.length - 1].dest.dim == 1) { -%>
+    tmp_<%- vadcopInfo.globalConstraints[i].code[vadcopInfo.globalConstraints[i].code.length - 1].dest.id %> === 0;
+<% } else { -%>
+    tmp_<%- vadcopInfo.globalConstraints[i].code[vadcopInfo.globalConstraints[i].code.length - 1].dest.id %>[0] === 0;
+    tmp_<%- vadcopInfo.globalConstraints[i].code[vadcopInfo.globalConstraints[i].code.length - 1].dest.id %>[1] === 0;
+    tmp_<%- vadcopInfo.globalConstraints[i].code[vadcopInfo.globalConstraints[i].code.length - 1].dest.id %>[2] === 0;
+<%  } -%>
 <%  } -%>
 }

@@ -4,10 +4,8 @@ class Transcript {
         this.state = ["0", "0", "0", "0"];
         this.pending = [];
         this.out = [];
-        this.stCnt =0;
-        this.hCnt =0;
-        this.hiCnt =0;
-        this.n2bCnt =0;
+        this.hCnt = 0;
+        this.hiCnt = 0;
         this.lastCodePrinted = 0;
         this.name = name;
 
@@ -19,28 +17,28 @@ class Transcript {
         this.code.push(`${v} <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);
     }
 
-    getState(v) {
-        this.code.push(`${v} <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);    
-    }
-
     updateState()  {
         let signalName = "transcriptHash";
         if(this.name) signalName += "_" + this.name;
-        if(this.hCnt > 0) {
-            const firstUnused = Math.max(this.hiCnt, 4);
-            if(firstUnused < 12) {
-                this.code.push(`for(var i = ${firstUnused}; i < 12; i++){
-        _ <== ${signalName}_${this.hCnt -1}[i]; // Unused transcript values 
-    }`)
-            }  
-        }
-        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[12] <== Poseidon(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[12] <== Poseidon2(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+
+        // Add unused transcript values
+        let count = vadcopInfo.proofValuesMap.reduce((acc, item) => acc + (item.stage === 1 ? 1 : 0), 0);
+        const used_vals = (this.hCnt < Math.ceil((vadcopInfo.nPublics + count + 10*vadcopInfo.aggTypes.length) / 8)) ? 4 : 3;
+        if (used_vals < 12) {
+            this.code.push(`for (var i = ${used_vals}; i < 12; i++) {`);
+            this.code.push(`    _ <== ${signalName}_${this.hCnt-1}[i]; // Unused transcript values`);
+            this.code.push(`}\n`);
+        } 
+
         for (let i=0; i<12; i++) {
             this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         }
+
         for (let i=0; i<4; i++) {
             this.state[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         } 
+
         this.pending = [];
         this.hiCnt = 0;
     }
@@ -57,10 +55,18 @@ class Transcript {
         return res;
     }
 
-    put(a, l) {
+    put(a, l, m) {
         if (typeof l !== "undefined") {
-            for (let i=0; i<l; i++) {
-                this._add1(`${a}[${i}]`);
+            if (typeof m !== "undefined") {
+                for (let i=0; i<l; i++) {
+                    for (let j=0; j<m; j++) {
+                        this._add1(`${a}[${i}][${j}]`);
+                    }
+                }
+            } else {
+                for (let i=0; i<l; i++) {
+                    this._add1(`${a}[${i}]`);
+                }
             }
         } else {
             this._add1(a);
@@ -72,44 +78,6 @@ class Transcript {
         this.pending.push(a);
         if (this.pending.length == 8) {
             this.updateState();
-        }
-    }
-
-    getPermutations(v, n, nBits) {
-        let signalName = "transcriptHash";
-        if(this.name) signalName += "_" + this.name;
-        const totalBits = n*nBits;
-        const n2b = [];
-        for (let i=0; i<NFields; i++) {
-            const f = this.getFields1();
-            n2b[i] = `transcriptN2b_${this.n2bCnt++}`;
-            this.code.push(`signal {binary} ${n2b[i]}[64] <== Num2Bits_strict()(${f});`);
-        }
-        if(this.hiCnt < 12) {
-            this.code.push(`for(var i = ${this.hiCnt}; i < 12; i++){
-        _ <== ${signalName}_${this.hCnt - 1}[i]; // Unused transcript values        
-    }\n`)
-        }
-        this.code.push(`// From each transcript hash converted to bits, we assign those bits to queriesFRI[q] to define the query positions`)
-        this.code.push(`var q = 0; // Query number `)
-        this.code.push(`var b = 0; // Bit number `)
-        for(let i = 0; i<NFields; i++) {
-            const nBits = i + 1 == NFields ? totalBits - 63*i : 63;
-            this.code.push(`for(var j = 0; j < ${nBits}; j++) {
-        ${v}[q][b] <== ${n2b[i]}[j];
-        b++;
-        if(b == ${starkStruct.steps[0].nBits}) {
-            b = 0; 
-            q++;
-        }
-    }`);
-            if(nBits === 63) {
-                this.code.push(`_ <== ${n2b[i]}[63]; // Unused last bit\n`); 
-            } else {
-                this.code.push(`for(var j = ${nBits}; j < 64; j++) {
-        _ <== ${n2b[i]}[j]; // Unused bits        
-    }`);
-            }
         }
     }
 
@@ -127,65 +95,28 @@ template VerifyGlobalChallenges() {
 <%  if(vadcopInfo.nPublics > 0) { -%>
     signal input publics[<%- vadcopInfo.nPublics %>];
 <%  } -%>
-<% for(let i=0; i < vadcopInfo.numChallenges.length; i++) {  -%>
-<%  const stage = i + 1; -%>
-    signal input root<%- stage %>[<%- vadcopInfo.aggTypes.length %>][4];
-<% } -%>                  
-    signal input root<%- vadcopInfo.numChallenges.length + 1 %>[<%- vadcopInfo.aggTypes.length %>][4];
-    signal input evalsHash[<%- vadcopInfo.aggTypes.length %>][4]; 
-<% for (let s=1; s<vadcopInfo.stepsFRI.length; s++) {   -%>
-    signal input s<%- s %>_root[<%- vadcopInfo.aggTypes.length %>][4];
-<% }                                                     -%>
-    signal input finalPolHash[<%- vadcopInfo.aggTypes.length %>][4];
-
-    signal input challenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-    signal input challengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
-
-    signal calculatedChallenges[<%- vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4 %>][3];
-    signal calculatedChallengesFRISteps[<%- vadcopInfo.stepsFRI.length + 1 %>][3];
+<%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
+    signal input proofValues[<%- vadcopInfo.proofValuesMap.length %>][3];
+<%  } -%>
+    signal input stage1HashToEC[<%- vadcopInfo.aggTypes.length %>][2][5];
     
+    signal input globalChallenge[3];
+    signal calculatedGlobalChallenge[3];
 
 <%   let transcript = new Transcript(); -%>
 <%   if(vadcopInfo.nPublics > 0) transcript.put("publics", vadcopInfo.nPublics); -%>
-<%   let c = 0; -%>
-<%   for(let i=0; i < vadcopInfo.numChallenges.length; i++) {
-        const stage = i + 1;
-        for(let j = 0; j < vadcopInfo.numChallenges[i]; ++j) {
-            transcript.getField("calculatedChallenges[" + (c++) + "]");
-        }
-        for(let k = 0; k < vadcopInfo.aggTypes.length; ++k) {
-            transcript.put("root" + stage + "[" + k + "]", 4);
-        }
-} -%>
-<%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
-<%   for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%      transcript.put("root" + (vadcopInfo.numChallenges.length + 1) + "[" + i + "]", 4); -%>
-<%   } -%>
-<%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
-<%   for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-<%      transcript.put("evalsHash[" + i + "]", 4); -%>
-<%   } -%>
-<%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
-<%   transcript.getField("calculatedChallenges[" + (c++) + "]"); -%>
-<%  for (let si=0; si<vadcopInfo.stepsFRI.length; si++) { -%>
-<%      transcript.getField(`calculatedChallengesFRISteps[${si}]`); -%>
-<%      for(let k = 0; k < vadcopInfo.aggTypes.length; ++k) { -%>
-<%          if (si < vadcopInfo.stepsFRI.length-1) { -%>
-<%              transcript.put(`s${si+1}_root[${k}]`, 4); -%>
-<%          } else { -%>
-<%              transcript.put("finalPolHash[" + k + "]", 4); -%>
-<%          } -%>
-<%      } -%>
-<%  } -%>
-<%  transcript.getField(`calculatedChallengesFRISteps[${vadcopInfo.stepsFRI.length}]`); -%>
+<%   for(let j=0; j < vadcopInfo.proofValuesMap.length; j++) { -%>
+<%      if(vadcopInfo.proofValuesMap[j].stage == 1) { -%>
+<%          transcript.put(`proofValues[${j}]`, 1); -%>
+<%      } else { -%>
+    _ <== proofValues[<%- j %>]; // Unused proof values at stage 1
+<%       } -%>
+<%  }
+    for(let k = 0; k < vadcopInfo.aggTypes.length; k++) {
+        transcript.put("stage1HashToEC[" + k + "]", 2, 5);
+    }
+    transcript.getField("calculatedGlobalChallenge"); -%>
 <%- transcript.getCode() %>
 
-    // Check that all the challenges match
-<%  for(let i = 0; i < vadcopInfo.numChallenges.reduce((nc, acc) => nc + acc, 0) + 4; ++i) { -%>
-    calculatedChallenges[<%- i %>] === challenges[<%- i %>];
-<%  } -%>
-
-<%  for(let i = 0; i < vadcopInfo.stepsFRI.length + 1; ++i) { -%>
-    calculatedChallengesFRISteps[<%- i %>] === challengesFRISteps[<%- i %>];
-<%  } -%>
+    globalChallenge === calculatedGlobalChallenge;
 }

@@ -7,7 +7,7 @@ const fs = require("fs");
 module.exports.compressorSetup = async function compressorSetup(r1csFile, constFile, execFile, pilFile, cols, pil2, options = {}) {
     const r1cs = await readR1cs(r1csFile);
 
-    if(![12,18].includes(cols)) throw new Error("Invalid number of cols");
+    if(![12,24].includes(cols)) throw new Error("Invalid number of cols");
 
     let res;
     if(cols === 12) {

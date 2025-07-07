@@ -1,5 +1,5 @@
 const r1cs2plonk = require("./r1cs2plonk.js");
-const { getCustomGatesInfo, calculatePlonkConstraintsRowsC12, calculatePlonkConstraintsHalfs } = require("./compressor_helpers.js");
+const { getCustomGatesInfo, calculatePlonkConstraintsRowsC12, calculatePlonkConstraintsRowsC24 } = require("./compressor_helpers.js");
 
 module.exports.getCompressorConstraints = function getCompressorConstraints(F, r1cs, cols) {
     // Calculate the number plonk Additions and plonk constraints from the R1CS
@@ -25,23 +25,27 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(F, r
     
     // Calculate the total number of publics used in PIL and how many rows are needed to store all of them (remember that each row can store up to 12 values)
     let nPublics = r1cs.nOutputs + r1cs.nPubInputs;
-    const nPublicRows = Math.floor((nPublics + 11)/12); 
+    let nPublicRows; 
 
     let nCMulRows;
     let nPoseidon12Rows;
     let nCustPoseidon12Rows;
     let nTotalPoseidon12Rows;
-    let nFFT4Rows = customGatesInfo.nFFT4*2; // Each FFT4 custom gate uses 2 rows (1 for actually computing the FFT and the other one for checking the output)
-    let nEvPol4Rows = customGatesInfo.nEvPol4*2; // Each EvalPol4 custom gate uses 2 rows (1 for actually computing the evaluation and the other one for checking the output)
-    let nTreeSelector4Rows = customGatesInfo.nTreeSelector4*2;  // Each TreeSelector custom gate uses 2 rows 
+    let nFFT4Rows;
+    let nEvPol4Rows;
+    let nTreeSelector4Rows;
 
     if(cols === 12) {
         // Each Poseidon12 custom gate uses 11 rows (Input -> Round 1 -> Round 2 -> Round 3 -> Round 4 -> Round 15 -> Round 26 -> Round 27 -> Round 28 -> Round 29 -> Output)
+        nPublicRows = Math.floor((nPublics + 11)/12);
         nCMulRows = customGatesInfo.nCMul;
         nPoseidon12Rows = customGatesInfo.nPoseidon12*11;
         nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*11;
         nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
-        
+        nFFT4Rows = customGatesInfo.nFFT4*2; // Each FFT4 custom gate uses 2 rows (1 for actually computing the FFT and the other one for checking the output)
+        nEvPol4Rows = customGatesInfo.nEvPol4*2; // Each EvalPol4 custom gate uses 2 rows (1 for actually computing the evaluation and the other one for checking the output)
+        nTreeSelector4Rows = customGatesInfo.nTreeSelector4*2;  // Each TreeSelector custom gate uses 2 rows
+
         const nPartialRowsCustomGates = nPublicRows + nCMulRows +nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows;
         
         // Calculate how many  constraints are needed 
@@ -52,27 +56,21 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(F, r
         console.log(`Number of plonk constraints new rows: ${CPlonkConstraints}`);
         
         NUsed = nPartialRowsCustomGates + CPlonkConstraints;
-    } else if(cols === 18) {
+    } else if(cols === 24) {
         // Each Poseidon12 custom gate uses 6 rows (Input -> Round 2 -> Round 4 -> Round 26 -> Round 28 -> Output)
-        
-        nCMulRows = customGatesInfo.nCMul/2;
+        nPublicRows = Math.floor((nPublics + 23)/24);
+        nCMulRows = Math.ceil(customGatesInfo.nCMul/2);
         nPoseidon12Rows = customGatesInfo.nPoseidon12*6;
         nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*6;
         nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
-        
-        const nPartialRowsCustomGates = nPublicRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows;
+        nFFT4Rows = customGatesInfo.nFFT4;
+        nEvPol4Rows = customGatesInfo.nEvPol4;
+        nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
         
         // Calculate how many groups of two plonk constraints can be made 
-        const CPlonkConstraints = calculatePlonkConstraintsHalfs(plonkConstraints);
-        const CPlonkConstraintsHalfs = Object.values(CPlonkConstraints).reduce((acc, curr) => acc + Math.floor((curr + 1) / 2), 0);
+        const CPlonkConstraints = calculatePlonkConstraintsRowsC24(plonkConstraints, customGatesInfo.nPoseidon12*6 + customGatesInfo.nCustPoseidon12*5, customGatesInfo.nCustPoseidon12 + nCMulRows + nTreeSelector4Rows, customGatesInfo.nCustPoseidon12);
 
-        const nRowsPlonk = nPartialRowsCustomGates >= CPlonkConstraintsHalfs ? 0 : Math.floor((CPlonkConstraintsHalfs - nPartialRowsCustomGates + 2) / 3);
-
-        console.log(`Number of plonk constraints: ${plonkConstraints.length} -> Number of contraints halfs: ${CPlonkConstraintsHalfs}`); 
-        console.log(`Number of Plonk halfs stored in Custom gates -> ${nPartialRowsCustomGates}`);
-        console.log(`Number of plonk constraints rows: ${nRowsPlonk} -> Number of halfs: ${nRowsPlonk*3}`);
-
-        NUsed = nPartialRowsCustomGates + nRowsPlonk + Math.floor((customGatesInfo.nCMul + 1)/2) + customGatesInfo.nTreeSelector4;
+        NUsed = CPlonkConstraints + nPublicRows + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows;
     } else throw new Error("Invalid number of cols");
 
     console.log(`Number of publics: ${nPublics} -> Constraints: ${nPublicRows}`);

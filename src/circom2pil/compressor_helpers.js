@@ -29,6 +29,69 @@ module.exports ={
         return constraints;
     },
 
+    calculatePlonkConstraintsRowsC24: function(plonkConstraints, fourExtraConstraints, twoExtraConstraints, extraConstraint) {
+        let partialRows = {};
+        let halfRows = [];
+        let r = 0;
+
+        let constraintsCustomRows = 0;
+        let constraintsPlonkRows = 0;
+        for (let i=0; i<plonkConstraints.length; i++) {
+            if ((i%10000) == 0) {
+                console.log(`Point Check -> Plonk info constraint processing... ${i}/${plonkConstraints.length}`);
+            }
+            //Each plonkConstraint has the following form: [a,b,c, qM, qL, qR, qO, qC]
+            const c = plonkConstraints[i]; 
+            const k= c.slice(3, 8).map( a=> a.toString(16)).join(","); //Calculate
+            if(partialRows[k]) {
+                if(partialRows[k].custom) {
+                    constraintsCustomRows++;
+                } else {
+                    constraintsPlonkRows++;
+                }
+                ++partialRows[k].nUsed;
+                if(partialRows[k].nUsed === 6 || partialRows[k].nUsed === 8) {
+                    delete partialRows[k];
+                } else if(partialRows[k].nUsed == 4) {
+                    partialRows[k].nUsed = 6;
+                } else if(partialRows[k].nUsed == 2) {
+                    partialRows[k].nUsed = 4;
+                }
+            } else if(halfRows.length > 0) {
+                partialRows[k] = halfRows.shift();
+                partialRows[k].nUsed++;
+                if(partialRows[k].custom) {
+                    constraintsCustomRows++;
+                } else {
+                    constraintsPlonkRows++;
+                }
+            } else if(fourExtraConstraints > 0) {
+                --fourExtraConstraints;
+                partialRows[k] = {nUsed: 5, custom: true};
+                halfRows.push({nUsed: 6, custom: true});
+                constraintsCustomRows++;
+            } else if(twoExtraConstraints > 0) {
+                --twoExtraConstraints;
+                partialRows[k] = {nUsed: 7, custom: true};
+                constraintsCustomRows++;
+            } else if(extraConstraint > 0) {
+                --extraConstraint;
+                constraintsCustomRows++;
+            } else {
+                partialRows[k] = {nUsed: 1, custom: false};
+                halfRows.push({nUsed: 2, custom: false});
+                constraintsPlonkRows++;
+                r++;
+            }
+        };
+
+        console.log(`Number of totalplonk constraints: ${plonkConstraints.length}`); 
+        console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows}`);
+        console.log(`Number of plonk constraints stored in custom gates: ${constraintsCustomRows}`);
+
+        return r;
+    },
+
     /*
         Calculate the number of rows needed to verify all plonk constraints
     */ 

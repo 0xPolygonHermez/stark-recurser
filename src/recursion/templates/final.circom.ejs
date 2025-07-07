@@ -4,19 +4,24 @@ pragma circom 2.1.0;
     include "<%- verifierFilenames[i] %>";
     <% } -%>
 
-<%- include('src/recursion/helpers/templates/get_sha256_inputs.circom.ejs', { publics, isTest: false }); %>
+<%- include('src/recursion/helpers/templates/get_sha256_inputs.circom.ejs', { publics, isTest: false, options }); %>
 
 template Main() {
     signal output publicsHash;
 
+<% if(options.addAggregatorAddr) { -%>
     signal input aggregatorAddr;
+<% } -%>
 
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics, options: { ...options, addPublics: true, final: true } }); %>
 
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix:"", starkInfo, nPublics: starkInfo.nPublics, options: { addPublics: true, final: true } }); %>
 
+<% if(options.addAggregatorAddr) { -%>
     publicsHash <== getSha256Inputs()(aggregatorAddr, publics);
-
+<% } else { -%>
+    publicsHash <== getSha256Inputs()(publics);
+<% } -%>
 }
 
 component main = Main();
