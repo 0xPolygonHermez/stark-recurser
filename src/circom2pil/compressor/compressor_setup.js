@@ -4,12 +4,10 @@ const path = require("path");
 const {tmpName} = require("tmp-promise");
 const ejs = require("ejs");
 const { getCompressorConstraints } = require("../compressor_constraints.js");
-const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P } = require("../../utils/utils.js");
+const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P, getFixedPolsPil2 } = require("../../utils/utils.js");
 const { generateFixedCols } = require("../../utils/witnessCalculator.js");
 const compilePil2 = require("pil2-compiler/src/compiler.js");
 const protobuf = require('protobufjs');
-const { exit } = require("process");
-const { getFixedPolsPil2 } = require("../../../../pil2-proofman-js/src/pil2-stark/pil_info/helpers/pil2/piloutInfo.js");
 
 /*
     Compress plonk constraints and verifies custom gates using 21 committed polynomials
@@ -51,7 +49,6 @@ module.exports = async function plonkSetup(F, r1cs, options) {
     await fs.promises.writeFile(pilFile, pilStr, "utf8");
 
     let piloutPath = pilFile + ".ptb";
-    options.stdPath = path.join(path.resolve(__dirname), "../../../../pil2-proofman/pil2-components/lib/std/pil"); // TODO   
     let pilConfig = { outputFile: piloutPath, includePaths: [options.stdPath] };
     compilePil2(F, pilFile, null, pilConfig);
     
