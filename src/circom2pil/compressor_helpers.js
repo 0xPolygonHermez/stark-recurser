@@ -29,7 +29,7 @@ module.exports ={
         return constraints;
     },
 
-    calculatePlonkConstraintsRowsC24: function(plonkConstraints, fourExtraConstraints, twoExtraConstraints, extraConstraint) {
+    calculatePlonkConstraintsRowsCompressor: function(plonkConstraints, eightExtraConstraints, fourExtraConstraints, twoExtraConstraints) {
         let partialRows = {};
         let halfRows = [];
         let r = 0;
@@ -50,12 +50,8 @@ module.exports ={
                     constraintsPlonkRows++;
                 }
                 ++partialRows[k].nUsed;
-                if(partialRows[k].nUsed === 6 || partialRows[k].nUsed === 8) {
+                if(partialRows[k].nUsed === 2 || partialRows[k].nUsed === 8 || partialRows[k].nUsed == partialRows[k].maxUsed) {
                     delete partialRows[k];
-                } else if(partialRows[k].nUsed == 4) {
-                    partialRows[k].nUsed = 6;
-                } else if(partialRows[k].nUsed == 2) {
-                    partialRows[k].nUsed = 4;
                 }
             } else if(halfRows.length > 0) {
                 partialRows[k] = halfRows.shift();
@@ -65,21 +61,22 @@ module.exports ={
                 } else {
                     constraintsPlonkRows++;
                 }
+            } else if(eightExtraConstraints > 0) {
+                --eightExtraConstraints;
+                partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
+                halfRows.push({nUsed: 2, custom: true, maxUsed: 8});
+                constraintsCustomRows++;
             } else if(fourExtraConstraints > 0) {
                 --fourExtraConstraints;
-                partialRows[k] = {nUsed: 5, custom: true};
-                halfRows.push({nUsed: 6, custom: true});
+                partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
+                halfRows.push({nUsed: 2, custom: true, maxUsed: 4});
                 constraintsCustomRows++;
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
-                partialRows[k] = {nUsed: 7, custom: true};
-                constraintsCustomRows++;
-            } else if(extraConstraint > 0) {
-                --extraConstraint;
-                constraintsCustomRows++;
+                partialRows[k] = {nUsed: 7, custom: false, maxUsed: 8};
             } else {
-                partialRows[k] = {nUsed: 1, custom: false};
-                halfRows.push({nUsed: 2, custom: false});
+                partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
+                halfRows.push({nUsed: 2, custom: false, maxUsed: 8});
                 constraintsPlonkRows++;
                 r++;
             }

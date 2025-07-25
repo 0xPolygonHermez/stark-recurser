@@ -74,7 +74,7 @@ module.exports = async function plonkSetup(F, r1cs) {
     }
 
     // Calculate S Polynomials
-    const ks = getKs(F, 2);
+    const ks = getKs(2);
     let w = F.one;
     for (let i=0; i<N; i++) {
         if ((i%10000) == 0) console.log(`Preparing S... ${i}/${N}`);
