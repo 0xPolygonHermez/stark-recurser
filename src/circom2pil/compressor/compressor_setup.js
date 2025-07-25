@@ -34,7 +34,7 @@ module.exports = async function plonkSetup(F, r1cs, options) {
         namespaceName: airName,
         nBits,
         nPublics,
-        blowupFactor: options.blowupFactor || 3,
+        maxConstraintDegree: options.maxConstraintDegree || 8,
         nPoseidonCompressor: customGatesInfo.nCustPoseidon12,
         nPoseidonSponge: customGatesInfo.nPoseidon12,
         nCMulRows: Math.ceil(customGatesInfo.nCMul/2),
