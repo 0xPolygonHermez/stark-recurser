@@ -432,6 +432,8 @@ airtemplate <%= namespaceName %> (const int N, const int nPlonkRows, const int n
     connection(1, A, S, PIOP_BUS_PROD);
 }
 
+set_std_mode(STD_MODE_ONE_INSTANCE);
+
 set_blowup_factor(<%- blowupFactor %>);
 
 public publics[<%- nPublics %>];
