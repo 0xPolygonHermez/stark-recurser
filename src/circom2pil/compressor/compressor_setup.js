@@ -53,7 +53,7 @@ module.exports = async function plonkSetup(F, r1cs, options) {
     compilePil2(F, pilFile, null, pilConfig);
     
     const piloutEncoded = fs.readFileSync(piloutPath);
-    const pilOutProtoPath = path.resolve(__dirname, '../../../node_modules/pil2-compiler/src/pilout.proto');
+    const pilOutProtoPath = path.resolve(__dirname, '../../utils/pilout.proto');
     const PilOut = protobuf.loadSync(pilOutProtoPath).lookupType("PilOut");
     let pilout = PilOut.toObject(PilOut.decode(piloutEncoded));
     
