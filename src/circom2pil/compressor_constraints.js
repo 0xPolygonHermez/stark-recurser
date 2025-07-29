@@ -1,9 +1,9 @@
 const r1cs2plonk = require("./r1cs2plonk.js");
 const { getCustomGatesInfo, calculatePlonkConstraintsRowsC12, calculatePlonkConstraintsRowsCompressor } = require("./compressor_helpers.js");
 
-module.exports.getCompressorConstraints = function getCompressorConstraints(F, r1cs, cols) {
+module.exports.getCompressorConstraints = function getCompressorConstraints(r1cs, cols) {
     // Calculate the number plonk Additions and plonk constraints from the R1CS
-    const [plonkConstraints, plonkAdditions] = r1cs2plonk(F, r1cs);
+    const [plonkConstraints, plonkAdditions] = r1cs2plonk(r1cs);
 
     console.log(`Number of plonk constraints: ${plonkConstraints.length}`);
 

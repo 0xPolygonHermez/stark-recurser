@@ -15,7 +15,7 @@ const protobuf = require('protobufjs');
 module.exports = async function plonkSetup(F, r1cs, options) {
     const committedPols = 36;
 
-    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(F, r1cs, 36);
+    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(r1cs, 36);
 
     //Calculate the first power of 2 that's bigger than the number of constraints
     let nBits = log2(NUsed - 1) + 1;

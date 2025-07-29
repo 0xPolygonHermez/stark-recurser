@@ -24,13 +24,14 @@
     <%- prefix %>_stage1HashToEC <== AccumulatePointsNull()(AB_stage1HashToEC, <%- prefix3 %>_stage1HashToEC, AB_isNull,  <%- prefix3%>_isNull);
 <%  } else { -%>
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
+    signal airgroupValuesAB[<%- vadcopInfo.aggTypes[airgroupId].length %>][3];
     for (var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
-        signal airgroupValuesAB[3] <== AggregateAirgroupValues()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i]);
-        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValues()(airgroupValuesAB, <%- prefix3 %>_airgroupvalues[i], aggTypes[i]);
+        airgroupValuesAB[i] <== AggregateAirgroupValues()(<%- prefix1 %>_airgroupvalues[i], <%- prefix2 %>_airgroupvalues[i], aggTypes[i]);
+        <%- prefix %>_airgroupvalues[i] <== AggregateAirgroupValues()(airgroupValuesAB[i], <%- prefix3 %>_airgroupvalues[i], aggTypes[i]);
     }
 
 <%  } -%>
 
     signal AB_stage1HashToEC[2][5] <== AccumulatePoints()(<%- prefix1 %>_stage1HashToEC, <%- prefix2 %>_stage1HashToEC);
-    <%- prefix %>_stage1HashToEC <== AccumulatePoints()(AB_stage1HashToEC[2][5], <%- prefix3 %>_stage1HashToEC);
+    <%- prefix %>_stage1HashToEC <== AccumulatePoints()(AB_stage1HashToEC, <%- prefix3 %>_stage1HashToEC);
 <%  } -%>

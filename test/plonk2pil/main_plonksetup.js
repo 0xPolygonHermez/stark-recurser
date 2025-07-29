@@ -26,7 +26,7 @@ async function run() {
 
     const r1cs = await readR1cs(r1csFile, {F: F, logger:console });
 
-    const res = await plonkSetup(F, r1cs);
+    const res = await plonkSetup(r1cs);
 
     await fs.promises.writeFile(pilFile, res.pilStr, "utf8");
 

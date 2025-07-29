@@ -1,6 +1,6 @@
 const BigArray = require("@iden3/bigarray");
 
-module.exports = function r1cs2plonk(F, r1cs, logger ) {
+module.exports = function r1cs2plonk(r1cs, logger ) {
     const plonkConstraints = new BigArray();
     const plonkAdditions = new BigArray();
     let plonkNVars = r1cs.nVars;
@@ -9,16 +9,16 @@ module.exports = function r1cs2plonk(F, r1cs, logger ) {
         const res = {};
         for (let s in lc1) {
             if (typeof res[s] == "undefined") {
-                res[s] = F.mul(k, lc1[s]);
+                res[s] = (k * lc1[s]) % 0xFFFFFFFF00000001n;
             } else {
-                res[s] = F.add(res[s], F.mul(k, lc1[s]));
+                res[s] = (res[s] + (k * lc1[s])) % 0xFFFFFFFF00000001n;
             }
         }
         for (let s in lc2) {
             if (typeof res[s] == "undefined") {
                 res[s] = lc2[s];
             } else {
-                res[s] = F.add(res[s], lc2[s]);
+                res[s] = (res[s] + lc2[s]) % 0xFFFFFFFF00000001n;
             }
         }
         normalize(res);
@@ -34,14 +34,14 @@ module.exports = function r1cs2plonk(F, r1cs, logger ) {
 
     function reduceCoefs(lc, maxC) {
         const res = {
-            k: F.zero,
+            k: 0n,
             s: [],
             coefs: []
         }
         const cs = [];
         for (let s in lc) {
             if (s==0) {
-                res.k = F.add(res.k, lc[s]);
+                res.k = (res.k + lc[s]) % 0xFFFFFFFF00000001n;
             } else if (lc[s] != 0n) {
                 cs.push([Number(s), lc[s]])
             }
@@ -53,17 +53,17 @@ module.exports = function r1cs2plonk(F, r1cs, logger ) {
             const sl = c1[0];
             const sr = c2[0];
             const so = plonkNVars++;
-            const qm = F.zero;
-            const ql = F.neg(c1[1]);
-            const qr = F.neg(c2[1]);
-            const qo = F.one;
-            const qc = F.zero;
+            const qm = 0n;
+            const ql = (0xFFFFFFFF00000001n - c1[1]) % 0xFFFFFFFF00000001n;
+            const qr = (0xFFFFFFFF00000001n - c2[1]) % 0xFFFFFFFF00000001n;
+            const qo = 1n;
+            const qc = 0n;
 
             plonkConstraints.push([sl, sr, so, qm, ql, qr, qo, qc]);
 
             plonkAdditions.push([sl, sr, c1[1], c2[1]]);
 
-            cs.push([so, F.one]);
+            cs.push([so, 1n]);
         }
         for (let i=0; i<cs.length; i++) {
             res.s[i] = cs[i][0];
@@ -71,7 +71,7 @@ module.exports = function r1cs2plonk(F, r1cs, logger ) {
         }
         while (res.coefs.length < maxC) {
             res.s.push(0);
-            res.coefs.push(F.zero);
+            res.coefs.push(0n);
         }
         return res;
     }
@@ -81,7 +81,7 @@ module.exports = function r1cs2plonk(F, r1cs, logger ) {
         const sl = C.s[0];
         const sr = C.s[1];
         const so = C.s[2];
-        const qm = F.zero;
+        const qm = 0n;
         const ql = C.coefs[0];
         const qr = C.coefs[1];
         const qo = C.coefs[2];
@@ -98,29 +98,29 @@ module.exports = function r1cs2plonk(F, r1cs, logger ) {
         const sl = A.s[0];
         const sr = B.s[0];
         const so = C.s[0];
-        const qm = F.mul(A.coefs[0], B.coefs[0]);
-        const ql = F.mul(A.coefs[0], B.k);
-        const qr = F.mul(A.k, B.coefs[0]);
-        const qo = F.neg(C.coefs[0]);
-        const qc = F.sub(F.mul(A.k, B.k) , C.k);
+        const qm = (A.coefs[0] * B.coefs[0]) % 0xFFFFFFFF00000001n;
+        const ql = (A.coefs[0] * B.k) % 0xFFFFFFFF00000001n;
+        const qr = (A.k * B.coefs[0]) % 0xFFFFFFFF00000001n;
+        const qo = (0xFFFFFFFF00000001n - C.coefs[0]) % 0xFFFFFFFF00000001n;
+        const qc = ((A.k * B.k) - C.k) % 0xFFFFFFFF00000001n;
         plonkConstraints.push([sl, sr, so, qm, ql, qr, qo, qc]);
     }
 
     function getLCType(lc) {
-        let k = F.zero;
+        let k = 0n;
         let n = 0;
         const ss = Object.keys(lc);
         for (let i=0; i< ss.length; i++) {
             if (lc[ss[i]] == 0n) {
                 delete lc[ss[i]];
             } else if (ss[i] == 0) {
-                k = F.add(k, lc[ss[i]]);
+                k = (k + lc[ss[i]]) % 0xFFFFFFFF00000001n;
             } else {
                 n++;
             }
         }
         if (n>0) return n.toString();
-        if (k != F.zero) return "k";
+        if (k != 0n) return "k";
         return "0";
     }
 

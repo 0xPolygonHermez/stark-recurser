@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@0xpolygonhermez/zkevm-commonjs": "github:0xpolygonhermez/zkevm-commonjs#v6.0.0-fork.9",
+    "@iden3/binfileutils": "^0.0.12",
     "circom_runtime": "^0.1.25",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
@@ -45,9 +46,9 @@
     "@iden3/bigarray": "^0.0.2",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
-    "ffjavascript": "^0.3.1",
     "circom_tester": "^0.0.21",
     "ejs": "^3.1.6",
+    "ffjavascript": "^0.3.1",
     "logplease": "^1.2.15",
     "mocha": "^10.0.0",
     "temporary": "^1.1.0",

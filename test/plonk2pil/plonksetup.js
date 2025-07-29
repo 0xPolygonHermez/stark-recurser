@@ -7,8 +7,8 @@ const r1cs2plonk = require("../../src/circom2pil/r1cs2plonk");
 const { getKs, log2 } = require("../../src/utils/utils");
 const { generateFixedCols } = require("../../src/utils/witnessCalculator");
 
-module.exports = async function plonkSetup(F, r1cs) {
-    const [plonkConstraints, plonkAdditions] = r1cs2plonk(F, r1cs);
+module.exports = async function plonkSetup(r1cs) {
+    const [plonkConstraints, plonkAdditions] = r1cs2plonk(r1cs);
 
     const nPublics = r1cs.nOutputs + r1cs.nPubInputs;
     const nPublicRows = nPublics;
