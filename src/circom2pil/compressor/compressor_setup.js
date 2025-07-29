@@ -52,6 +52,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     const C = [];
     for (let i = 0; i < 10; ++i) {
         C[i] = {
+            name: `${airName}.C`,
             lengths: [i],
             values: new BigUint64Array(N),
         }
@@ -440,6 +441,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     const S = [];
     for (let i = 0; i < nColsConnections; ++i) {
         S[i] = {
+            name: `${airName}.S`,
             lengths: [i],
             values: new BigUint64Array(N),
         }
@@ -488,13 +490,15 @@ module.exports = async function plonkSetup(r1cs, options) {
         r +=1;
     }
 
-    const fixedPols = { [`${airName}.C`]: C, [`${airName}.S`]: S };
+    const fixedPols = [...C, ...S];
 
     return {
         fixedPols,
         pilStr,
         nBits,
         sMap: sMap,
-        plonkAdditions
+        plonkAdditions,
+        airgroupName: airName,
+        airName: airName,
     };
 }

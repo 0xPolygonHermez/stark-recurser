@@ -12,5 +12,5 @@ module.exports.compressorSetup = async function compressorSetup(r1csFile, cols, 
 
     const exec = await writeExecFile(res.plonkAdditions, res.sMap);
 
-    return {exec, pilStr: res.pilStr, fixedPols: res.fixedPols, nBits: res.nBits, pilout: res.pilout };
+    return {exec, pilStr: res.pilStr, fixedPols: res.fixedPols, nBits: res.nBits, pilout: res.pilout, airgroupName: res.airgroupName, airName: res.airName };
 }
