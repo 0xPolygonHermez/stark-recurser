@@ -102,7 +102,7 @@ module.exports = function r1cs2plonk(r1cs, logger ) {
         const ql = (A.coefs[0] * B.k) % 0xFFFFFFFF00000001n;
         const qr = (A.k * B.coefs[0]) % 0xFFFFFFFF00000001n;
         const qo = (0xFFFFFFFF00000001n - C.coefs[0]) % 0xFFFFFFFF00000001n;
-        const qc = ((A.k * B.k) - C.k) % 0xFFFFFFFF00000001n;
+        const qc = ((A.k * B.k) - C.k + 0xFFFFFFFF00000001n) % 0xFFFFFFFF00000001n;
         plonkConstraints.push([sl, sr, so, qm, ql, qr, qo, qc]);
     }
 
