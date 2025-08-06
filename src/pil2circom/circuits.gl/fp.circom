@@ -39,10 +39,10 @@ template SignFp() {
     signal input a;
     signal output {binary} sign;
 
-    sign <-- a % 2;
+    sign <-- a % 2; // Remainder
+    signal div <== (a - sign) / 2; // Quotient
     sign * (1 - sign) === 0;
-    signal q <-- a \ 2;
-    a === 2 * q + sign;
+    a === 2 * div + sign;
 }
 
 // Helper functions
