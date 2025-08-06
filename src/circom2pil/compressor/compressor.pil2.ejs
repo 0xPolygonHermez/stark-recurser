@@ -156,13 +156,21 @@ function poseidonInputOrder(const expr a[], const expr b[], const expr out[], co
 
 function poseidonFullRound(const expr input[], const expr output[], const expr sel) {
     const expr mat[12];
+
+    const expr t0[3], t1[3], t2[3], t3[3], t4[3], t5[3], t6[3], t7[3];
     for (int i = 0; i < 3; i++) {
-        mat[4*i] =     5*input[4*i] + 7*input[4*i + 1] +   input[4*i + 2] + 3*input[4*i + 3];
-        mat[4*i + 1] = 4*input[4*i] + 6*input[4*i + 1] +   input[4*i + 2] +   input[4*i + 3];
-        mat[4*i + 2] =   input[4*i] + 3*input[4*i + 1] + 5*input[4*i + 2] + 7*input[4*i + 3];
-        mat[4*i + 3] =   input[4*i] +   input[4*i + 1] + 4*input[4*i + 2] + 6*input[4*i + 3];
+        t0[i] = input[4*i] + input[4*i + 1];
+        t1[i] = input[4*i + 2] + input[4*i + 3];
+        t2[i] = 2*input[4*i + 1] + t1[i];
+        t3[i] = 2*input[4*i + 3] + t0[i];
+        
+        mat[4*i + 3] = 4*t1[i] + t3[i];
+        mat[4*i + 1] = 4*t0[i] + t2[i];
+        mat[4*i] = t3[i] + mat[4*i + 1];
+        mat[4*i + 2] = t2[i] + mat[4*i + 3];
+       
     }
-    
+
     const expr stored[4];
     for (int i = 0; i < 4; i++) {
         stored[i] = mat[i] + mat[i+4] + mat[i+8];
@@ -232,14 +240,6 @@ function fft4(const expr a[], const expr c[], const expr res[], const expr sel) 
     sel * (res[11] - (c[0]*a[2] - c[1]*a[5] - c[4]*a[8] + c[5]*a[11] + c[6]*a[8] - c[8]*a[11])) === 0;
 }
 
-function cmuladd(const expr a[], const expr b[], const expr c[]) : const expr[] {
-    return [
-        (a[0]*b[0] + a[1]*b[2] + a[2]*b[1]) + c[0],
-        (a[0]*b[1] + a[1]*b[0] + a[1]*b[2] + a[2]*b[1] + a[2]*b[2]) + c[1],
-        (a[0]*b[2] + a[2]*b[2] + a[2]*b[0] + a[1]*b[1]) + c[2]
-    ];
-}
-
 
 // TREESELECTOR4 GATE - Check that given 4 values and a key, checks that the output is correct
 // The tree is created as follows: if key = 0, even values are pushed up the tree, if the key = 1 the odd ones are pushed.
@@ -254,21 +254,26 @@ function cmuladd(const expr a[], const expr b[], const expr c[]) : const expr[] 
 // The output is stored in [a[14], a[15], a[16]]
 function treeselector4(const expr vals[][], const expr key[], const expr res[], const expr sel) {
 
-    sel * ((1 - key[0])*(1 - key[1]) * (vals[0][0] - res[0])) === 0;
-    sel * ((1 - key[0])*(1 - key[1]) * (vals[0][1] - res[1])) === 0;
-    sel * ((1 - key[0])*(1 - key[1]) * (vals[0][2] - res[2])) === 0;
+    const expr key00 = (1 - key[0]) * (1 - key[1]);
+    const expr key10 = key[0] * (1 - key[1]);
+    const expr key01 = (1 - key[0]) * key[1];
+    const expr key11 = key[0] * key[1];
 
-    sel * ((key[0])*(1 - key[1]) * (vals[1][0] - res[0])) === 0;
-    sel * ((key[0])*(1 - key[1]) * (vals[1][1] - res[1])) === 0;
-    sel * ((key[0])*(1 - key[1]) * (vals[1][2] - res[2])) === 0;
+    sel * key00 * (vals[0][0] - res[0]) === 0;
+    sel * key00 * (vals[0][1] - res[1]) === 0;
+    sel * key00 * (vals[0][2] - res[2]) === 0;
 
-    sel * ((1 - key[0])*(key[1]) * (vals[2][0] - res[0])) === 0;
-    sel * ((1 - key[0])*(key[1]) * (vals[2][1] - res[1])) === 0;
-    sel * ((1 - key[0])*(key[1]) * (vals[2][2] - res[2])) === 0;
+    sel * key10 * (vals[1][0] - res[0]) === 0;
+    sel * key10 * (vals[1][1] - res[1]) === 0;
+    sel * key10 * (vals[1][2] - res[2]) === 0;
 
-    sel * ((key[0])*(key[1]) * (vals[3][0] - res[0])) === 0;
-    sel * ((key[0])*(key[1]) * (vals[3][1] - res[1])) === 0;
-    sel * ((key[0])*(key[1]) * (vals[3][2] - res[2])) === 0;
+    sel * key01 * (vals[2][0] - res[0]) === 0;
+    sel * key01 * (vals[2][1] - res[1]) === 0;
+    sel * key01 * (vals[2][2] - res[2]) === 0;
+
+    sel * key11 * (vals[3][0] - res[0]) === 0;
+    sel * key11 * (vals[3][1] - res[1]) === 0;
+    sel * key11 * (vals[3][2] - res[2]) === 0;
 
     sel * (key[0]*(1 - key[0])) === 0;
     sel * (key[1]*(1 - key[1])) === 0;
