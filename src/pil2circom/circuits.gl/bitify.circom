@@ -29,6 +29,7 @@ template Num2Ternary(n) {
         lc1 += ternary_digits[i] * e3;
         e3 *= 3;
         out[i] <== Num2Bits(2)(ternary_digits[i]);
+        out[i][0] * out[i][1] === 0; // ensure that the digits are 0, 1 or 2
     }
 
     lc1 === in;
