@@ -1,5 +1,7 @@
 pragma circom 2.2.0;
 
+include "bitify.circom";
+
 /*
     Circuits that implement operations for the field Fp
 */
@@ -39,10 +41,9 @@ template SignFp() {
     signal input a;
     signal output {binary} sign;
 
-    sign <-- a % 2; // Remainder
-    signal div <== (a - sign) / 2; // Quotient
-    sign * (1 - sign) === 0;
-    a === 2 * div + sign;
+    signal a_bits[64] <== Num2Bits(64)(a);
+
+    sign <== a_bits[0];
 }
 
 // Helper functions
