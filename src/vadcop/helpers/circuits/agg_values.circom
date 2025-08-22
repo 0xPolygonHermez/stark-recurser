@@ -72,10 +72,10 @@ template AggregateProofs(n) {
     signal input nAggregatedProofs[n];
     signal output totalAggregatedProofs;
 
-    signal values[n];
     signal nPartialAggregatedProofs[n];
 
     nPartialAggregatedProofs[0] <== nAggregatedProofs[0];
+    LessThan20Bits()(nAggregatedProofs[0]);
 
     for (var i = 1; i < n; i++) {
         LessThan20Bits()(nAggregatedProofs[i]);
