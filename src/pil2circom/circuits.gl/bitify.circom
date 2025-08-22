@@ -1,5 +1,11 @@
 pragma circom 2.1.0;
 
+template LessThan20Bits() {
+    signal input in;
+
+    _ <== Num2Bits(20)(in);    
+}
+
 template Num2Bits(n) {
     signal input in;
     signal output {binary} out[n];

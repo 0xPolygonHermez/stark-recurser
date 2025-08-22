@@ -45,6 +45,7 @@ template Recursive2() {
     for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length %>; i++) {
         aggregationTypes[i] <== a_sv_aggregationTypes[i];
         a_sv_aggregationTypes[i] === b_sv_aggregationTypes[i];
+        a_sv_aggregationTypes[i] === c_sv_aggregationTypes[i];
     }
 <%  } -%>
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vA", prefix: "a", starkInfo, nPublics: vadcopInfo.nPublics }); %>

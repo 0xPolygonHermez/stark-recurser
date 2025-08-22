@@ -4,6 +4,8 @@
 
     <%- componentName %>.publics[<%- nPublicsInps++ %>] <== <%- prefix_ %>circuitType;
 
+    <%= componentName %>.publics[<%- nPublicsInps++ %>] <== <%- prefix_ %>aggregatedProofs;
+
 <%  if(vadcopInfo.aggTypes[airgroupId].length  > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.aggTypes[airgroupId].length  %>; i++) {
         <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- options.addPrefixAggTypes ? prefix_ : "" %>aggregationTypes[i];

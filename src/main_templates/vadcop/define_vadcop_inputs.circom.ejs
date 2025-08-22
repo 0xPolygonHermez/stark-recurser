@@ -4,6 +4,9 @@
     signal <%- signalType %> <%- prefix_ %>circuitType;
 <%  if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}circuitType`) -%>
 
+    signal <%- signalType %> <%- prefix_ %>aggregatedProofs;
+<%  if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}aggregatedProofs`) -%>
+
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     signal <%- signalType %> <%- prefix_ %>aggregationTypes[<%- vadcopInfo.aggTypes[airgroupId].length  %>];
 <%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}aggregationTypes`) -%>
