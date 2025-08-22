@@ -6,6 +6,7 @@ include "<%- verifierFilenames[i] %>";
 <% } -%>
 include "iszero.circom";
 include "select_vk.circom";
+include "agg_values.circom";
 
 <%- include('src/vadcop/helpers/templates/verify_global_challenge.circom.ejs', { vadcopInfo }); %>
 
@@ -79,6 +80,15 @@ template Final() {
     verifyGlobalConstraints.s<%- i %>_airgroupvalues <== s<%- i %>_sv_airgroupvalues;
 <%  } -%>
 <%  } -%>
+
+    signal {binary} isNull[<%- vadcopInfo.aggTypes.length %>];
+    signal nAggregatedProofs[<%- vadcopInfo.aggTypes.length %>];
+<%  for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
+    isNull[<%- i %>] <== IsZero()(s<%- i %>_sv_circuitType);
+    nAggregatedProofs[<%- i %>] <== s<%- i %>_sv_aggregatedProofs;
+<%  } -%>
+    _ <== AggregateProofsNull(<%- vadcopInfo.aggTypes.length %>)(nAggregatedProofs, isNull);
+
 }
 
 component main <%- vadcopInfo.nPublics > 0 ? "{public [publics]}" : ""%>= Final();

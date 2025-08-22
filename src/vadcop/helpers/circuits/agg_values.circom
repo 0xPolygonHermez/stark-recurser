@@ -2,6 +2,8 @@ pragma circom 2.1.0;
 pragma custom_templates;
 
 include "mux1.circom";
+include "bitify.circom";
+
 
 template AggregateAirgroupValues() {
     signal input airgroupValueA[3];
@@ -41,4 +43,45 @@ template AggregateAirgroupValuesNull() {
 
     // Either add or multiply the airgroupvalues according to the aggregation type and then return the result
     airgroupValueAB <== MultiMux1(3)(values, aggregationType);
+}
+
+template AggregateProofsNull(n) {
+    signal input nAggregatedProofs[n];
+    signal input {binary} isNull[n];
+
+    signal output totalAggregatedProofs;
+
+    signal values[n];
+    signal nPartialAggregatedProofs[n];
+
+    values[0] <== (1 - isNull[0]) * nAggregatedProofs[0];
+    LessThan20Bits()(values[0]);
+    nPartialAggregatedProofs[0] <== values[0];
+
+    for (var i = 1; i < n; i++) {
+        values[i] <== (1 - isNull[i]) * nAggregatedProofs[i];
+        LessThan20Bits()(values[i]);
+        nPartialAggregatedProofs[i] <== nPartialAggregatedProofs[i - 1] + values[i];
+        LessThan20Bits()(nPartialAggregatedProofs[i]);
+    }
+
+    totalAggregatedProofs <== nPartialAggregatedProofs[n - 1];
+}
+
+template AggregateProofs(n) {
+    signal input nAggregatedProofs[n];
+    signal output totalAggregatedProofs;
+
+    signal values[n];
+    signal nPartialAggregatedProofs[n];
+
+    nPartialAggregatedProofs[0] <== nAggregatedProofs[0];
+
+    for (var i = 1; i < n; i++) {
+        LessThan20Bits()(nAggregatedProofs[i]);
+        nPartialAggregatedProofs[i] <== nPartialAggregatedProofs[i - 1] + nAggregatedProofs[i];
+        LessThan20Bits()(nPartialAggregatedProofs[i]);
+    }
+
+    totalAggregatedProofs <== nPartialAggregatedProofs[n - 1];
 }
