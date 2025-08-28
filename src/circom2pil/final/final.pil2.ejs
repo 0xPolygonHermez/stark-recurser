@@ -305,7 +305,7 @@ function evpol4(const expr coefs[][], const expr x[], const expr res[], const ex
     sel * (acc[4][2] - res[2]) === 0;
 }
 
-airtemplate Final (const int N, const int nPlonkRows, const int nPoseidonCompressor, const int nPoseidonSponge, const int nCMulRows, const int nEvPol4, const int nFFT4, const int nTreeSelector4) {
+airtemplate <%= namespaceName %> (const int N, const int nPlonkRows, const int nPoseidonCompressor, const int nPoseidonSponge, const int nCMulRows, const int nEvPol4, const int nFFT4, const int nTreeSelector4) {
     col witness a[42];
 
     #pragma fixed_external
@@ -443,6 +443,6 @@ set_max_constraint_degree(<%- maxConstraintDegree %>);
 
 public publics[<%- nPublics %>];
 
-airgroup Final  {
-    Final (N: 2**<%- nBits %>, nPlonkRows: <%- nPlonkRows %>, nPoseidonCompressor: <%- nPoseidonCompressor %>, nPoseidonSponge: <%- nPoseidonSponge %>, nCMulRows: <%- nCMulRows %>, nEvPol4: <%- nEvPol4 %>, nFFT4: <%- nFFT4 %>, nTreeSelector4: <%- nTreeSelector4 %>);
+airgroup <%- namespaceName %>  {
+    <%- namespaceName %> (N: 2**<%- nBits %>, nPlonkRows: <%- nPlonkRows %>, nPoseidonCompressor: <%- nPoseidonCompressor %>, nPoseidonSponge: <%- nPoseidonSponge %>, nCMulRows: <%- nCMulRows %>, nEvPol4: <%- nEvPol4 %>, nFFT4: <%- nFFT4 %>, nTreeSelector4: <%- nTreeSelector4 %>);
 }

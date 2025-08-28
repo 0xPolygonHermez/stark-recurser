@@ -25,7 +25,9 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`nBits: ${nBits}, 2^nBits: ${N}`);
     
     const template = await fs.promises.readFile(path.join(__dirname, "final.pil2.ejs"), "utf8");
+    const airName = `Compressor${Math.random().toString(16).slice(2)}`;
     const obj = {
+        namespaceName: airName,
         nBits,
         nPublics,
         maxConstraintDegree: options.maxConstraintDegree || 8,
@@ -50,7 +52,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     const C = [];
     for (let i = 0; i < 10; ++i) {
         C[i] = {
-            name: `Final.C`,
+            name: `${airName}.C`,
             lengths: [i],
             values: new BigUint64Array(N),
         }
@@ -439,7 +441,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     const S = [];
     for (let i = 0; i < nColsConnections; ++i) {
         S[i] = {
-            name: `Final.S`,
+            name: `${airName}.S`,
             lengths: [i],
             values: new BigUint64Array(N),
         }
@@ -496,7 +498,7 @@ module.exports = async function plonkSetup(r1cs, options) {
         nBits,
         sMap: sMap,
         plonkAdditions,
-        airgroupName: "Final",
-        airName: "Final",
+        airgroupName: airName,
+        airName: airName,
     };
 }
