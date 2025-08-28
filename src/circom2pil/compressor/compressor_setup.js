@@ -11,7 +11,7 @@ const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P } = require("../../ut
 module.exports = async function plonkSetup(r1cs, options) {
     const committedPols = 36;
 
-    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(r1cs, 36);
+    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(r1cs);
 
     //Calculate the first power of 2 that's bigger than the number of constraints
     let nBits = log2(NUsed - 1) + 1;
