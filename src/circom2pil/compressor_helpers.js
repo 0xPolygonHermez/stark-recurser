@@ -73,7 +73,7 @@ module.exports ={
                 constraintsCustomRows++;
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
-                partialRows[k] = {nUsed: 7, custom: false, maxUsed: 8};
+                partialRows[k] = {nUsed: 7, custom: true, maxUsed: 8};
             } else {
                 partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
                 halfRows.push({nUsed: 2, custom: false, maxUsed: 8});
@@ -83,7 +83,7 @@ module.exports ={
         };
 
         console.log(`Number of totalplonk constraints: ${plonkConstraints.length}`); 
-        console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows}`);
+        console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows} in ${r} rows`);
         console.log(`Number of plonk constraints stored in custom gates: ${constraintsCustomRows}`);
 
         return r;
@@ -133,7 +133,7 @@ module.exports ={
                 constraintsCustomRows++;
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
-                partialRows[k] = {nUsed: 7, custom: false, maxUsed: 8};
+                partialRows[k] = {nUsed: 7, custom: true, maxUsed: 8};
             } else {
                 partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
                 halfRows.push({nUsed: 2, custom: false, maxUsed: 8});
@@ -143,7 +143,7 @@ module.exports ={
         };
 
         console.log(`Number of totalplonk constraints: ${plonkConstraints.length}`); 
-        console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows}`);
+        console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows} in ${r} rows`);
         console.log(`Number of plonk constraints stored in custom gates: ${constraintsCustomRows}`);
 
         return r;
