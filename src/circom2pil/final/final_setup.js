@@ -61,6 +61,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     const eightExtraConstraints = [];
     const sixExtraConstraints = [];
     const twoExtraConstraints = [];
+    const twoExtraConstraintsPoseidon = [];
 
     let partialRowsCMul = -1;
 
@@ -116,6 +117,9 @@ module.exports = async function plonkSetup(r1cs, options) {
                 C[k].values[r+i] = 0n;
             }
             
+            if(i == 0 || i == 5) {
+                twoExtraConstraintsPoseidon.push(r+i);
+            }
             if(i == 1 || i == 3 || i == 4) {
                 sixExtraConstraints.push(r+i);
             }
@@ -162,8 +166,8 @@ module.exports = async function plonkSetup(r1cs, options) {
             sMap[i][r + 5] = output[i];
         }
         
-        sMap[12][r] = first_bit;
-        sMap[13][r] = second_bit;
+        sMap[18][r + 3] = first_bit;
+        sMap[19][r + 3] = second_bit;
         for (let i = 0; i < 22; i++) {
             sMap[i + 20][r + 3] = im[i];
         }
@@ -173,6 +177,9 @@ module.exports = async function plonkSetup(r1cs, options) {
                 C[k].values[r+i] = 0n;
             }
             
+            if(i == 0 || i == 5) {
+                twoExtraConstraintsPoseidon.push(r+i);
+            }
             if(i == 1 || i == 3 || i == 4) {
                 sixExtraConstraints.push(r+i);
             }
@@ -379,6 +386,26 @@ module.exports = async function plonkSetup(r1cs, options) {
                 custom: true,
                 maxUsed: 6,
             });
+        } else if(twoExtraConstraintsPoseidon.length > 0) {
+            const row = twoExtraConstraintsPoseidon.shift();
+            C[5].values[row] = c[3];
+            C[6].values[row] = c[4];
+            C[7].values[row] = c[5];
+            C[8].values[row] = c[6];
+            C[9].values[row] = c[7];
+
+            sMap[12][row] = c[0];
+            sMap[13][row] = c[1];
+            sMap[14][row] = c[2];
+            sMap[15][row] = c[0];
+            sMap[16][row] = c[1];
+            sMap[17][row] = c[2];
+            partialRows[k] = {
+                row,
+                nUsed: 5,
+                custom: true,
+                maxUsed: 6,
+            };
         } else if (twoExtraConstraints.length > 0) {
             const row = twoExtraConstraints.shift();
             C[5].values[row] = c[3];

@@ -57,7 +57,7 @@ module.exports.getFinalCompressorConstraints = function getFinalCompressorConstr
     let nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
     
     // Calculate how many groups of two plonk constraints can be made 
-    const CPlonkConstraints = calculatePlonkConstraintsRowsFinalCompressor(plonkConstraints, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*3, nCMulRows + nTreeSelector4Rows);
+    const CPlonkConstraints = calculatePlonkConstraintsRowsFinalCompressor(plonkConstraints, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*3, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*2, nCMulRows + nTreeSelector4Rows);
 
     customGatesInfo.nPlonkRows = CPlonkConstraints;
 

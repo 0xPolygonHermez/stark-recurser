@@ -29,7 +29,7 @@ module.exports ={
         return constraints;
     },
 
-    calculatePlonkConstraintsRowsFinalCompressor: function(plonkConstraints, eightExtraConstraints, sixExtraConstraints, twoExtraConstraints) {
+    calculatePlonkConstraintsRowsFinalCompressor: function(plonkConstraints, eightExtraConstraints, sixExtraConstraints, twoExtraConstraintsPoseidon, twoExtraConstraints) {
         let partialRows = {};
         let halfRows = [];
         let r = 0;
@@ -71,9 +71,14 @@ module.exports ={
                 partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
                 halfRows.push({nUsed: 2, custom: true, maxUsed: 6});
                 constraintsCustomRows++;
+            } else if(twoExtraConstraintsPoseidon > 0) {
+                --twoExtraConstraintsPoseidon;
+                partialRows[k] = {nUsed: 5, custom: true, maxUsed: 6};
+                constraintsCustomRows++;
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
                 partialRows[k] = {nUsed: 7, custom: true, maxUsed: 8};
+                constraintsCustomRows++;
             } else {
                 partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
                 halfRows.push({nUsed: 2, custom: false, maxUsed: 8});
@@ -134,6 +139,7 @@ module.exports ={
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
                 partialRows[k] = {nUsed: 7, custom: true, maxUsed: 8};
+                constraintsCustomRows++;
             } else {
                 partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
                 halfRows.push({nUsed: 2, custom: false, maxUsed: 8});

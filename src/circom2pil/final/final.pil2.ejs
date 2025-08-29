@@ -340,13 +340,13 @@ airtemplate <%= namespaceName %> (const int N, const int nPlonkRows, const int n
     plonk([a[3], a[4], a[5]], q0, CHECK_PLONK);
     plonk([a[6], a[7], a[8]], q1, CHECK_PLONK);
     plonk([a[9], a[10], a[11]], q1, CHECK_PLONK);
-    plonk([a[12], a[13], a[14]], q1, CHECK_PLONK);
-    plonk([a[15], a[16], a[17]], q1, CHECK_PLONK);
+    plonk([a[12], a[13], a[14]], q1, CHECK_PLONK + POSEIDON_FIRST_ROUND + POSEIDON_FINAL);
+    plonk([a[15], a[16], a[17]], q1, CHECK_PLONK + POSEIDON_FIRST_ROUND + POSEIDON_FINAL);
     plonk([a[18], a[19], a[20]], q1, PLONK + POSEIDON_PARTIAL_ROUND' + CMUL + TREESELECTOR4);
     plonk([a[21], a[22], a[23]], q1, PLONK + POSEIDON_PARTIAL_ROUND' + CMUL + TREESELECTOR4);
 
-    const expr b0 = a[12];
-    const expr b1 = a[13];
+    const expr b0 = a[18]'(3);
+    const expr b1 = a[19]'(3);
 
     const expr inputO[12];
     const expr outputO[12];
