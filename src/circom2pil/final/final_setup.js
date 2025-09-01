@@ -2,16 +2,16 @@ const { assert } = require("chai");
 const fs = require("fs");
 const path = require("path");
 const ejs = require("ejs");
-const { getCompressorConstraints } = require("../compressor_constraints.js");
+const { getFinalCompressorConstraints } = require("../compressor_constraints.js");
 const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P } = require("../../utils/utils.js");
 
 /*
     Compress plonk constraints and verifies custom gates using 21 committed polynomials
 */
 module.exports = async function plonkSetup(r1cs, options) {
-    const committedPols = 36;
+    const committedPols = 42;
 
-    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(r1cs);
+    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getFinalCompressorConstraints(r1cs);
 
     //Calculate the first power of 2 that's bigger than the number of constraints
     let nBits = log2(NUsed - 1) + 1;
@@ -24,7 +24,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`NUsed: ${NUsed}`);
     console.log(`nBits: ${nBits}, 2^nBits: ${N}`);
     
-    const template = await fs.promises.readFile(path.join(__dirname, "compressor.pil2.ejs"), "utf8");
+    const template = await fs.promises.readFile(path.join(__dirname, "final.pil2.ejs"), "utf8");
     const airName = `Compressor${Math.random().toString(16).slice(2)}`;
     const obj = {
         namespaceName: airName,
@@ -59,8 +59,9 @@ module.exports = async function plonkSetup(r1cs, options) {
     }
 
     const eightExtraConstraints = [];
-    const fourExtraConstraints = [];
+    const sixExtraConstraints = [];
     const twoExtraConstraints = [];
+    const twoExtraConstraintsPoseidon = [];
 
     let partialRowsCMul = -1;
 
@@ -95,20 +96,20 @@ module.exports = async function plonkSetup(r1cs, options) {
 
         for (let i = 0; i < 12; i++) {
             sMap[i][r] = input[i];
-            sMap[i + 12][r] = round0[i];
-            sMap[i + 24][r] = round1[i];
-            sMap[i + 12][r + 1] = round2[i];
-            sMap[i + 24][r + 1] = round3[i];
-            sMap[i + 24][r + 2] = round4[i];
-            sMap[i + 12][r + 4] = round26[i];
-            sMap[i + 24][r + 4] = round27[i];
-            sMap[i + 12][r + 5] = round28[i];
-            sMap[i + 24][r + 5] = round29[i];
+            sMap[i + 18][r] = round0[i];
+            sMap[i + 30][r] = round1[i];
+            sMap[i + 18][r + 1] = round2[i];
+            sMap[i + 30][r + 1] = round3[i];
+            sMap[i + 30][r + 2] = round4[i];
+            sMap[i + 18][r + 4] = round26[i];
+            sMap[i + 30][r + 4] = round27[i];
+            sMap[i + 18][r + 5] = round28[i];
+            sMap[i + 30][r + 5] = round29[i];
             sMap[i][r + 5] = output[i];
         }
 
         for (let i = 0; i < 22; i++) {
-            sMap[i + 14][r + 3] = im[i];
+            sMap[i + 20][r + 3] = im[i];
         }
         
         for (let i = 0; i < 6; ++i) {
@@ -116,8 +117,11 @@ module.exports = async function plonkSetup(r1cs, options) {
                 C[k].values[r+i] = 0n;
             }
             
+            if(i == 0 || i == 5) {
+                twoExtraConstraintsPoseidon.push(r+i);
+            }
             if(i == 1 || i == 3 || i == 4) {
-                fourExtraConstraints.push(r+i);
+                sixExtraConstraints.push(r+i);
             }
             if(i == 2) {
                 eightExtraConstraints.push(r+i);
@@ -150,22 +154,22 @@ module.exports = async function plonkSetup(r1cs, options) {
         
         for (let i = 0; i < 12; i++) {
             sMap[i][r] = input[i];
-            sMap[i + 12][r] = round0[i];
-            sMap[i + 24][r] = round1[i];
-            sMap[i + 12][r + 1] = round2[i];
-            sMap[i + 24][r + 1] = round3[i];
-            sMap[i + 24][r + 2] = round4[i];
-            sMap[i + 12][r + 4] = round26[i];
-            sMap[i + 24][r + 4] = round27[i];
-            sMap[i + 12][r + 5] = round28[i];
-            sMap[i + 24][r + 5] = round29[i];
+            sMap[i + 18][r] = round0[i];
+            sMap[i + 30][r] = round1[i];
+            sMap[i + 18][r + 1] = round2[i];
+            sMap[i + 30][r + 1] = round3[i];
+            sMap[i + 30][r + 2] = round4[i];
+            sMap[i + 18][r + 4] = round26[i];
+            sMap[i + 30][r + 4] = round27[i];
+            sMap[i + 18][r + 5] = round28[i];
+            sMap[i + 30][r + 5] = round29[i];
             sMap[i][r + 5] = output[i];
         }
         
-        sMap[12][r + 3] = first_bit;
-        sMap[13][r + 3] = second_bit;
+        sMap[18][r + 3] = first_bit;
+        sMap[19][r + 3] = second_bit;
         for (let i = 0; i < 22; i++) {
-            sMap[i + 14][r + 3] = im[i];
+            sMap[i + 20][r + 3] = im[i];
         }
 
         for (let i = 0; i < 6; ++i) {
@@ -173,8 +177,11 @@ module.exports = async function plonkSetup(r1cs, options) {
                 C[k].values[r+i] = 0n;
             }
             
+            if(i == 0 || i == 5) {
+                twoExtraConstraintsPoseidon.push(r+i);
+            }
             if(i == 1 || i == 3 || i == 4) {
-                fourExtraConstraints.push(r+i);
+                sixExtraConstraints.push(r+i);
             }
             if(i == 2) {
                 eightExtraConstraints.push(r+i);
@@ -352,8 +359,8 @@ module.exports = async function plonkSetup(r1cs, options) {
                 custom: true,
                 maxUsed: 8,
             });
-        } else if(fourExtraConstraints.length > 0) {
-            const row = fourExtraConstraints.shift();
+        } else if(sixExtraConstraints.length > 0) {
+            const row = sixExtraConstraints.shift();
             C[0].values[row] = c[3];
             C[1].values[row] = c[4];
             C[2].values[row] = c[5];
@@ -377,8 +384,28 @@ module.exports = async function plonkSetup(r1cs, options) {
                 row,
                 nUsed: 2,
                 custom: true,
-                maxUsed: 4,
+                maxUsed: 6,
             });
+        } else if(twoExtraConstraintsPoseidon.length > 0) {
+            const row = twoExtraConstraintsPoseidon.shift();
+            C[5].values[row] = c[3];
+            C[6].values[row] = c[4];
+            C[7].values[row] = c[5];
+            C[8].values[row] = c[6];
+            C[9].values[row] = c[7];
+
+            sMap[12][row] = c[0];
+            sMap[13][row] = c[1];
+            sMap[14][row] = c[2];
+            sMap[15][row] = c[0];
+            sMap[16][row] = c[1];
+            sMap[17][row] = c[2];
+            partialRows[k] = {
+                row,
+                nUsed: 5,
+                custom: true,
+                maxUsed: 6,
+            };
         } else if (twoExtraConstraints.length > 0) {
             const row = twoExtraConstraints.shift();
             C[5].values[row] = c[3];
