@@ -705,8 +705,7 @@ template <%- calculateFRIPolName %>() {
             root = F.mul(root, invroots(starkStruct.nBits));
         }
    } -%>
-    signal den<%- i %>inv[3] <== CInv()([xacc[<%- starkStruct.steps[0].nBits-1 %>] - <%- root %> * challengeXi[0], - <%- root %> * challengeXi[1], - <%- root %> * challengeXi[2]]);
-    xDivXSubXi[<%- i %>] <== [xacc[<%- starkStruct.steps[0].nBits-1 %>] * den<%- i %>inv[0], xacc[<%- starkStruct.steps[0].nBits-1 %>] * den<%- i %>inv[1],  xacc[<%- starkStruct.steps[0].nBits-1 %>] * den<%- i %>inv[2]];
+    xDivXSubXi[<%- i %>] <== CInv()([xacc[<%- starkStruct.steps[0].nBits-1 %>] - <%- root %> * challengeXi[0], - <%- root %> * challengeXi[1], - <%- root %> * challengeXi[2]]);
 <%  } -%>
 
 <% const evalQ = unrollCode(verifierInfo.queryVerifier.code) -%>

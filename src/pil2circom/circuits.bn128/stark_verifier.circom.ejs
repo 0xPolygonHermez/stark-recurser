@@ -735,12 +735,11 @@ template parallel VerifyQuery(currStepBits, nextStepBits) {
     w<%- i %>[<%- j %>] <== GLCMul()(rootWXiInv, w<%- i %>[<%- j-1 %>]);
 <%      } -%>
     signal {maxNum} den<%- i %>[3] <== GLCSub()(X, w<%- i %>[<%- opening - 1 %>]);
-    signal {maxNum} den<%- i %>inv[3] <== GLCInv()(den<%- i %>);
+    xDivXSubXi[<%- i %>] <== GLCInv()(den<%- i %>);
 <%  } else { -%>
     signal {maxNum} den<%- i %>[3] <== GLCSub()(X, challengeXi);
-    signal {maxNum} den<%- i %>inv[3] <== GLCInv()(den<%- i %>);
+    xDivXSubXi[<%- i %>] <== GLCInv()(den<%- i %>);
 <%  } -%>
-    xDivXSubXi[<%- i %>] <== GLCMul()(X, den<%- i %>inv);
 
 <%  } -%>
 
