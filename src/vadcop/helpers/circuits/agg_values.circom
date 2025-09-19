@@ -45,6 +45,42 @@ template AggregateAirgroupValuesNull() {
     airgroupValueAB <== MultiMux1(3)(values, aggregationType);
 }
 
+template AggregateValues(n) {
+    signal input valuesA[n];
+    signal input valuesB[n];
+
+    signal output valuesAB[n];
+
+    for (var i = 0; i < n; i++) {
+        valuesAB[i] <== valuesA[i] + valuesB[i];
+    }
+}
+
+template AggregateValuesNull(n) {
+    signal input valuesA[n];
+    signal input valuesB[n];
+    signal input {binary} isNullA; // 1 if is circuit type A is 0 (null), 0 otherwise 
+    signal input {binary} isNullB; // 1 if is circuit type B is 0 (null), 0 otherwise 
+
+    signal output valuesAB[n];
+
+    // If circuit type A is null, then its values are zero;
+    signal valuesA_nullified[n];
+    for (var i = 0; i < n; i++) {
+        valuesA_nullified[i] <== (1 - isNullA) * valuesA[i];
+    }
+
+    // If circuit type B is null, then its values are zero;
+    signal valuesB_nullified[n];
+    for (var i = 0; i < n; i++) {
+        valuesB_nullified[i] <== (1 - isNullB) * valuesB[i];
+    }
+
+    for (var i = 0; i < n; i++) {
+        valuesAB[i] <== valuesA_nullified[i] + valuesB_nullified[i];
+    }
+}
+
 template AggregateProofsNull(n) {
     signal input nAggregatedProofs[n];
     signal input {binary} isNull[n];

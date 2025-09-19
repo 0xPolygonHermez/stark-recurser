@@ -20,12 +20,19 @@
 <%  nPublicsInps += 3*vadcopInfo.aggTypes[airgroupId].length ; -%>
 <%  } -%>
 
+<% if (vadcopInfo.curve != "None") { -%>
     for (var i = 0; i < 2; i++) {
         for (var j = 0; j < 5; j++) {
-            <%- componentName %>.publics[<%- nPublicsInps %> + 5*i + j] <== <%- prefix_ %>stage1HashToEC[i][j];
+            <%- componentName %>.publics[<%- nPublicsInps %> + 5*i + j] <== <%- prefix_ %>stage1Hash[i][j];
         }
     }
 <%  nPublicsInps += 10 -%>
+<% } else { -%>
+    for (var i = 0; i < <%- vadcopInfo.latticeSize %>; i++) {
+        <%- componentName %>.publics[<%- nPublicsInps %> + i] <== <%- prefix_ %>stage1Hash[i];
+    }
+<%  nPublicsInps += vadcopInfo.latticeSize -%>
+<% } -%>
 
 <%  if(vadcopInfo.nPublics > 0) { -%>
     for(var i = 0; i < <%- vadcopInfo.nPublics %>; i++) {

@@ -62,7 +62,7 @@ template Final() {
     verifyChallenges.proofValues <== proofValues;
 <%  } -%>
 <%      for(let i = 0; i < vadcopInfo.aggTypes.length; ++i) { -%>
-    verifyChallenges.stage1HashToEC[<%- i %>] <== s<%- i %>_sv_stage1HashToEC;
+    verifyChallenges.stage1Hash[<%- i %>] <== s<%- i %>_sv_stage1Hash;
 <%      } -%>
     verifyChallenges.globalChallenge <== globalChallenge;
 
