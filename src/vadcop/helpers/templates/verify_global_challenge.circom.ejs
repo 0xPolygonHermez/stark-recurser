@@ -98,7 +98,11 @@ template VerifyGlobalChallenges() {
 <%  if(vadcopInfo.proofValuesMap.length > 0) { -%>
     signal input proofValues[<%- vadcopInfo.proofValuesMap.length %>][3];
 <%  } -%>
-    signal input stage1HashToEC[<%- vadcopInfo.aggTypes.length %>][2][5];
+<%  if (vadcopInfo.curve != "None") { -%>
+    signal input stage1Hash[<%- vadcopInfo.aggTypes.length %>][2][5];
+<%  } else { -%>
+    signal input stage1Hash[<%- vadcopInfo.aggTypes.length %>][<%- vadcopInfo.latticeSize %>];
+<%  } -%>
     
     signal input globalChallenge[3];
     signal calculatedGlobalChallenge[3];
@@ -113,7 +117,11 @@ template VerifyGlobalChallenges() {
 <%       } -%>
 <%  }
     for(let k = 0; k < vadcopInfo.aggTypes.length; k++) {
-        transcript.put("stage1HashToEC[" + k + "]", 2, 5);
+        if(vadcopInfo.curve != "None") {
+            transcript.put("stage1Hash[" + k + "]", 2, 5);
+        } else {
+            transcript.put("stage1Hash[" + k + "]", vadcopInfo.latticeSize);
+        }
     }
     transcript.getField("calculatedGlobalChallenge"); -%>
 <%- transcript.getCode() %>

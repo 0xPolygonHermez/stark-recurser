@@ -11,7 +11,7 @@ class Transcript {
         this.code = [];
     }
 
-    getState(v, l) {
+    getStateEC(v, l) {
         let curveConstants = vadcopInfo.curveConstants;
         this.code.push(`signal x[${l}] <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];`);
         this.code.push(`signal y[${l}] <== [${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}, ${this.getFields1()}];\n`);
@@ -22,6 +22,26 @@ class Transcript {
         this.code.push(`var C1[5] = [${curveConstants.C1}];`);
         this.code.push(`var C2[5] = [${curveConstants.C2}];`);
         this.code.push(`${v} <== HashToCurve(A, B, Z, C1, C2)(x,y);`);    
+    }
+
+    getStateLattices(v, n) {
+        let signalName = "transcriptHash";
+        if (this.name) signalName += "_" + this.name;
+        for(let i = 0; i < 12; i++) {
+            this.code.push(`${v}[${i}] <== ${this.getFields1()};`);
+        }
+
+        for (let i = 0; i < (n - 1); ++i) {
+            const curr = `${signalName}_${this.hCnt++}`;
+
+            const inputs1 = Array.from({ length: 8 }, (_, j) => `${v}[${12*i + j}]`).join(", ");
+            const inputs2 = Array.from({ length: 4 }, (_, j) => `${v}[${12*i + 8 + j}]`).join(", ");
+
+            this.code.push(`signal ${curr}[12] <== Poseidon2(12)([${inputs1}], [${inputs2}]);`);
+            this.code.push(`for (var j = 0; j < 12; j++) {`);
+            this.code.push(`    ${v}[${12*(i + 1)} + j] <== ${curr}[j];`);
+            this.code.push(`}\n`);
+        }
     }
 
     updateState()  {
@@ -84,7 +104,7 @@ class Transcript {
 }
 -%>
 
-template CalculateStage1HashToEC() {
+template CalculateStage1Hash() {
     signal input rootC[4];
     signal input root1[4];
 
@@ -92,7 +112,11 @@ template CalculateStage1HashToEC() {
     signal input airValues[<%- starkInfo.airValuesMap.length %>][3];
 <%  } -%>
 
+<%  if(vadcopInfo.curve != "None") { -%>
     signal output P[2][5];
+<%  } else { -%>
+    signal output values[<%- vadcopInfo.latticeSize %>];
+<%  } -%>
 
 <%  const transcriptStage = new Transcript(); -%>
 <%  transcriptStage.put("rootC", 4); -%>
@@ -105,6 +129,10 @@ template CalculateStage1HashToEC() {
 <%        } -%>
 <%    } -%>
 
-<%    transcriptStage.getState("P", 5); -%>
+<%  if(vadcopInfo.curve != "None") { -%>
+<%    transcriptStage.getStateEC("P", 5); -%>
+<%  } else { -%>
+<%    transcriptStage.getStateLattices("values", Math.ceil(vadcopInfo.latticeSize / 12)); -%>
+<%  } -%>
 <%-     transcriptStage.getCode(); %>
 }

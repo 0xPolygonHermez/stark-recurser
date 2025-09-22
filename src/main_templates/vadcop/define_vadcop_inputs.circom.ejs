@@ -14,5 +14,9 @@
 <%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}airgroupvalues`) -%>
 <%  } -%>
 
-    signal <%- signalType %> <%- prefix_ %>stage1HashToEC[2][5];
-<%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}stage1HashToEC`) -%>
+<%  if(vadcopInfo.curve == "None") { -%>
+    signal <%- signalType %> <%- prefix_ %>stage1Hash[<%- vadcopInfo.latticeSize %>];
+<%  } else { -%>
+    signal <%- signalType %> <%- prefix_ %>stage1Hash[2][5];
+<%  } -%>
+<%    if(Array.isArray(options.publicsNames)) options.publicsNames.push(`${prefix_}stage1Hash`) -%>

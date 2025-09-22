@@ -24,8 +24,13 @@
     signal {binary} isNull[3] <== [<%- prefix1%>_isNull, <%- prefix2%>_isNull, <%- prefix3%>_isNull];
     <%- prefix %>_aggregatedProofs <== AggregateProofsNull(3)([<%- prefix1 %>_aggregatedProofs, <%- prefix2 %>_aggregatedProofs, <%- prefix3 %>_aggregatedProofs], isNull);
 
-    signal AB_stage1HashToEC[2][5] <== AccumulatePointsNull()(<%- prefix1 %>_stage1HashToEC, <%- prefix2 %>_stage1HashToEC, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
-    <%- prefix %>_stage1HashToEC <== AccumulatePointsNull()(AB_stage1HashToEC, <%- prefix3 %>_stage1HashToEC, AB_isNull,  <%- prefix3%>_isNull);
+<%  if (vadcopInfo.curve != "None") { -%>
+    signal AB_stage1Hash[2][5] <== AccumulatePointsNull()(<%- prefix1 %>_stage1Hash, <%- prefix2 %>_stage1Hash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+    <%- prefix %>_stage1Hash <== AccumulatePointsNull()(AB_stage1Hash, <%- prefix3 %>_stage1Hash, AB_isNull,  <%- prefix3%>_isNull);
+<%  } else { -%>
+    signal AB_stage1Hash[<%- vadcopInfo.latticeSize %>] <== AggregateValuesNull(<%- vadcopInfo.latticeSize %>)(<%- prefix1 %>_stage1Hash, <%- prefix2 %>_stage1Hash, <%- prefix1%>_isNull, <%- prefix2%>_isNull);
+    <%- prefix %>_stage1Hash <== AggregateValuesNull(<%- vadcopInfo.latticeSize %>)(AB_stage1Hash, <%- prefix3 %>_stage1Hash, AB_isNull,  <%- prefix3%>_isNull);
+<%  } -%>
 <%  } else { -%>
 <%  if(vadcopInfo.aggTypes[airgroupId].length > 0) { -%>
     signal airgroupValuesAB[<%- vadcopInfo.aggTypes[airgroupId].length %>][3];
@@ -38,6 +43,11 @@
 
     <%- prefix %>_aggregatedProofs <== AggregateProofs(3)([<%- prefix1 %>_aggregatedProofs, <%- prefix2 %>_aggregatedProofs, <%- prefix3 %>_aggregatedProofs]);
 
-    signal AB_stage1HashToEC[2][5] <== AccumulatePoints()(<%- prefix1 %>_stage1HashToEC, <%- prefix2 %>_stage1HashToEC);
-    <%- prefix %>_stage1HashToEC <== AccumulatePoints()(AB_stage1HashToEC, <%- prefix3 %>_stage1HashToEC);
+<%  if (vadcopInfo.curve != "None") { -%>
+    signal AB_stage1Hash[2][5] <== AccumulatePoints()(<%- prefix1 %>_stage1Hash, <%- prefix2 %>_stage1Hash);
+    <%- prefix %>_stage1Hash <== AccumulatePoints()(AB_stage1Hash, <%- prefix3 %>_stage1Hash);
+<%  } else { -%>
+    signal AB_stage1Hash[<%- vadcopInfo.latticeSize %>] <== AggregateValues(<%- vadcopInfo.latticeSize %>)(<%- prefix1 %>_stage1Hash, <%- prefix2 %>_stage1Hash);
+    <%- prefix %>_stage1Hash <== AggregateValues(<%- vadcopInfo.latticeSize %>)(AB_stage1Hash, <%- prefix3 %>_stage1Hash);
+<%  } -%>
 <%  } -%>
