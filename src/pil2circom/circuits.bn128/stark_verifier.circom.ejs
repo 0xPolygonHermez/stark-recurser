@@ -187,9 +187,13 @@ class Transcript {
 <%            if(val < 0n) val = F.add(BigInt(val),18446744069414584321n); -%>
 <%            if(!((BigInt(val) + "_" + destDim) in values)) {     -%>
 <%                 if(destDim === 1) { -%>
-    signal {maxNum} constValue_<%- c %> <== GLConst(<%- val %>)();
+    signal {maxNum} constValue_<%- c %>;
+    constValue_<%- c %>.maxNum = q;
+    constValue_<%- c %> <== GLConst(<%- val %>)();
 <%                 } else { -%>
-    signal {maxNum} constValue_<%- c %>[3] <== GLConst3(<%- val %>)();
+    signal {maxNum} constValue_<%- c %>[3];
+    constValue_<%- c %>.maxNum = q;
+    constValue_<%- c %> <== GLConst3(<%- val %>)();
 <%                 } -%>
 <%                    values[BigInt(val) + "_" + destDim] = "constValue_" + c++;                                    -%>
 <%            }                                                                                         -%>
@@ -216,11 +220,15 @@ class Transcript {
 <%          if(inst.src[1].type === "number") val1 = BigInt(inst.src[1].value) >= 0n ? BigInt(inst.src[1].value) : F.add(BigInt(inst.src[1].value), 18446744069414584321n); -%>
 <%          if(inst.src[0].dim === 1 && inst.src[1].dim === 3 && (inst.src[0].type !== "number" 
                 || (val0 !== 0n && !((val0 + "_" + inst.dest.dim) in values)))) {                        -%>
-    signal {maxNum} <%- "value_" + v %>[3] <== GLC3()(<%- ina %>);
+    signal {maxNum} <%- "value_" + v %>[3];
+    <%- "value_" + v %>.maxNum = q;
+    <%- "value_" + v %> <== GLC3()(<%- ina %>);
 <%          ina = "value_" + v++;                                                       -%>
 <%          } else if (inst.src[0].dim === 3 && inst.src[1].dim === 1 && (inst.src[1].type !== "number" 
                 || (val1 !== 0n && !((val1 + "_" + inst.dest.dim) in values)))) {                -%>
-    signal {maxNum} <%- "value_" + v %>[3] <== GLC3()(<%- inb %>);
+    signal {maxNum} <%- "value_" + v %>[3];
+    <%- "value_" + v %>.maxNum = q;
+    <%- "value_" + v %> <== GLC3()(<%- inb %>);
 <%          inb = "value_" + v++;                                                       -%>
 <%          }                                                                           -%>
 <%      } else if (inst.op == "copy") {                                                 -%>
@@ -228,29 +236,47 @@ class Transcript {
 <%      }   -%>
 <%      if (inst.op == "add") {                                                         -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
-    signal {maxNum} <%- ref(inst.dest) %> <== GLAdd()(<%- ina %>,<%- inb %>);
+    signal {maxNum} <%- ref(inst.dest) %>;
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLAdd()(<%- ina %>,<%- inb %>);
 <%          } else if ([1,3].includes(inst.src[0].dim) && [1,3].includes(inst.src[1].dim)) { -%>
-    signal {maxNum} <%- ref(inst.dest) %>[3] <== GLCAdd()(<%- ina %>, <%- inb %>);
+    signal {maxNum} <%- ref(inst.dest) %>[3];
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLCAdd()(<%- ina %>, <%- inb %>);
 <%          } else throw new Error("Invalid src dimensions");                          -%>
 <%      } else if (inst.op == "sub") {                                                  -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
-    signal {maxNum} <%- ref(inst.dest) %> <== GLSub()(<%- ina %>,<%- inb %>);
+    signal {maxNum} <%- ref(inst.dest) %>;
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLSub()(<%- ina %>,<%- inb %>);
 <%          } else if ((inst.src[0].dim==1) && (inst.src[1].dim==3)) {                  -%>
-    signal {maxNum} <%- ref(inst.dest) %>[3] <== GLCSub()(<%- ina %>, <%- inb %>);
+    signal {maxNum} <%- ref(inst.dest) %>[3];
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLCSub()(<%- ina %>, <%- inb %>);
 <%          } else if ((inst.src[0].dim==3) && (inst.src[1].dim==1)) {                  -%>
 <%              if(inst.src[1].type !== "number" || BigInt(inst.src[1].value) !== 0n) { -%>
-    signal {maxNum} <%- ref(inst.dest) %>[3] <== GLCSub()(<%- ina %>, <%- inb %>);
+    signal {maxNum} <%- ref(inst.dest) %>[3];
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLCSub()(<%- ina %>, <%- inb %>);
 <%              } else { -%>
-    signal {maxNum} <%- ref(inst.dest) %>[3] <== GLCCopy()(<%- ina %>);
+    signal {maxNum} <%- ref(inst.dest) %>[3];
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLCCopy()(<%- ina %>);
 <%              } -%>
 <%          } else if ((inst.src[0].dim==3) && (inst.src[1].dim==3)) {                  -%>
-    signal {maxNum} <%- ref(inst.dest) %>[3] <== GLCSub()(<%- ina %>, <%- inb %>);
+    signal {maxNum} <%- ref(inst.dest) %>[3];
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLCSub()(<%- ina %>, <%- inb %>);
 <%          } else throw new Error("Invalid src dimensions");                          -%>
 <%      } else if (inst.op == "mul") {                                                  -%>
 <%          if ((inst.src[0].dim==1) && (inst.src[1].dim==1)) {                         -%>
-    signal {maxNum} <%- ref(inst.dest) %> <== GLMul()(<%- ina %>,<%- inb %>);
+    signal {maxNum} <%- ref(inst.dest) %>;
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLMul()(<%- ina %>,<%- inb %>);
 <%          } else if ([1,3].includes(inst.src[0].dim) && [1,3].includes(inst.src[1].dim)) { -%>
-    signal {maxNum} <%- ref(inst.dest) %>[3] <== GLCMul()(<%- ina %>, <%- inb %>);
+    signal {maxNum} <%- ref(inst.dest) %>[3];
+    <%- ref(inst.dest) %>.maxNum = q;
+    <%- ref(inst.dest) %> <== GLCMul()(<%- ina %>, <%- inb %>);
 <%          } else throw new Error("Invalid src dimensions");                          -%>
 <%      } else if (inst.op == "copy") {                                                 -%>
 <%          if (inst.src[0].dim==1) {                                                   -%>
@@ -480,27 +506,43 @@ template parallel VerifyFRI(prevStepBits, currStepBits, nextStepBits, e0, e1) {
         s_X.maxNum = s_sx.maxNum;
         s_X <== [s_sx[currStepBits - 2], 0, 0];
     } else {
-        signal {maxNum} inp1 <== GLConst(e0)();
+        signal {maxNum} inp1;
+        inp1.maxNum = q;
+        inp1 <== GLConst(e0)();
         signal {maxNum} inp2;
         inp2.maxNum = q;
         inp2 <== queriesFRI[0] * (invroots(prevStepBits) -1) + 1;
 
-        signal {maxNum} mul <== GLMul()(inp1, inp2);
+        signal {maxNum} mul;
+        mul.maxNum = q;
+        mul <== GLMul()(inp1, inp2);
         s_X.maxNum = mul.maxNum;
         s_X <== [mul, 0, 0];
     }
 
-    signal {maxNum} coefs[1 << step][3] <== FFT(step, 1)(s_vals_curr);
-    signal {maxNum} evalXprime[3] <== GLCMul()(challengeFRIStep, s_X);
-    signal {maxNum} evalPol[3] <== EvalPol(1 << step)(coefs, evalXprime);
+    signal {maxNum} coefs[1 << step][3];
+    coefs.maxNum = q;
+    coefs <== FFT(step, 1)(s_vals_curr);
+    signal {maxNum} evalXprime[3];
+    evalXprime.maxNum = q;
+    evalXprime <== GLCMul()(challengeFRIStep, s_X);
+    signal {maxNum} evalPol[3];
+    evalPol.maxNum = q;
+    evalPol <== EvalPol(1 << step)(coefs, evalXprime);
     
     signal {binary} s_keys_lowValues[nextStep];
     for(var i = 0; i < nextStep; i++) { s_keys_lowValues[i] <== queriesFRI[i + nextStepBits]; } 
-    signal {maxNum} lowValues[3] <== TreeSelector(nextStep, 3)(s_vals_next, s_keys_lowValues);
+    signal {maxNum} lowValues[3];
+    lowValues.maxNum = q;
+    lowValues <== TreeSelector(nextStep, 3)(s_vals_next, s_keys_lowValues);
 
-    signal {maxNum} vals[3] <== GLCSub()(evalPol, lowValues);
-    signal {maxNum} normC[3] <== GLCNorm()(vals);
-    
+    signal {maxNum} vals[3];
+    vals.maxNum = q;
+    vals <== GLCSub()(evalPol, lowValues);
+    signal {maxNum} normC[3];
+    normC.maxNum = q;
+    normC <== GLCNorm()(vals);
+
     enable * normC[0] === 0;
     enable * normC[1] === 0;
     enable * normC[2] === 0;
@@ -544,12 +586,20 @@ template parallel VerifyEvaluations() {
     oneGL <== [1,0,0];
 
     // Store the vanishing polynomial Zh = x^nBits - 1 evaluated at z
-    signal {maxNum} Z[3] <== GLCSub()(zMul[<%- starkStruct.nBits - 1 %>], oneGL);
-    signal {maxNum} Zh[3] <== GLCInv()(Z);
+    signal {maxNum} Z[3];
+    Z.maxNum = q;
+    Z <== GLCSub()(zMul[<%- starkStruct.nBits - 1 %>], oneGL);
+    signal {maxNum} Zh[3];
+    Zh.maxNum = q;
+    Zh <== GLCInv()(Z);
 
 <%  if(starkInfo.boundaries.map(b => b.name).includes("firstRow")) { -%>
-    signal {maxNum} Zf[3] <== GLCSub()(challengeXi, oneGL);
-    signal {maxNum} Zfirst[3] <== GLCInv()(Zf);
+    signal {maxNum} Zf[3];
+    Zf.maxNum = q;
+    Zf <== GLCSub()(challengeXi, oneGL);
+    signal {maxNum} Zfirst[3];
+    Zfirst.maxNum = q;
+    Zfirst <== GLCInv()(Zf);
 <%  } -%>
 
 <%  if(starkInfo.boundaries.map(b => b.name).includes("lastRow")) { -%>
@@ -562,8 +612,12 @@ template parallel VerifyEvaluations() {
     rootGL.maxNum = root;
     rootGL <== [<%- root %>,0,0];
 
-    signal {maxNum} Zl[3] <== GLCSub(challengeXi, rootGL);
-    signal {maxNum} Zlast[3] <== GLCInv()(Zl);
+    signal {maxNum} Zl[3];
+    Zl.maxNum = q;
+    Zl <== GLCSub(challengeXi, rootGL);
+    signal {maxNum} Zlast[3];
+    Zlast.maxNum = q;
+    Zlast <== GLCInv()(Zl);
 <%  } -%>
 
 <%  if(starkInfo.boundaries.map(b => b.name).includes("everyFrame")) { -%>
@@ -572,7 +626,9 @@ template parallel VerifyEvaluations() {
 <%      let frame = constraintFrames[i]; -%>
 <%      let c = 0; -%>
     signal {maxNum} Zframe<%- i %>[<%- frame.offsetMin + frame.offsetMax %>][3];
+    Zframe<%- i %>.maxNum = q;
     signal {maxNum} Zf<%- i %>[<%- frame.offsetMin + frame.offsetMax %>][3];
+    Zf<%- i %>.maxNum = q;
     signal {maxNum} root<%- i %>GL[<%- frame.offsetMin + frame.offsetMax %>][3];
     root<%- i %>GL.maxNum = q;
 <%      for(let j = 0; j < frame.offsetMin; j++) { -%>
@@ -634,8 +690,13 @@ template parallel VerifyEvaluations() {
     }
 
     // Final normalization
-    signal {maxNum} vals[3] <== GLCSub()(<%- evalP %>, qAcc[<%- starkInfo.qDeg-1 %>]);
-    signal {maxNum} normC[3] <== GLCNorm()(vals);
+    signal {maxNum} vals[3];
+    vals.maxNum = q;
+    vals <== GLCSub()(<%- evalP %>, qAcc[<%- starkInfo.qDeg-1 %>]);
+
+    signal {maxNum} normC[3];
+    normC.maxNum = q;
+    normC <== GLCNorm()(vals);
 
     // Final Verification
     enable * normC[0] === 0;
@@ -716,6 +777,7 @@ template parallel VerifyQuery(currStepBits, nextStepBits) {
 <% }                                    -%>
 
     signal {maxNum} xDivXSubXi[<%- starkInfo.openingPoints.length %>][3];
+    xDivXSubXi.maxNum = q;
 
     signal {maxNum} rootWXi[3];
     rootWXi.maxNum = q;
@@ -735,10 +797,14 @@ template parallel VerifyQuery(currStepBits, nextStepBits) {
 <%  let rootsFunction = opening > 0 ? 'rootWXi' : 'rootWXiInv'; -%>
     w<%- i %>[<%- j %>] <== GLCMul()(rootWXiInv, w<%- i %>[<%- j-1 %>]);
 <%      } -%>
-    signal {maxNum} den<%- i %>[3] <== GLCSub()(X, w<%- i %>[<%- Math.abs(opening) - 1 %>]);
+    signal {maxNum} den<%- i %>[3];
+    den<%- i %>.maxNum = q;
+    den<%- i %> <== GLCSub()(X, w<%- i %>[<%- Math.abs(opening) - 1 %>]);
     xDivXSubXi[<%- i %>] <== GLCInv()(den<%- i %>);
 <%  } else { -%>
-    signal {maxNum} den<%- i %>[3] <== GLCSub()(X, challengeXi);
+    signal {maxNum} den<%- i %>[3];
+    den<%- i %>.maxNum = q;
+    den<%- i %> <== GLCSub()(X, challengeXi);
     xDivXSubXi[<%- i %>] <== GLCInv()(den<%- i %>);
 <%  } -%>
 
@@ -747,18 +813,26 @@ template parallel VerifyQuery(currStepBits, nextStepBits) {
 <% const evalQ = unrollCode(verifierInfo.queryVerifier.code) -%>
 
     // Final Normalization
-    signal queryVals[3] <== GLCNorm()(<%- evalQ %>);
+    signal {maxNum} queryVals[3];
+    queryVals.maxNum = q;
+    queryVals <== GLCNorm()(<%- evalQ %>);
 
     signal {binary} s0_keys_lowValues[nextStep];
     for(var i = 0; i < nextStep; i++) {
         s0_keys_lowValues[i] <== queriesFRI[i + nextStepBits];
     } 
    
-    signal {maxNum} lowValues[3] <== TreeSelector(nextStep, 3)(s1_vals, s0_keys_lowValues);
+    signal {maxNum} lowValues[3];
+    lowValues.maxNum = q;
+    lowValues <== TreeSelector(nextStep, 3)(s1_vals, s0_keys_lowValues);
 
-    signal {maxNum} vals[3] <== GLCSub()(<%- evalQ %>, lowValues);
-    signal {maxNum} normC[3] <== GLCNorm()(vals);
-    
+    signal {maxNum} vals[3];
+    vals.maxNum = q;
+    vals <== GLCSub()(<%- evalQ %>, lowValues);
+    signal {maxNum} normC[3];
+    normC.maxNum = q;
+    normC <== GLCNorm()(vals);
+
     enable * normC[0] === 0;
     enable * normC[1] === 0;
     enable * normC[2] === 0;
@@ -825,6 +899,7 @@ template MapValues() {
 <%      for (let i=0; i< sectionsStage.length; i++) {         -%>
 <%          const p = sectionsStage[i];  -%>
 <%          if (p.dim == 1) {                                                    -%>
+    cm<%- t %>_<%- i %>.maxNum = 0xFFFFFFFFFFFFFFFF;
     cm<%- t %>_<%- i %> <== GLCopy()(vals<%- t %>[<%- p.stagePos %>]);
 <%          } else if (p.dim == 3) {                                             -%>
     cm<%- t %>_<%- i %>.maxNum = 0xFFFFFFFFFFFFFFFF;
@@ -862,6 +937,8 @@ template parallel VerifyFinalPol() {
 }
 
 template StarkVerifier() {
+    var q = 0xFFFFFFFFFFFFFFFF;
+
 <%  if(starkInfo.nPublics > 0) { -%>
     signal input publics[<%- starkInfo.nPublics %>];
 <%  } -%>
@@ -937,13 +1014,15 @@ template StarkVerifier() {
 <% } -%>
 
 <%  if(starkInfo.nPublics > 0) { -%>
-    signal {maxNum} publicsGL[<%- starkInfo.nPublics %>]; 
+    signal {maxNum} publicsGL[<%- starkInfo.nPublics %>];
+    publicsGL.maxNum = q;
     for(var i = 0; i < <%- starkInfo.nPublics %>; i++){
         publicsGL[i] <== LessThan64Bits()(publics[i]);
     }
 <%  } -%>
 
     signal {maxNum} evalsGL[<%- starkInfo.evMap.length %>][3];
+    evalsGL.maxNum = q;
     for(var i = 0; i < <%- starkInfo.evMap.length %>; i++){
         for(var j = 0; j < 3; j++) {
             evalsGL[i][j] <== LessThan64Bits()(evals[i][j]);
@@ -952,6 +1031,7 @@ template StarkVerifier() {
 
 <%  if(starkInfo.airgroupValuesMap.length > 0) { -%>
     signal {maxNum} airgroupValuesGL[<%- starkInfo.airgroupValuesMap.length %>][3];
+    airgroupValuesGL.maxNum = q;
     for(var i = 0; i < <%- starkInfo.airgroupValuesMap.length %>; i++){
         for(var j = 0; j < 3; j++) {
             airgroupValuesGL[i][j] <== LessThan64Bits()(airgroupvalues[i][j]);
@@ -963,15 +1043,20 @@ template StarkVerifier() {
 <%  const stage = i + 1; -%>
 <%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
     signal {maxNum} s0_vals<%- stage %>GL[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${stage}`] %>];
+    s0_vals<%- stage %>GL.maxNum = q;
 <% } -%>
 <% } -%>
     signal {maxNum} s0_vals<%- qStage %>GL[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${qStage}`] %>];
+    s0_vals<%- qStage %>GL.maxNum = q;
     signal {maxNum} s0_valsCGL[<%- starkStruct.nQueries %>][<%- starkInfo.nConstants%>];
+    s0_valsCGL.maxNum = q;
 <%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
     signal s0_vals_<%- starkInfo.customCommits[i].name %>_0GL[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>];
+    s0_vals_<%- starkInfo.customCommits[i].name %>_0GL.maxNum = q;
 <% }-%>
 <% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
     signal {maxNum} s<%- s %>_valsGL[<%- starkStruct.nQueries %>][<%- (1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits))*3 %>];
+    s<%- s %>_valsGL.maxNum = q;
 <% }                                                  -%>
 
     for(var i = 0; i < <%- starkStruct.nQueries %>; i++){
@@ -1006,6 +1091,7 @@ template StarkVerifier() {
     }
 
     signal {maxNum} finalPolGL[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
+    finalPolGL.maxNum = q;
     for(var i = 0; i < <%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>; i++){
         for(var j = 0; j < 3; j++) {
             finalPolGL[i][j] <== LessThan64Bits()(finalPol[i][j]);
@@ -1016,12 +1102,16 @@ template StarkVerifier() {
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  if(starkInfo.challengesMap.filter(c => c.stage === i + 1).length === 0) continue; -%>
     signal {maxNum} challengesStage<%- i + 1 %>GL[<%- starkInfo.challengesMap.filter(c => c.stage === i + 1).length %>][3];
+    challengesStage<%- i + 1 %>GL.maxNum = q;
 <%      challengeNames.push("challengesStage" + (i + 1) + "GL"); -%>
 <%  }-%>
 
     signal {maxNum} challengeQGL[3];
+    challengeQGL.maxNum = q;
     signal {maxNum} challengeXiGL[3];
+    challengeXiGL.maxNum = q;
     signal {maxNum} challengesFRIGL[2][3];
+    challengesFRIGL.maxNum = q;
 <%      challengeNames.push(...["challengeQGL", "challengeXiGL", "challengesFRIGL"]); -%>
 
     // challengesFRISteps contains the random value provided by the verifier at each step of the folding so that 
@@ -1029,7 +1119,8 @@ template StarkVerifier() {
     // Remember that, when folding, the prover does as follows: f0 = g_0 + X*g_1 + ... + (X^b)*g_b and then the 
     // verifier provides a random X so that the prover can commit it. This value is stored here.
     signal {maxNum} challengesFRIStepsGL[<%- starkStruct.steps.length -%>][3];
-    
+    challengesFRIStepsGL.maxNum = q;
+
     // Each of the queries values represented in binary
     signal {binary} queriesFRIGL[<%- starkStruct.nQueries %>][<%- starkStruct.steps[0].nBits %>];
 
@@ -1075,15 +1166,20 @@ template StarkVerifier() {
 <%  const stage = i + 1; -%>
 <%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
     signal {maxNum} s0_vals<%- stage %>_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${stage}`] %>][1];
+    s0_vals<%- stage %>_p.maxNum = q;
 <% } -%>
 <% } -%> 
     signal {maxNum} s0_vals<%- qStage %>_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${qStage}`] %>][1];
+    s0_vals<%- qStage %>_p.maxNum = q;
     signal {maxNum} s0_valsC_p[<%- starkStruct.nQueries %>][<%- starkInfo.nConstants %>][1];
+    s0_valsC_p.maxNum = q;
 <%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
     signal {maxNum} s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>][1];
+    s0_vals_<%- starkInfo.customCommits[i].name %>_0_p.maxNum = q;
 <% }-%>
 <% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
     signal {maxNum} s<%- s %>_vals_p[<%- starkStruct.nQueries %>][<%- (1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits)) %>][3]; 
+    s<%- s %>_vals_p.maxNum = q;
 <% } -%>
 
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {

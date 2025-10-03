@@ -218,6 +218,7 @@ template GLInv() {
 
     signal inv <-- _inv1(in);
 
+    out.maxNum = 0xFFFFFFFFFFFFFFFF;
     out <== LessThan64Bits()(inv);
 
     signal {maxNum} check <== GLMul()(in, out);
@@ -270,6 +271,7 @@ template GLCInv() {
     inv[1] <--  i2;
     inv[2] <--  i3;
 
+    out.maxNum = 0xFFFFFFFFFFFFFFFF;
     out[0] <== LessThan64Bits()(inv[0]);
     out[1] <== LessThan64Bits()(inv[1]);
     out[2] <== LessThan64Bits()(inv[2]);
