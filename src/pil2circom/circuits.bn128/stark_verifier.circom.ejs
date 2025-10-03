@@ -728,13 +728,14 @@ template parallel VerifyQuery(currStepBits, nextStepBits) {
 <%  for(var i=0; i<starkInfo.openingPoints.length; ++i) { -%>
 <%  const opening = Number(starkInfo.openingPoints[i]); -%>
 <%  if (opening) { -%>
-    signal {maxNum} w<%- i %>[<%- opening %>][3];
+    signal {maxNum} w<%- i %>[<%- Math.abs(opening) %>][3];
+    w<%- i %>.maxNum = q;
     w<%- i %>[0] <== GLCMul()(rootWXi, challengeXi);
 <%      for(let j = 1; j < Math.abs(opening); ++j) { -%>
 <%  let rootsFunction = opening > 0 ? 'rootWXi' : 'rootWXiInv'; -%>
     w<%- i %>[<%- j %>] <== GLCMul()(rootWXiInv, w<%- i %>[<%- j-1 %>]);
 <%      } -%>
-    signal {maxNum} den<%- i %>[3] <== GLCSub()(X, w<%- i %>[<%- opening - 1 %>]);
+    signal {maxNum} den<%- i %>[3] <== GLCSub()(X, w<%- i %>[<%- Math.abs(opening) - 1 %>]);
     xDivXSubXi[<%- i %>] <== GLCInv()(den<%- i %>);
 <%  } else { -%>
     signal {maxNum} den<%- i %>[3] <== GLCSub()(X, challengeXi);
