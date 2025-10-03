@@ -46,7 +46,7 @@ function matmul_external(in) {
 // Custom gate that calculates Poseidon hash of three inputs using Neptune optimization
 template custom extern_c Poseidon12() {
     signal input in[12];
-    signal output im[11][12];
+    signal output im[12][12];
     signal output out[12];
 
     var st[12];
@@ -75,12 +75,6 @@ template custom extern_c Poseidon12() {
         st[0] += CONSTANTS(4*12 + i);
         st[0] = st[0] ** 7;
 
-        index++;
-        if(index == 12) {
-            index = 0;
-            row++;
-        }
-
         var sum = 0;
         for(var j = 0; j < 12; j++) {
             sum += st[j];
@@ -90,11 +84,16 @@ template custom extern_c Poseidon12() {
             st[j] = st[j] * MATRIX_DIAGONAL(j);
             st[j] += sum;
         }
+        
+        index++;
+        if(i == 10 || i == 21) {
+            im[row][index] <-- 0;
+            index = 0;
+            row++;
+            im[row] <-- st;
+            row++;
+        }
     }
-
-    row++;
-    im[row] <-- st;
-    row++;
 
     for(var r = 0; r < 4; r++) {
         for(var t=0; t < 12; t++) {
@@ -118,7 +117,7 @@ template custom extern_c Poseidon12() {
 template custom extern_c CustPoseidon12() {
     signal input in[12];
     signal input key[2];
-    signal output im[11][12];
+    signal output im[12][12];
     signal output out[12];
 
     assert(key[0]*(key[0] - 1) == 0);
@@ -161,10 +160,10 @@ template custom extern_c CustPoseidon12() {
     var st[12] = initialSt;
     var row = 0;
     var index = 0;
-    im[row] <-- st;
-    row++;
 
     st = matmul_external(st);
+    im[row] <-- st;
+    row++;
     for(var r = 0; r < 4; r++) {
         for(var t=0; t < 12; t++) {
             st[t] = st[t] + CONSTANTS(12*r + t);
@@ -182,12 +181,6 @@ template custom extern_c CustPoseidon12() {
         st[0] += CONSTANTS(4*12 + r);
         st[0] = st[0] ** 7;
 
-        index++;
-        if(index == 12) {
-            index = 0;
-            row++;
-        }
-
         var sum = 0;
         for(var j = 0; j < 12; j++) {
             sum += st[j];
@@ -197,11 +190,16 @@ template custom extern_c CustPoseidon12() {
             st[j] = st[j] * MATRIX_DIAGONAL(j);
             st[j] += sum;
         }
-    }
 
-    row++;
-    im[row] <-- st;
-    row++;
+        index++;
+        if(r == 10 || r == 21) {
+            im[row][index] <-- 0;
+            index = 0;
+            row++;
+            im[row] <-- st;
+            row++;
+        }
+    }
 
     for(var r = 0; r < 4; r++) {
         for(var t=0; t < 12; t++) {

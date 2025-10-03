@@ -79,19 +79,21 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`Point check -> Processing ${poseidonGateUses.length} poseidon gates...`);
     for (let i=0; i<poseidonGateUses.length; i++) {
         const cgu = poseidonGateUses[i];
-        assert(cgu.signals.length == 13*12);
+        assert(cgu.signals.length == 14*12);
         let input = cgu.signals.slice(0, 12);
         let round0 = cgu.signals.slice(12, 24);
         let round1 = cgu.signals.slice(24, 36);
         let round2 = cgu.signals.slice(36, 48);
         let round3 = cgu.signals.slice(48, 60);
         let round4 = cgu.signals.slice(60, 72);
-        let im = cgu.signals.slice(72, 94);
-        let round26 = cgu.signals.slice(96, 108);
-        let round27 = cgu.signals.slice(108, 120);
-        let round28 = cgu.signals.slice(120, 132);
-        let round29 = cgu.signals.slice(132, 144);
-        let output = cgu.signals.slice(144, 156);
+        let im1 = cgu.signals.slice(72, 84);
+        let round15 = cgu.signals.slice(84, 96);
+        let im2 = cgu.signals.slice(96, 108);
+        let round26 = cgu.signals.slice(108, 120);
+        let round27 = cgu.signals.slice(120, 132);
+        let round28 = cgu.signals.slice(132, 144);
+        let round29 = cgu.signals.slice(144, 156);
+        let output = cgu.signals.slice(156, 168);
 
         for (let i = 0; i < 12; i++) {
             sMap[i][r] = input[i];
@@ -107,8 +109,9 @@ module.exports = async function plonkSetup(r1cs, options) {
             sMap[i][r + 5] = output[i];
         }
 
-        for (let i = 0; i < 22; i++) {
-            sMap[i + 14][r + 3] = im[i];
+        for (let i = 0; i < 11; i++) {
+            sMap[i + 14][r + 3] = im1[i];
+            sMap[i + 25][r + 3] = im2[i];
         }
         
         for (let i = 0; i < 6; ++i) {
@@ -132,7 +135,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`Point check -> Processing ${poseidonCustGateUses.length} poseidon custom gates...`);
     for (let i=0; i<poseidonCustGateUses.length; i++) {
         const cgu = poseidonCustGateUses[i];
-        assert(cgu.signals.length == 13*12 + 2);
+        assert(cgu.signals.length == 14*12 + 2);
         let input = cgu.signals.slice(0, 12);
         let first_bit = cgu.signals[12];
         let second_bit = cgu.signals[13];
@@ -141,12 +144,14 @@ module.exports = async function plonkSetup(r1cs, options) {
         let round2 = cgu.signals.slice(38, 50);
         let round3 = cgu.signals.slice(50, 62);
         let round4 = cgu.signals.slice(62, 74);
-        let im = cgu.signals.slice(74, 96);
-        let round26 = cgu.signals.slice(98, 110);
-        let round27 = cgu.signals.slice(110, 122);
-        let round28 = cgu.signals.slice(122, 134);
-        let round29 = cgu.signals.slice(134, 146);
-        let output = cgu.signals.slice(146, 158);
+        let im1 = cgu.signals.slice(74, 86);
+        let round15 = cgu.signals.slice(86, 98);
+        let im2 = cgu.signals.slice(98, 110);
+        let round26 = cgu.signals.slice(110, 122);
+        let round27 = cgu.signals.slice(122, 134);
+        let round28 = cgu.signals.slice(134, 146);
+        let round29 = cgu.signals.slice(146, 158);
+        let output = cgu.signals.slice(158, 170);
         
         for (let i = 0; i < 12; i++) {
             sMap[i][r] = input[i];
@@ -164,8 +169,9 @@ module.exports = async function plonkSetup(r1cs, options) {
         
         sMap[12][r + 3] = first_bit;
         sMap[13][r + 3] = second_bit;
-        for (let i = 0; i < 22; i++) {
-            sMap[i + 14][r + 3] = im[i];
+        for (let i = 0; i < 11; i++) {
+            sMap[i + 14][r + 3] = im1[i];
+            sMap[i + 25][r + 3] = im2[i];
         }
 
         for (let i = 0; i < 6; ++i) {

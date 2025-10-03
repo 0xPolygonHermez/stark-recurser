@@ -94,6 +94,43 @@ module.exports ={
         return r;
     },
 
+    calculatePlonkConstraintsRowsCompressorLight: function(plonkConstraints) {
+        let partialRows = {};
+        let halfRows = [];
+        let r = 0;
+
+        let constraintsPlonkRows = 0;
+        for (let i=0; i<plonkConstraints.length; i++) {
+            if ((i%10000) == 0) {
+                console.log(`Point Check -> Plonk info constraint processing... ${i}/${plonkConstraints.length}`);
+            }
+            //Each plonkConstraint has the following form: [a,b,c, qM, qL, qR, qO, qC]
+            const c = plonkConstraints[i]; 
+            const k= c.slice(3, 8).map( a=> a.toString(16)).join(","); //Calculate
+            if(partialRows[k]) {
+                constraintsPlonkRows++;
+                ++partialRows[k].nUsed;
+                if(partialRows[k].nUsed === 2 || partialRows[k].nUsed === 4) {
+                    delete partialRows[k];
+                }
+            } else if(halfRows.length > 0) {
+                partialRows[k] = halfRows.shift();
+                partialRows[k].nUsed++;
+                constraintsPlonkRows++;
+            } else {
+                partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
+                halfRows.push({nUsed: 2, custom: false, maxUsed: 4});
+                constraintsPlonkRows++;
+                r++;
+            }
+        };
+
+        console.log(`Number of totalplonk constraints: ${plonkConstraints.length}`); 
+        console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows} in ${r} rows`);
+
+        return r;
+    },
+
     calculatePlonkConstraintsRowsCompressor: function(plonkConstraints, eightExtraConstraints, fourExtraConstraints, twoExtraConstraints) {
         let partialRows = {};
         let halfRows = [];
