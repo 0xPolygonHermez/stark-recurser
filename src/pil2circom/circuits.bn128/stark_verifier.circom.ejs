@@ -731,7 +731,7 @@ template parallel VerifyQuery(currStepBits, nextStepBits) {
     w<%- i %>[<%- j + 1 %>] <== GLMul()(invroots(<%- starkStruct.nBits %>), w<%- i %>[<%- j %>]);
 <%      } -%>
 <%      } -%>
-    signal {maxNum} W<%- i %>[3] <== GLCMul()(challengeXi, [w<%- i %>[Math.abs(opening)], 0, 0]);
+    signal {maxNum} W<%- i %>[3] <== GLCMul()(challengeXi, [w<%- i %>[<%- Math.abs(opening) %>], 0, 0]);
     signal {maxNum} sub<%- i %>[3] <== GLCSub()(X, W<%- i %>);
     xDivXSubXi[<%- i %>] <== GLCInv()(sub<%- i %>);
 <%  } else { -%>
