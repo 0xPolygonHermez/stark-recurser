@@ -716,34 +716,27 @@ template parallel VerifyQuery(currStepBits, nextStepBits) {
 <% }                                    -%>
 
     signal {maxNum} xDivXSubXi[<%- starkInfo.openingPoints.length %>][3];
-
-    signal {maxNum} rootWXi[3];
-    rootWXi.maxNum = q;
-    rootWXi <== [roots(<%- starkStruct.nBits %>), 0, 0];
-
-    signal {maxNum} rootWXiInv[3];
-    rootWXiInv.maxNum = q;
-    rootWXiInv <== [invroots(<%- starkStruct.nBits %>), 0, 0];
+    xDivXSubXi.maxNum = q;
 
 <%  for(var i=0; i<starkInfo.openingPoints.length; ++i) { -%>
 <%  const opening = Number(starkInfo.openingPoints[i]); -%>
-<%  if (opening) { -%>
-    signal {maxNum} w<%- i %>[<%- Math.abs(opening) %>][3];
+    signal {maxNum} w<%- i %>[<%- Math.abs(opening) + 1 %>];
     w<%- i %>.maxNum = q;
-    w<%- i %>[0] <== GLCMul()(rootWXi, challengeXi);
-<%      for(let j = 1; j < Math.abs(opening); ++j) { -%>
-<%  let rootsFunction = opening > 0 ? 'rootWXi' : 'rootWXiInv'; -%>
-    w<%- i %>[<%- j %>] <== GLCMul()(rootWXiInv, w<%- i %>[<%- j-1 %>]);
+    w<%- i %>[0] <== 1;
+<%  if (opening) { -%>
+<%      for(let j = 0; j < Math.abs(opening); ++j) { -%>
+<%          if(opening > 0) { -%>
+    w<%- i %>[<%- j + 1 %>] <== GLMul()(roots(<%- starkStruct.nBits %>), w<%- i %>[<%- j %>]);
+<%          } else { -%>
+    w<%- i %>[<%- j + 1 %>] <== GLMul()(invroots(<%- starkStruct.nBits %>), w<%- i %>[<%- j %>]);
 <%      } -%>
-    signal {maxNum} den<%- i %>[3];
-    den<%- i %>.maxNum = q;
-    den<%- i %> <== GLCSub()(X, w<%- i %>[<%- Math.abs(opening) - 1 %>]);
-    xDivXSubXi[<%- i %>] <== GLCInv()(den<%- i %>);
+<%      } -%>
+    signal {maxNum} W<%- i %>[3] <== GLCMul()(challengeXi, [w<%- i %>[Math.abs(opening)], 0, 0]);
+    signal {maxNum} sub<%- i %>[3] <== GLCSub()(X, W<%- i %>);
+    xDivXSubXi[<%- i %>] <== GLCInv()(sub<%- i %>);
 <%  } else { -%>
-    signal {maxNum} den<%- i %>[3];
-    den<%- i %>.maxNum = q;
-    den<%- i %> <== GLCSub()(X, challengeXi);
-    xDivXSubXi[<%- i %>] <== GLCInv()(den<%- i %>);
+    signal {maxNum} sub<%- i %>[3] <== GLCSub()(X, challengeXi);
+    xDivXSubXi[<%- i %>] <== GLCInv()(sub<%- i %>);
 <%  } -%>
 
 <%  } -%>
