@@ -244,13 +244,15 @@ module.exports ={
             FFT4Parameters: {},
             EvPol4Id: 0,
             TreeSelector4Id: 0,
+            SelectVal1Id: 0,
             nCMulAdd: 0,
             nCMul:0,
             nPoseidon12: 0,
             nCustPoseidon12: 0,
             nFFT4: 0,
             nEvPol4: 0,
-            nTreeSelector4: 0
+            nTreeSelector4: 0,
+            nSelectVal1: 0
         }
     
         // Each custom gate in the r1cs has the following structure: {templateName: "Poseidon2", parameters: []}
@@ -278,6 +280,10 @@ module.exports ={
                     res.TreeSelector4Id =i;
                     assert(r1cs.customGates[i].parameters.length == 0);
                     break;
+                case "SelectValue1":
+                    res.SelectVal1Id =i;
+                    assert(r1cs.customGates[i].parameters.length == 0);
+                    break;
                 case "FFT4":
                     res.FFT4Parameters[i] = r1cs.customGates[i].parameters; 
                     break;
@@ -300,6 +306,8 @@ module.exports ={
                 res.nEvPol4 ++;
             } else if (r1cs.customGatesUses[i].id == res.TreeSelector4Id) {
                 res.nTreeSelector4 ++;
+            } else if (r1cs.customGatesUses[i].id == res.SelectVal1Id) {
+                res.nSelectVal1 ++;
             } else {
                 throw new Error("Custom gate not defined" + r1cs.customGatesUses[i].id);
             }

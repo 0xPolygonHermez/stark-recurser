@@ -18,13 +18,14 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(r1cs
     let nFFT4Rows = customGatesInfo.nFFT4;
     let nEvPol4Rows = customGatesInfo.nEvPol4;
     let nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
+    let nSelectVal1Rows = customGatesInfo.nSelectVal1;
     
     // Calculate how many groups of two plonk constraints can be made 
-    const CPlonkConstraints = calculatePlonkConstraintsRowsCompressor(plonkConstraints, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*3, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nTreeSelector4Rows, customGatesInfo.nEvPol4, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12);
+    const CPlonkConstraints = calculatePlonkConstraintsRowsCompressor(plonkConstraints, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*3, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nTreeSelector4Rows, customGatesInfo.nEvPol4, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nSelectVal1Rows);
 
     customGatesInfo.nPlonkRows = CPlonkConstraints;
 
-    let NUsed = CPlonkConstraints + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows;
+    let NUsed = CPlonkConstraints + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows + nSelectVal1Rows;
     
 
     console.log(`Number of CMul: ${customGatesInfo.nCMul} -> Constraints: ${nCMulRows}`);
@@ -34,6 +35,7 @@ module.exports.getCompressorConstraints = function getCompressorConstraints(r1cs
     console.log(`Number of FFT4: ${customGatesInfo.nFFT4} -> Constraints: ${nFFT4Rows}`);
     console.log(`Number of EvPol4: ${customGatesInfo.nEvPol4} -> Constraints: ${nEvPol4Rows}`);
     console.log(`Number of TreeSelector4: ${customGatesInfo.nTreeSelector4} -> Constraints: ${nTreeSelector4Rows}`);
+    console.log(`Number of SelectVal1: ${customGatesInfo.nSelectVal1} -> Constraints: ${nSelectVal1Rows}`);
 
     return {plonkConstraints, plonkAdditions, customGatesInfo, NUsed};
 }

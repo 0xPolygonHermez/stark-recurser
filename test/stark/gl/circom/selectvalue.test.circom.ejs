@@ -1,0 +1,17 @@
+pragma circom 2.1.0;
+pragma custom_templates;
+
+include "<%- dirName %>/../../../../src/pil2circom/circuits.gl/bitify.circom";
+include "<%- dirName %>/../../../../src/pil2circom/circuits.gl/selectval.circom";
+
+template SelectVal(arity, nLastLevels) {
+    var nBits = log2(arity);
+    signal input values[arity**nLastLevels][4];
+    signal input key;
+    signal output out[4];
+
+    signal {binary} keyTags[nLastLevels][nBits] <== Num2Ternary(nLastLevels)(key);
+
+    out <== SelectValue(arity, nLastLevels)(values, keyTags);
+}
+component main = SelectVal(3, <%- nLevels %>);

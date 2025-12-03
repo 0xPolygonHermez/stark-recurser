@@ -4,6 +4,7 @@ pragma custom_templates;
 include "linearhash.circom";
 include "merkle.circom";
 include "utils.circom";
+include "selectval.circom";
 
 /*
     Given a leaf value and its sibling path, calculate the merkle tree root 
@@ -43,4 +44,42 @@ template VerifyMerkleHash(eSize, elementsInLinear, arity, nLevels) {
     enable * (merkleRoot[1] - root[1]) === 0;
     enable * (merkleRoot[2] - root[2]) === 0;
     enable * (merkleRoot[3] - root[3]) === 0;
+}
+
+template VerifyMerkleHashUntilLevel(eSize, elementsInLinear, arity, nLevels, nLastLevels) {
+    var nBits = log2(arity);
+    signal input values[elementsInLinear][eSize]; // Values that are contained in a leaf
+    signal input siblings[nLevels][(arity - 1) * 4]; // Sibling path to calculate the merkle root given a set of values
+    signal input {binary} key[nLevels + nLastLevels][nBits]; // Defines either each element of the sibling path is the left or right one
+    signal input last_mt_levels[arity**nLastLevels][4]; // The last two levels of the merkle tree, used to optimize the verification process
+    signal input {binary} enable; // Boolean that determines either we want to check that roots matches or not
+
+    signal {binary} keys_merkle[nLevels][nBits];
+    for (var i=0; i<nLevels; i++) {
+        keys_merkle[i] <== key[i];
+    }
+    signal calculatedVal[4] <== MerkleHash(eSize, elementsInLinear, arity, nLevels)(values, siblings, keys_merkle);
+    
+    signal last_levels_keys[nLastLevels][nBits];
+    for (var i=0; i<nLastLevels; i++) {
+        for (var j=0; j<nBits; j++) {
+            last_levels_keys[i][j] <== key[nLevels + i][j];
+        }
+    }
+
+    signal expectedVal[4] <== SelectValue(arity, nLastLevels)(last_mt_levels, last_levels_keys);
+
+    // If enable is set to 1, check that the expectedRoot being calculated matches with the one sent as input
+    enable * (calculatedVal[0] - expectedVal[0]) === 0;
+    enable * (calculatedVal[1] - expectedVal[1]) === 0;
+    enable * (calculatedVal[2] - expectedVal[2]) === 0;
+    enable * (calculatedVal[3] - expectedVal[3]) === 0;
+}
+
+template VerifyMerkleRoot(nLevels, arity) {
+    signal input mt_values[arity**nLevels][4];
+    signal input root[4];
+    signal input {binary} enable;
+
+    // TODO
 }

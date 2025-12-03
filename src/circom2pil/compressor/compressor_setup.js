@@ -38,6 +38,7 @@ module.exports = async function plonkSetup(r1cs, options) {
         nFFT4: customGatesInfo.nFFT4,
         nEvPol4: customGatesInfo.nEvPol4,
         nTreeSelector4: customGatesInfo.nTreeSelector4,
+        nSelectVal1: customGatesInfo.nSelectVal1,
     };
 
     let pilStr = ejs.render(template ,  obj);
@@ -74,6 +75,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     let fft4GateUses = r1cs.customGatesUses.filter(cgu => typeof customGatesInfo.FFT4Parameters[cgu.id] !== "undefined");
     let evPol4GateUses = r1cs.customGatesUses.filter(cgu => cgu.id == customGatesInfo.EvPol4Id);
     let treeSelector4GateUses = r1cs.customGatesUses.filter(cgu => cgu.id == customGatesInfo.TreeSelector4Id);
+    let selectVal1GateUses = r1cs.customGatesUses.filter(cgu => cgu.id == customGatesInfo.SelectVal1Id);
 
 
     // Generate Custom Gate
@@ -301,6 +303,23 @@ module.exports = async function plonkSetup(r1cs, options) {
     }
 
     assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length);
+
+    console.log(`Point check -> Processing ${selectVal1GateUses.length} selectVal1 gates...`);
+    for (let i=0; i<selectVal1GateUses.length; i++) {
+        const cgu = selectVal1GateUses[i];
+        assert(cgu.signals.length === 22);
+        for (let i=0; i<22; i++) {
+            sMap[i][r] = cgu.signals[i];
+        }
+
+        for (let k=0; k<10; k++) {
+            C[k].values[r] = 0n;
+        }
+        oneExtraConstraint.push(r);
+        r += 1;
+    }
+
+    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length + selectVal1GateUses.length);
 
     // Paste plonk constraints. 
     // Each row can be split in three subsets: 
