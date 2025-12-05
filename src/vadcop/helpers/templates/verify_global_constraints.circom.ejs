@@ -28,14 +28,14 @@ class Transcript {
         if(this.name) signalName += "_" + this.name;
         if(this.hCnt > 0) {
             const firstUnused = Math.max(this.hiCnt, 4);
-            if(firstUnused < 12) {
-                this.code.push(`for(var i = ${firstUnused}; i < 12; i++){
+            if(firstUnused < 4*starkInfo.starkStruct.merkleTreeArity) {
+                this.code.push(`for(var i = ${firstUnused}; i < ${4*starkInfo.starkStruct.merkleTreeArity}; i++){
         _ <== ${signalName}_${this.hCnt -1}[i]; // Unused transcript values 
     }`)
             }  
         }
-        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[12] <== Poseidon2(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
-        for (let i=0; i<12; i++) {
+        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[${4*starkInfo.starkStruct.merkleTreeArity}] <== Poseidon2(${starkInfo.starkStruct.merkleTreeArity}, ${4*starkInfo.starkStruct.merkleTreeArity})([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+        for (let i=0; i<4*starkInfo.starkStruct.merkleTreeArity; i++) {
             this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         }
         for (let i=0; i<4; i++) {
@@ -47,7 +47,7 @@ class Transcript {
 
     getFields1() {
         if (this.out.length == 0) {
-            while (this.pending.length<8) {
+            while (this.pending.length<4*(starkInfo.starkStruct.merkleTreeArity - 1)) {
                 this.pending.push("0");
             }
             this.updateState();
@@ -70,7 +70,7 @@ class Transcript {
     _add1(a) {
         this.out = [];
         this.pending.push(a);
-        if (this.pending.length == 8) {
+        if (this.pending.length == 4*(starkInfo.starkStruct.merkleTreeArity - 1)) {
             this.updateState();
         }
     }
@@ -85,8 +85,8 @@ class Transcript {
             n2b[i] = `transcriptN2b_${this.n2bCnt++}`;
             this.code.push(`signal {binary} ${n2b[i]}[64] <== Num2Bits_strict()(${f});`);
         }
-        if(this.hiCnt < 12) {
-            this.code.push(`for(var i = ${this.hiCnt}; i < 12; i++){
+        if(this.hiCnt < 4*starkInfo.starkStruct.merkleTreeArity) {
+            this.code.push(`for(var i = ${this.hiCnt}; i < ${4*starkInfo.starkStruct.merkleTreeArity}; i++){
         _ <== ${signalName}_${this.hCnt - 1}[i]; // Unused transcript values        
     }\n`)
         }

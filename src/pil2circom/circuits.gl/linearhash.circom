@@ -3,7 +3,7 @@ pragma custom_templates;
 
 include "poseidon2.circom";
 
-template LinearHash(nInputs, eSize) {
+template LinearHash(nInputs, arity, eSize) {
 
     signal input in[nInputs][eSize];
     signal output out[4];
@@ -14,7 +14,7 @@ template LinearHash(nInputs, eSize) {
     if (nInputs*eSize <= 4) {
         nHashes = 0;
     } else {
-        nHashes = (nInputs*eSize - 1)\8 +1;
+        nHashes = (nInputs*eSize - 1)\((arity - 1)*4) +1;
     }
 
     component hash[nHashes];
@@ -40,8 +40,8 @@ template LinearHash(nInputs, eSize) {
         var curC=0;
 
         for (var i=0; i<nHashes; i++) {
-            hash[i] = Poseidon2(4);
-            for (var k=0; k<8; k++) {
+            hash[i] = Poseidon2(arity, 4);
+            for (var k=0; k<(arity - 1) * 4; k++) {
                 if (curInput<nInputs) {
                     hash[i].in[k] <== in[curInput][curC];
                     curC++;

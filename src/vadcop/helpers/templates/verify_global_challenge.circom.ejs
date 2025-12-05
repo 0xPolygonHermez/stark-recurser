@@ -20,18 +20,18 @@ class Transcript {
     updateState()  {
         let signalName = "transcriptHash";
         if(this.name) signalName += "_" + this.name;
-        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[12] <== Poseidon2(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+        this.code.push(`\n    signal ${signalName}_${this.hCnt++}[${4*starkInfo.starkStruct.merkleTreeArity}] <== Poseidon2(${starkInfo.starkStruct.merkleTreeArity}, ${4*starkInfo.starkStruct.merkleTreeArity})([${this.pending.join(',')}], [${this.state.join(',')}]);`);
 
         // Add unused transcript values
         let count = vadcopInfo.proofValuesMap.reduce((acc, item) => acc + (item.stage === 1 ? 1 : 0), 0);
-        const used_vals = (this.hCnt < Math.ceil((vadcopInfo.nPublics + count + 10*vadcopInfo.aggTypes.length) / 8)) ? 4 : 3;
-        if (used_vals < 12) {
-            this.code.push(`for (var i = ${used_vals}; i < 12; i++) {`);
+        const used_vals = (this.hCnt < Math.ceil((vadcopInfo.nPublics + count + 10*vadcopInfo.aggTypes.length) / (4*(starkInfo.starkStruct.merkleTreeArity - 1)))) ? 4 : 3;
+        if (used_vals < 4*starkInfo.starkStruct.merkleTreeArity) {
+            this.code.push(`for (var i = ${used_vals}; i < ${4*starkInfo.starkStruct.merkleTreeArity}; i++) {`);
             this.code.push(`    _ <== ${signalName}_${this.hCnt-1}[i]; // Unused transcript values`);
             this.code.push(`}\n`);
         } 
 
-        for (let i=0; i<12; i++) {
+        for (let i=0; i<4*starkInfo.starkStruct.merkleTreeArity; i++) {
             this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         }
 
@@ -45,7 +45,7 @@ class Transcript {
 
     getFields1() {
         if (this.out.length == 0) {
-            while (this.pending.length<8) {
+            while (this.pending.length<4*(starkInfo.starkStruct.merkleTreeArity - 1)) {
                 this.pending.push("0");
             }
             this.updateState();
@@ -76,7 +76,7 @@ class Transcript {
     _add1(a) {
         this.out = [];
         this.pending.push(a);
-        if (this.pending.length == 8) {
+        if (this.pending.length == 4*(starkInfo.starkStruct.merkleTreeArity - 1)) {
             this.updateState();
         }
     }

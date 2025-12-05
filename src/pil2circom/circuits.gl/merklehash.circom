@@ -21,10 +21,10 @@ template MerkleHash(eSize, elementsInLinear, arity, nLevels) {
 
     // Each leaf in the merkle tree might be composed by multiple values. Therefore, the first step is to 
     // reduce all those values into a single one by hashing all of them
-    signal linearHash[4] <== LinearHash(elementsInLinear, eSize)(values);
+    signal linearHash[4] <== LinearHash(elementsInLinear, arity, eSize)(values);
 
     // Calculate the merkle root 
-    root <== Merkle(arity, nLevels)(linearHash, siblings ,key);
+    root <== Merkle(arity, nLevels)(linearHash, siblings, key);
 }
 
 

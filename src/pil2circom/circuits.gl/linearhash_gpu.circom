@@ -14,7 +14,7 @@ template BasicLinearHash(nInputs) {
 
     var nHashes; //Stores the number of hashes needed to be performed to reduce the inputs
 
-    // To reduce the inputs, we will be using Poseidon12. Therefore, at each round we can at most reduce three elements into 
+    // To reduce the inputs, we will be using Poseidon2. Therefore, at each round we can at most reduce three elements into 
     // a single one. However, since the final hash must be the linear hash of all the inputs, at each round we will hash two
     // new elements with the previous hash obtained.
 
@@ -43,7 +43,7 @@ template BasicLinearHash(nInputs) {
         
         // Calculate the hashes
         for (var i=0; i<nHashes; i++) {
-            hash[i] = Poseidon2(4);
+            hash[i] = Poseidon2(arity,4);
             for (var k=0; k<8; k++) {
                 // Add the inputs for the Poseidon hash. If there are not enough inputs to fulfill the 8 slots, add zeros
                 if (i*8+k<nInputs) {

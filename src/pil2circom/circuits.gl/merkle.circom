@@ -23,7 +23,7 @@ template Merkle(arity, nLevels) {
         // Therefore, a 2 inputs Poseidon is being performed.
         // The key that determines which element is the left one and which one the right one is also
         // sent to the custom gate
-        hash[i] = CustPoseidon2(4);
+        hash[i] = CustPoseidon2(arity, 4);
         for (var k = 0; k<4; k++) {
             if (i>0) {
                 hash[i].in[k] <== hash[i-1].out[k];
@@ -31,7 +31,7 @@ template Merkle(arity, nLevels) {
                 hash[i].in[k] <== value[k];
             }
         }
-        for (var k=0; k<8; k++) {
+        for (var k=0; k<(arity - 1) * 4; k++) {
             hash[i].in[k+4] <== siblings[i][k];
         }
 

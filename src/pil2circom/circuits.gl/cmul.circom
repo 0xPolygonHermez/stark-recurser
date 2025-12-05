@@ -6,7 +6,7 @@ pragma custom_templates;
 // and then perform a long division by the irreductible polynomial. The residue will be the result of the operation.
 // The coefficients of the multiplication are calculated beforehand and the resulting expression is explicitly written
 // a * b = (a0*b0 + a2*b1 + a1*b2) + (a1*b0 + a0*b1 + a2*b1 + a1*b2 + a2*b2)X + (a2*b0 + a1*b1 + a0*b2 + a2*b2)X²
-template custom extern_c CMul() {
+template custom CMul() {
     signal input ina[3];
     signal input inb[3];
     signal output out[3];

@@ -131,7 +131,7 @@ module.exports ={
         return r;
     },
 
-    calculatePlonkConstraintsRowsCompressor: function(plonkConstraints, eightExtraConstraints, fourExtraConstraints, twoExtraConstraints) {
+    calculatePlonkConstraintsRowsCompressor: function(plonkConstraints, nineExtraConstraints, threeExtraConstraints, twoExtraConstraints, oneExtraConstraint) {
         let partialRows = {};
         let halfRows = [];
         let r = 0;
@@ -152,7 +152,7 @@ module.exports ={
                     constraintsPlonkRows++;
                 }
                 ++partialRows[k].nUsed;
-                if(partialRows[k].nUsed === 2 || partialRows[k].nUsed === 8 || partialRows[k].nUsed == partialRows[k].maxUsed) {
+                if(partialRows[k].nUsed === 2 || partialRows[k].nUsed === 9 || partialRows[k].nUsed == partialRows[k].maxUsed) {
                     delete partialRows[k];
                 }
             } else if(halfRows.length > 0) {
@@ -163,23 +163,25 @@ module.exports ={
                 } else {
                     constraintsPlonkRows++;
                 }
-            } else if(eightExtraConstraints > 0) {
-                --eightExtraConstraints;
+            } else if(nineExtraConstraints > 0) {
+                --nineExtraConstraints;
                 partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
-                halfRows.push({nUsed: 2, custom: true, maxUsed: 8});
+                halfRows.push({nUsed: 2, custom: true, maxUsed: 9});
                 constraintsCustomRows++;
-            } else if(fourExtraConstraints > 0) {
-                --fourExtraConstraints;
-                partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
-                halfRows.push({nUsed: 2, custom: true, maxUsed: 4});
+            } else if(threeExtraConstraints > 0) {
+                --threeExtraConstraints;
+                partialRows[k] = {nUsed: 7, custom: true, maxUsed: 9};
                 constraintsCustomRows++;
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
-                partialRows[k] = {nUsed: 7, custom: true, maxUsed: 8};
+                partialRows[k] = {nUsed: 8, custom: true, maxUsed: 9};
+                constraintsCustomRows++;
+            } else if(oneExtraConstraint > 0) {
+                --oneExtraConstraint;
                 constraintsCustomRows++;
             } else {
                 partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
-                halfRows.push({nUsed: 2, custom: false, maxUsed: 8});
+                halfRows.push({nUsed: 2, custom: false, maxUsed: 9});
                 constraintsPlonkRows++;
                 r++;
             }
@@ -251,24 +253,22 @@ module.exports ={
             nTreeSelector4: 0
         }
     
-        // Each custom gate in the r1cs has the following structure: {templateName: "Poseidon12", parameters: []}
+        // Each custom gate in the r1cs has the following structure: {templateName: "Poseidon2", parameters: []}
         // Notice that none of the custom gates will have parameters except for the FFT
         // Each FFT4 needs 4 parameters: scale, firstW, firstW2 and incW that have to be defined in order to use the custom template
         // Therefore, each FFT that uses a different set of parameters will be stored as a different custom gate in the r1cs and so
-        // we will have 1 custom gate for CMulAdd, Poseidon12 and EvPol4 and many for FFT4
+        // we will have 1 custom gate for CMulAdd, Poseidon2 and EvPol4 and many for FFT4
         for (let i=0; i<r1cs.customGates.length; i++) {
             switch (r1cs.customGates[i].templateName) {
                 case "CMul":
                     res.CMulId =i;
                     assert(r1cs.customGates[i].parameters.length == 0);
                     break;
-                case "Poseidon12":
+                case "Poseidon16":
                     res.Poseidon12Id =i;
-                    assert(r1cs.customGates[i].parameters.length == 0);
                     break;
-                case "CustPoseidon12":
+                case "CustPoseidon16":
                     res.CustPoseidon12Id =i;
-                    assert(r1cs.customGates[i].parameters.length == 0);
                     break;
                 case "EvPol4":
                     res.EvPol4Id =i;

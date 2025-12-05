@@ -3,4 +3,4 @@ pragma custom_templates;
 
 include "../../../../src/pil2circom/circuits.gl/poseidon2.circom";
 
-component main = Poseidon2(4);
+component main = Poseidon2(4, 4);

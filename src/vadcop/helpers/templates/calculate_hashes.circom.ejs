@@ -27,19 +27,19 @@ class Transcript {
     getStateLattices(v, n) {
         let signalName = "transcriptHash";
         if (this.name) signalName += "_" + this.name;
-        for(let i = 0; i < 12; i++) {
+        for(let i = 0; i < 4*starkInfo.starkStruct.merkleTreeArity; i++) {
             this.code.push(`${v}[${i}] <== ${this.getFields1()};`);
         }
 
         for (let i = 0; i < (n - 1); ++i) {
             const curr = `${signalName}_${this.hCnt++}`;
 
-            const inputs1 = Array.from({ length: 8 }, (_, j) => `${v}[${12*i + j}]`).join(", ");
-            const inputs2 = Array.from({ length: 4 }, (_, j) => `${v}[${12*i + 8 + j}]`).join(", ");
+            const inputs1 = Array.from({ length: 4*(starkInfo.starkStruct.merkleTreeArity - 1) }, (_, j) => `${v}[${4*starkInfo.starkStruct.merkleTreeArity*i + j}]`).join(", ");
+            const inputs2 = Array.from({ length: 4 }, (_, j) => `${v}[${4*starkInfo.starkStruct.merkleTreeArity*i + 4*(starkInfo.starkStruct.merkleTreeArity - 1) + j}]`).join(", ");
 
-            this.code.push(`signal ${curr}[12] <== Poseidon2(12)([${inputs1}], [${inputs2}]);`);
-            this.code.push(`for (var j = 0; j < 12; j++) {`);
-            this.code.push(`    ${v}[${12*(i + 1)} + j] <== ${curr}[j];`);
+            this.code.push(`signal ${curr}[${4*starkInfo.starkStruct.merkleTreeArity}] <== Poseidon2(${starkInfo.starkStruct.merkleTreeArity}, ${4*starkInfo.starkStruct.merkleTreeArity})([${inputs1}], [${inputs2}]);`);
+            this.code.push(`for (var j = 0; j < ${4*starkInfo.starkStruct.merkleTreeArity}; j++) {`);
+            this.code.push(`    ${v}[${4*starkInfo.starkStruct.merkleTreeArity*(i + 1)} + j] <== ${curr}[j];`);
             this.code.push(`}\n`);
         }
     }
@@ -47,18 +47,18 @@ class Transcript {
     updateState()  {
         let signalName = "transcriptHash";
         if (this.name) signalName += "_" + this.name;
-        this.code.push(`signal ${signalName}_${this.hCnt++}[12] <== Poseidon2(12)([${this.pending.join(',')}], [${this.state.join(',')}]);`);
+        this.code.push(`signal ${signalName}_${this.hCnt++}[${4*starkInfo.starkStruct.merkleTreeArity}] <== Poseidon2(${starkInfo.starkStruct.merkleTreeArity},${4*starkInfo.starkStruct.merkleTreeArity})([${this.pending.join(',')}], [${this.state.join(',')}]);`);
 
         // Add unused transcript values
         let count = starkInfo.airValuesMap.reduce((acc, item) => acc + (item.stage === 1 ? 1 : 0), 0);
-        const used_vals = (this.hCnt < Math.ceil(count / 8) + 1) ? 4 : 10;
-        if (used_vals < 12) {
-            this.code.push(`for (var i = ${used_vals}; i < 12; i++) {`);
+        const used_vals = (this.hCnt < Math.ceil(count / (4*(starkInfo.starkStruct.merkleTreeArity - 1))) + 1) ? 4 : 10;
+        if (used_vals < 4*starkInfo.starkStruct.merkleTreeArity) {
+            this.code.push(`for (var i = ${used_vals}; i < ${4*starkInfo.starkStruct.merkleTreeArity}; i++) {`);
             this.code.push(`    _ <== ${signalName}_${this.hCnt-1}[i]; // Unused transcript values`);
             this.code.push(`}\n`);
         } 
 
-        for (let i=0; i<12; i++) {
+        for (let i=0; i<4*starkInfo.starkStruct.merkleTreeArity; i++) {
             this.out[i] = `${signalName}_${this.hCnt-1}[${i}]`;
         }
         for (let i=0; i<4; i++) {
@@ -69,7 +69,7 @@ class Transcript {
 
     getFields1() {
         if (this.out.length == 0) {
-            while (this.pending.length<8) {
+            while (this.pending.length<4*(starkInfo.starkStruct.merkleTreeArity - 1)) {
                 this.pending.push("0");
             }
             this.updateState();
@@ -90,7 +90,7 @@ class Transcript {
     _add1(a) {
         this.out = [];
         this.pending.push(a);
-        if (this.pending.length == 8) {
+        if (this.pending.length == 4*(starkInfo.starkStruct.merkleTreeArity - 1)) {
             this.updateState();
         }
     }
@@ -132,7 +132,7 @@ template CalculateStage1Hash() {
 <%  if(vadcopInfo.curve != "None") { -%>
 <%    transcriptStage.getStateEC("P", 5); -%>
 <%  } else { -%>
-<%    transcriptStage.getStateLattices("values", Math.ceil(vadcopInfo.latticeSize / 12)); -%>
+<%    transcriptStage.getStateLattices("values", Math.ceil(vadcopInfo.latticeSize / (4*starkInfo.starkStruct.merkleTreeArity))); -%>
 <%  } -%>
 <%-     transcriptStage.getCode(); %>
 }

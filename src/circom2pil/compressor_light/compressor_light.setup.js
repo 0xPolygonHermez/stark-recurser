@@ -74,7 +74,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`Point check -> Processing ${poseidonGateUses.length} poseidon gates...`);
     for (let i=0; i<poseidonGateUses.length; i++) {
         const cgu = poseidonGateUses[i];
-        assert(cgu.signals.length == 14*12);
+        assert(cgu.signals.length == 14*16);
         let input = cgu.signals.slice(0, 12);
         let round0 = cgu.signals.slice(12, 24);
         let round1 = cgu.signals.slice(24, 36);
@@ -128,7 +128,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`Point check -> Processing ${poseidonCustGateUses.length} poseidon custom gates...`);
     for (let i=0; i<poseidonCustGateUses.length; i++) {
         const cgu = poseidonCustGateUses[i];
-        assert(cgu.signals.length == 14*12 + 2);
+        assert(cgu.signals.length == 14*16 + 2);
         let input = cgu.signals.slice(0, 12);
         let first_bit = cgu.signals[12];
         let second_bit = cgu.signals[13];

@@ -6,6 +6,7 @@ const wasm_tester = require("circom_tester").wasm;
 
 describe("Poseidon2 Circuit Test", function () {
     let circuit;
+    let circuit_4;
 
     this.timeout(10000000);
 
@@ -16,16 +17,19 @@ describe("Poseidon2 Circuit Test", function () {
     it("Should calculate poseidon2", async () => {
 
         const input={
-            in: [0,1,2,3,4,5,6,7],
-            capacity: [8,9,10,11]
+            in: [0,1,2,3,4,5,6,7,8,9,10,11],
+            capacity: [12,13,14,15]
         };
-
-        const poseidon2 = await getPoseidon2();
-        
-        const res = poseidon2([0,1,2,3,4,5,6,7], [8,9,10,11]);
 
         const w = await circuit.calculateWitness(input, true);
         
+        const res = [
+            9639188652563994454n,
+            12273372933164734616n,
+            2905147255612444119n,
+            17581461329934617288n
+        ];
+
         await circuit.assertOut(w, {out: res });
     });
 });

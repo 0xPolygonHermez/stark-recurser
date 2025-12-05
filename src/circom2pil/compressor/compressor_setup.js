@@ -9,7 +9,7 @@ const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P } = require("../../ut
     Compress plonk constraints and verifies custom gates using 21 committed polynomials
 */
 module.exports = async function plonkSetup(r1cs, options) {
-    const committedPols = 36;
+    const committedPols = 59;
 
     const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(r1cs);
 
@@ -33,7 +33,7 @@ module.exports = async function plonkSetup(r1cs, options) {
         maxConstraintDegree: options.maxConstraintDegree || 8,
         nPoseidonCompressor: customGatesInfo.nCustPoseidon12,
         nPoseidonSponge: customGatesInfo.nPoseidon12,
-        nCMulRows: Math.ceil(customGatesInfo.nCMul/2),
+        nCMulRows: Math.ceil(customGatesInfo.nCMul/3),
         nPlonkRows: customGatesInfo.nPlonkRows,
         nFFT4: customGatesInfo.nFFT4,
         nEvPol4: customGatesInfo.nEvPol4,
@@ -43,7 +43,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     let pilStr = ejs.render(template ,  obj);
     
     // Stores the positions of all the values that each of the committed polynomials takes in each row 
-    // Remember that there are 36 committed polynomials and the number of rows is stored in NUsed
+    // Remember that there are 59 committed polynomials and the number of rows is stored in NUsed
     const sMap = [];
     for (let i=0;i<committedPols; i++) {
         sMap[i] = new Uint32Array(N).fill(0);
@@ -58,11 +58,13 @@ module.exports = async function plonkSetup(r1cs, options) {
         }
     }
 
-    const eightExtraConstraints = [];
-    const fourExtraConstraints = [];
+    const oneExtraConstraint = [];
     const twoExtraConstraints = [];
+    const threeExtraConstraints = [];
+    const nineExtraConstraints = [];
+    
 
-    let partialRowsCMul = -1;
+    let partialRowsCMul = {row: -1, nUsed: 0};
 
     let r = 0;
 
@@ -79,127 +81,138 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`Point check -> Processing ${poseidonGateUses.length} poseidon gates...`);
     for (let i=0; i<poseidonGateUses.length; i++) {
         const cgu = poseidonGateUses[i];
-        assert(cgu.signals.length == 14*12);
-        let input = cgu.signals.slice(0, 12);
-        let round0 = cgu.signals.slice(12, 24);
-        let round1 = cgu.signals.slice(24, 36);
-        let round2 = cgu.signals.slice(36, 48);
-        let round3 = cgu.signals.slice(48, 60);
-        let round4 = cgu.signals.slice(60, 72);
-        let im1 = cgu.signals.slice(72, 84);
-        let round15 = cgu.signals.slice(84, 96);
-        let im2 = cgu.signals.slice(96, 108);
-        let round26 = cgu.signals.slice(108, 120);
-        let round27 = cgu.signals.slice(120, 132);
-        let round28 = cgu.signals.slice(132, 144);
-        let round29 = cgu.signals.slice(144, 156);
-        let output = cgu.signals.slice(156, 168);
+        assert(cgu.signals.length == 14*16);
+        let input = cgu.signals.slice(0, 16);
+        let round0 = cgu.signals.slice(16, 32);
+        let round1 = cgu.signals.slice(32, 48);
+        let round2 = cgu.signals.slice(48, 64);
+        let round3 = cgu.signals.slice(64, 80);
+        let round4 = cgu.signals.slice(80, 96);
+        let im1 = cgu.signals.slice(96, 112);
+        let round15 = cgu.signals.slice(112, 128);
+        let im2 = cgu.signals.slice(128, 144);
+        let round26 = cgu.signals.slice(144, 160);
+        let round27 = cgu.signals.slice(160, 176);
+        let round28 = cgu.signals.slice(176, 192);
+        let round29 = cgu.signals.slice(192, 208);
+        let output = cgu.signals.slice(208, 224);
 
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 16; i++) {
             sMap[i][r] = input[i];
-            sMap[i + 12][r] = round0[i];
-            sMap[i + 24][r] = round1[i];
-            sMap[i + 12][r + 1] = round2[i];
-            sMap[i + 24][r + 1] = round3[i];
-            sMap[i + 24][r + 2] = round4[i];
-            sMap[i + 12][r + 4] = round26[i];
-            sMap[i + 24][r + 4] = round27[i];
-            sMap[i + 12][r + 5] = round28[i];
-            sMap[i + 24][r + 5] = round29[i];
-            sMap[i][r + 5] = output[i];
+            sMap[i + 27][r] = round0[i];
+            sMap[i + 43][r] = round1[i];
+            sMap[i + 27][r + 1] = round2[i];
+            sMap[i + 43][r + 1] = round3[i];
+            sMap[i + 27][r + 2] = round4[i];
+            sMap[i + 27][r + 3] = round26[i];
+            sMap[i + 43][r + 3] = round27[i];
+            sMap[i + 27][r + 4] = round28[i];
+            sMap[i + 43][r + 4] = round29[i];
+            sMap[i][r + 4] = output[i];
         }
 
         for (let i = 0; i < 11; i++) {
-            sMap[i + 14][r + 3] = im1[i];
-            sMap[i + 25][r + 3] = im2[i];
+            sMap[i + 43][r + 2] = im1[i];
+            if (i < 5) {
+                sMap[i + 54][r + 2] = im2[i];
+            } else {
+                let pos = i - 5;
+                sMap[pos + 18][r] = im2[i];
+            }
         }
         
-        for (let i = 0; i < 6; ++i) {
+        for (let i = 0; i < 5; ++i) {
             for (let k=0; k<10; k++) {
                 C[k].values[r+i] = 0n;
             }
-            
-            if(i == 1 || i == 3 || i == 4) {
-                fourExtraConstraints.push(r+i);
-            }
-            if(i == 2) {
-                eightExtraConstraints.push(r+i);
-            }
         }
+
+        oneExtraConstraint.push(r);
+        nineExtraConstraints.push(r+1);
+        nineExtraConstraints.push(r+2);
+        nineExtraConstraints.push(r+3);
+        threeExtraConstraints.push(r+4);
         
-        r+=6;
+        r+=5;
     }
 
-    assert(r == 6*poseidonGateUses.length);
+    assert(r == 5*poseidonGateUses.length);
     
     console.log(`Point check -> Processing ${poseidonCustGateUses.length} poseidon custom gates...`);
     for (let i=0; i<poseidonCustGateUses.length; i++) {
         const cgu = poseidonCustGateUses[i];
-        assert(cgu.signals.length == 14*12 + 2);
-        let input = cgu.signals.slice(0, 12);
-        let first_bit = cgu.signals[12];
-        let second_bit = cgu.signals[13];
-        let round0 = cgu.signals.slice(14, 26);
-        let round1 = cgu.signals.slice(26, 38);
-        let round2 = cgu.signals.slice(38, 50);
-        let round3 = cgu.signals.slice(50, 62);
-        let round4 = cgu.signals.slice(62, 74);
-        let im1 = cgu.signals.slice(74, 86);
-        let round15 = cgu.signals.slice(86, 98);
-        let im2 = cgu.signals.slice(98, 110);
-        let round26 = cgu.signals.slice(110, 122);
-        let round27 = cgu.signals.slice(122, 134);
-        let round28 = cgu.signals.slice(134, 146);
-        let round29 = cgu.signals.slice(146, 158);
-        let output = cgu.signals.slice(158, 170);
+        assert(cgu.signals.length == 14*16 + 2);
+        let input = cgu.signals.slice(0, 16);
+        let first_bit = cgu.signals[16];
+        let second_bit = cgu.signals[17];
+        let round0 = cgu.signals.slice(18, 34);
+        let round1 = cgu.signals.slice(34, 50);
+        let round2 = cgu.signals.slice(50, 66);
+        let round3 = cgu.signals.slice(66, 82);
+        let round4 = cgu.signals.slice(82, 98);
+        let im1 = cgu.signals.slice(98, 114);
+        let round15 = cgu.signals.slice(114, 130);
+        let im2 = cgu.signals.slice(130, 146);
+        let round26 = cgu.signals.slice(146, 162);
+        let round27 = cgu.signals.slice(162, 178);
+        let round28 = cgu.signals.slice(178, 194);
+        let round29 = cgu.signals.slice(194, 210);
+        let output = cgu.signals.slice(210, 226);
         
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 16; i++) {
             sMap[i][r] = input[i];
-            sMap[i + 12][r] = round0[i];
-            sMap[i + 24][r] = round1[i];
-            sMap[i + 12][r + 1] = round2[i];
-            sMap[i + 24][r + 1] = round3[i];
-            sMap[i + 24][r + 2] = round4[i];
-            sMap[i + 12][r + 4] = round26[i];
-            sMap[i + 24][r + 4] = round27[i];
-            sMap[i + 12][r + 5] = round28[i];
-            sMap[i + 24][r + 5] = round29[i];
-            sMap[i][r + 5] = output[i];
+            sMap[i + 27][r] = round0[i];
+            sMap[i + 43][r] = round1[i];
+            sMap[i + 27][r + 1] = round2[i];
+            sMap[i + 43][r + 1] = round3[i];
+            sMap[i + 27][r + 2] = round4[i];
+            sMap[i + 27][r + 3] = round26[i];
+            sMap[i + 43][r + 3] = round27[i];
+            sMap[i + 27][r + 4] = round28[i];
+            sMap[i + 43][r + 4] = round29[i];
+            sMap[i][r + 4] = output[i];
         }
         
-        sMap[12][r + 3] = first_bit;
-        sMap[13][r + 3] = second_bit;
+        sMap[16][r] = first_bit;
+        sMap[17][r] = second_bit;
         for (let i = 0; i < 11; i++) {
-            sMap[i + 14][r + 3] = im1[i];
-            sMap[i + 25][r + 3] = im2[i];
+            sMap[i + 43][r + 2] = im1[i];
+            if (i < 5) {
+                sMap[i + 54][r + 2] = im2[i];
+            } else {
+                let pos = i - 5;
+                sMap[pos + 18][r] = im2[i];
+            }
         }
 
         for (let i = 0; i < 6; ++i) {
             for (let k=0; k<10; k++) {
                 C[k].values[r+i] = 0n;
             }
-            
-            if(i == 1 || i == 3 || i == 4) {
-                fourExtraConstraints.push(r+i);
-            }
-            if(i == 2) {
-                eightExtraConstraints.push(r+i);
-            }
         }
 
-        r+=6;
+        oneExtraConstraint.push(r);
+        nineExtraConstraints.push(r+1);
+        nineExtraConstraints.push(r+2);
+        nineExtraConstraints.push(r+3);
+        threeExtraConstraints.push(r+4);
+
+        r+=5;
     }
 
-    assert(r == 6*poseidonGateUses.length + 6*poseidonCustGateUses.length);
+    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length);
     console.log(`Point check -> Processing ${cmulGateUses.length} cmul gates...`);
     for (let i=0; i<cmulGateUses.length; i++) {
         const cgu = cmulGateUses[i];
         assert(cgu.signals.length === 9);
-        if(partialRowsCMul !== -1) {
+        if(partialRowsCMul.row !== -1) {
             for (let i=0; i<9; i++) {
-                sMap[i + 9][partialRowsCMul] = cgu.signals[i];
+                sMap[i + 9*partialRowsCMul.nUsed][partialRowsCMul.row] = cgu.signals[i];
             }
-            partialRowsCMul = -1;
+            partialRowsCMul.nUsed++;
+            if(partialRowsCMul.nUsed === 3) {
+                partialRowsCMul = {row: -1, nUsed: 0};
+            }
         } else {
             for (let i=0; i<9; i++) {
                 sMap[i][r] = cgu.signals[i];
@@ -208,13 +221,12 @@ module.exports = async function plonkSetup(r1cs, options) {
             for (let k=0; k<10; k++) {
                 C[k].values[r] = 0n;
             }
-            partialRowsCMul = r;
-            twoExtraConstraints.push(r);
+            partialRowsCMul = {row: r, nUsed: 1};
             r += 1;
         }
     }
 
-    assert(r == 6*poseidonGateUses.length + 6*poseidonCustGateUses.length + obj.nCMulRows);
+    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows);
     console.log(`Point check -> Processing ${evPol4GateUses.length} evPol4 gates...`);
     for (let i=0; i<evPol4GateUses.length; i++) {
         const cgu = evPol4GateUses[i];
@@ -226,10 +238,11 @@ module.exports = async function plonkSetup(r1cs, options) {
             C[k].values[r] = 0n;
         }
 
+        twoExtraConstraints.push(r);
         r+= 1;
     }
 
-    assert(r == 6*poseidonGateUses.length + 6*poseidonCustGateUses.length + obj.nCMulRows + evPol4GateUses.length);
+    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + evPol4GateUses.length);
     console.log(`Point check -> Processing ${fft4GateUses.length} fft4 gates...`);
     for (let i=0; i<fft4GateUses.length; i++) {
         const cgu = fft4GateUses[i];
@@ -271,7 +284,7 @@ module.exports = async function plonkSetup(r1cs, options) {
         r += 1;
     }
 
-    assert(r == 6*poseidonGateUses.length + 6*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length);
+    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length);
     console.log(`Point check -> Processing ${treeSelector4GateUses.length} treeSelector4 gates...`);
     for (let i=0; i<treeSelector4GateUses.length; i++) {
         const cgu = treeSelector4GateUses[i];
@@ -283,11 +296,11 @@ module.exports = async function plonkSetup(r1cs, options) {
         for (let k=0; k<10; k++) {
             C[k].values[r] = 0n;
         }
-        twoExtraConstraints.push(r);
+        threeExtraConstraints.push(r);
         r += 1;
     }
 
-    assert(r == 6*poseidonGateUses.length + 6*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length);
+    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length);
 
     // Paste plonk constraints. 
     // Each row can be split in three subsets: 
@@ -309,7 +322,7 @@ module.exports = async function plonkSetup(r1cs, options) {
             sMap[pr.nUsed*3+1][pr.row] = c[1];
             sMap[pr.nUsed*3+2][pr.row] = c[2];           
             pr.nUsed++;
-            if(pr.nUsed === 2 || pr.nUsed === 8 || pr.nUsed === pr.maxUsed) {
+            if(pr.nUsed === 2 || pr.nUsed === 9 || pr.nUsed === pr.maxUsed) {
                 delete partialRows[k];
             }
         // If the constraint is not stored in partialRows (which means that there is no other row that is using this very same set of constraints and is not full)
@@ -330,8 +343,8 @@ module.exports = async function plonkSetup(r1cs, options) {
             
             pr.nUsed++;
             partialRows[k] = pr;
-        } else if(eightExtraConstraints.length > 0) {
-            const row = eightExtraConstraints.shift();
+        } else if(nineExtraConstraints.length > 0) {
+            const row = nineExtraConstraints.shift();
             C[0].values[row] = c[3];
             C[1].values[row] = c[4];
             C[2].values[row] = c[5];
@@ -356,37 +369,10 @@ module.exports = async function plonkSetup(r1cs, options) {
                 row,
                 nUsed: 2,
                 custom: true,
-                maxUsed: 8,
+                maxUsed: 9,
             });
-        } else if(fourExtraConstraints.length > 0) {
-            const row = fourExtraConstraints.shift();
-            C[0].values[row] = c[3];
-            C[1].values[row] = c[4];
-            C[2].values[row] = c[5];
-            C[3].values[row] = c[6];
-            C[4].values[row] = c[7];
-
-            sMap[0][row] = c[0];
-            sMap[1][row] = c[1];
-            sMap[2][row] = c[2];
-            sMap[3][row] = c[0];
-            sMap[4][row] = c[1];
-            sMap[5][row] = c[2];
-
-            partialRows[k] = {
-                row,
-                nUsed: 1,
-                custom: true,
-                maxUsed: 2,
-            };
-            halfRows.push({
-                row,
-                nUsed: 2,
-                custom: true,
-                maxUsed: 4,
-            });
-        } else if (twoExtraConstraints.length > 0) {
-            const row = twoExtraConstraints.shift();
+        } else if (threeExtraConstraints.length > 0) {
+            const row = threeExtraConstraints.shift();
             C[5].values[row] = c[3];
             C[6].values[row] = c[4];
             C[7].values[row] = c[5];
@@ -399,13 +385,48 @@ module.exports = async function plonkSetup(r1cs, options) {
             sMap[21][row] = c[0];
             sMap[22][row] = c[1];
             sMap[23][row] = c[2];
+            sMap[24][row] = c[0];
+            sMap[25][row] = c[1];
+            sMap[26][row] = c[2];
 
             partialRows[k] = {
                 row,
                 nUsed: 7,
                 custom: true,
-                maxUsed: 8,
+                maxUsed: 9,
             };
+        } else if (twoExtraConstraints.length > 0) {
+            const row = twoExtraConstraints.shift();
+            C[0].values[row] = c[3];
+            C[1].values[row] = c[4];
+            C[2].values[row] = c[5];
+            C[3].values[row] = c[6];
+            C[4].values[row] = c[7];
+
+            sMap[21][row] = c[0];
+            sMap[22][row] = c[1];
+            sMap[23][row] = c[2];
+            sMap[24][row] = c[0];
+            sMap[25][row] = c[1];
+            sMap[26][row] = c[2];
+
+            partialRows[k] = {
+                row,
+                nUsed: 8,
+                custom: true,
+                maxUsed: 9,
+            };
+        } else if (oneExtraConstraint.length > 0) {
+            const row = oneExtraConstraint.shift();
+            C[0].values[row] = c[3];
+            C[1].values[row] = c[4];
+            C[2].values[row] = c[5];
+            C[3].values[row] = c[6];
+            C[4].values[row] = c[7];
+
+            sMap[24][row] = c[0];
+            sMap[25][row] = c[1];
+            sMap[26][row] = c[2];
         } else {
             C[0].values[r] = c[3];
             C[1].values[r] = c[4];
@@ -432,7 +453,7 @@ module.exports = async function plonkSetup(r1cs, options) {
                 row: r,
                 nUsed: 2,
                 custom: false,
-                maxUsed: 8,
+                maxUsed: 9,
             });
 
 
@@ -442,7 +463,7 @@ module.exports = async function plonkSetup(r1cs, options) {
 
     assert(r == NUsed, `Number of rows used in plonk constraints (${r}) does not match the expected number of rows (${NUsed})`);
 
-    const nColsConnections = 24;
+    const nColsConnections = 27;
 
     const S = [];
     for (let i = 0; i < nColsConnections; ++i) {
