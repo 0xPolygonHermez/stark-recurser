@@ -7,13 +7,6 @@ const assert = chai.assert;
 
 const wasm_tester = require("circom_tester").wasm;
 
-function getBits(idx, nBits) {
-    res = [];
-    for (let i=0; i<nBits; i++) {
-        res[i] = (idx >> i)&1 ? 1n : 0n;
-    }
-    return res;
-}
 
 describe("SelectVal Circuit Test", function () {
     let template;
@@ -31,8 +24,7 @@ describe("SelectVal Circuit Test", function () {
         await fs.promises.writeFile(circuitFile, content);
         let circuit = await wasm_tester(circuitFile, {O:1, prime: "goldilocks"});
 
-        
-        const N = 3**nLevels;
+        const N = 4**nLevels;
 
         const values = [];
         for (let j=0; j<N; j++) {
@@ -60,8 +52,7 @@ describe("SelectVal Circuit Test", function () {
         await fs.promises.writeFile(circuitFile, content);
         let circuit = await wasm_tester(circuitFile, {O:1, prime: "goldilocks"});
 
-        
-        const N = 3**nLevels;
+        const N = 4**nLevels;
 
         const values = [];
         for (let j=0; j<N; j++) {

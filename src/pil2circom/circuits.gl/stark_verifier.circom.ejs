@@ -1079,24 +1079,6 @@ template <%- verifierName %>() {
     // Verify Merkle Roots
     ///////////
 
-<%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
-<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
-    // VerifyMerkleRoot(2, <%- starkInfo.starkStruct.merkleTreeArity %>)(s0_last_mt_levels<%- i %>, root<%- i %>, enabled);
-<% } -%>
-
-    // VerifyMerkleRoot(2, <%- starkInfo.starkStruct.merkleTreeArity %>)(s0_last_mt_levels<%- qStage %>, root<%- qStage %>, enabled);
-
-    // VerifyMerkleRoot(2, <%- starkInfo.starkStruct.merkleTreeArity %>)(s0_last_mt_levelsC, rootC, enabled);
-
-<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
-    // VerifyMerkleRoot(2, <%- starkInfo.starkStruct.merkleTreeArity %>)(s0_last_mt_levels_<%- starkInfo.customCommits[i].name %>_0, root_<%- starkInfo.customCommits[i].name %>_0, enabled);
-<% } -%>
-
-<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
-    // VerifyMerkleRoot(2, <%- starkInfo.starkStruct.merkleTreeArity %>)(s<%- s %>_last_mt_levels, s<%- s %>_root, enabled);
-<% } -%>
-<%  } -%>
-
     signal {binary} queriesFRIBits[<%- starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>][<%- Math.ceil(Math.log2(starkInfo.starkStruct.merkleTreeArity)) %>];
     for(var i = 0; i < <%- starkStruct.nQueries %>; i++) {
         for(var j = 0; j < <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>; j++) {
@@ -1116,7 +1098,7 @@ template <%- verifierName %>() {
 <%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
 <%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
-        VerifyMerkleHashUntilLevel(1, <%- starkInfo.mapSectionsN[`cm${stage}`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.lastLevelVerification %>)(s0_vals<%- stage %>_p[q], s0_siblings<%- stage %>[q], queriesFRIBits[q], s0_last_mt_levels<%- stage %>, enabled);
+        VerifyMerkleHashUntilLevel(1, <%- starkInfo.mapSectionsN[`cm${stage}`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.lastLevelVerification %>, <%- 1 << starkInfo.starkStruct.nBitsExt %>)(s0_vals<%- stage %>_p[q], s0_siblings<%- stage %>[q], queriesFRIBits[q], s0_last_mt_levels<%- stage %>, enabled);
 <% } else { -%>
         VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${stage}`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>)(s0_vals<%- stage %>_p[q], s0_siblings<%- stage %>[q], queriesFRIBits[q], root<%- stage %>, enabled);
 <% } -%>
@@ -1126,7 +1108,7 @@ template <%- verifierName %>() {
 
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
 <%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
-        VerifyMerkleHashUntilLevel(1, <%- starkInfo.mapSectionsN[`cm${qStage}`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification  %>, <%- starkInfo.starkStruct.lastLevelVerification %>)(s0_vals<%- qStage %>_p[q], s0_siblings<%- qStage %>[q], queriesFRIBits[q], s0_last_mt_levels<%- qStage %>, enabled);
+        VerifyMerkleHashUntilLevel(1, <%- starkInfo.mapSectionsN[`cm${qStage}`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification  %>, <%- starkInfo.starkStruct.lastLevelVerification %>, <%- 1 << starkInfo.starkStruct.nBitsExt %>)(s0_vals<%- qStage %>_p[q], s0_siblings<%- qStage %>[q], queriesFRIBits[q], s0_last_mt_levels<%- qStage %>, enabled);
 <% } else { -%>
         VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${qStage}`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>)(s0_vals<%- qStage %>_p[q], s0_siblings<%- qStage %>[q], queriesFRIBits[q], root<%- qStage %>, enabled);
 <% } -%>
@@ -1134,7 +1116,7 @@ template <%- verifierName %>() {
 
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
 <%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
-        VerifyMerkleHashUntilLevel(1, <%- starkInfo.nConstants %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.lastLevelVerification %>)(s0_valsC_p[q], s0_siblingsC[q], queriesFRIBits[q], s0_last_mt_levelsC, enabled);
+        VerifyMerkleHashUntilLevel(1, <%- starkInfo.nConstants %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.lastLevelVerification %>, <%- 1 << starkInfo.starkStruct.nBitsExt %>)(s0_valsC_p[q], s0_siblingsC[q], queriesFRIBits[q], s0_last_mt_levelsC, enabled);
 <% } else { -%>
         VerifyMerkleHash(1, <%- starkInfo.nConstants %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>)(s0_valsC_p[q], s0_siblingsC[q], queriesFRIBits[q], rootC, enabled);                                    
 <% } -%>                                    
@@ -1144,7 +1126,7 @@ template <%- verifierName %>() {
     signal root_<%- starkInfo.customCommits[i].name %>_0[4] <== [publics[<%- starkInfo.customCommits[i].publicValues[0].idx %>], publics[<%- starkInfo.customCommits[i].publicValues[1].idx %>], publics[<%- starkInfo.customCommits[i].publicValues[2].idx %>], publics[<%- starkInfo.customCommits[i].publicValues[3].idx %>]];
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
 <%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
-        VerifyMerkleHashUntilLevel(1, <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.lastLevelVerification %>)(s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q], s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q], queriesFRIBits[q], s0_last_mt_levels_<%- starkInfo.customCommits[i].name %>_0, enabled);                                    
+        VerifyMerkleHashUntilLevel(1, <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.lastLevelVerification %>, <%- 1 << starkInfo.starkStruct.nBitsExt %>)(s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q], s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q], queriesFRIBits[q], s0_last_mt_levels_<%- starkInfo.customCommits[i].name %>_0, enabled);                                    
 <% } else { -%>
         VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>)(s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q], s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q], queriesFRIBits[q], root_<%- starkInfo.customCommits[i].name %>_0, enabled);                                    
 <% } -%>
@@ -1166,12 +1148,34 @@ template <%- verifierName %>() {
             }
         }
 <%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
-        VerifyMerkleHashUntilLevel(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification  %>, <%- starkInfo.starkStruct.lastLevelVerification %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle_bits[q], s<%- s %>_last_mt_levels, enabled);
+<%  if (Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification== 0) { -%>
+        VerifyMerkleHashUntilLevelEmpty(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- starkInfo.starkStruct.lastLevelVerification %>, <%- 1 << starkInfo.starkStruct.steps[s].nBits %>)(s<%- s %>_vals_p[q], s<%- s %>_keys_merkle_bits[q], s<%- s %>_last_mt_levels, enabled);
+<%  } else { -%>
+        VerifyMerkleHashUntilLevel(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification  %>, <%- starkInfo.starkStruct.lastLevelVerification %>, <%- 1 << starkInfo.starkStruct.steps[s].nBits %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle_bits[q], s<%- s %>_last_mt_levels, enabled);
+<%  } -%>
 <%  } else { -%>
         VerifyMerkleHash(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity))  %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle_bits[q], s<%- s %>_root, enabled);
 <%  } -%>
     }
 <% } -%>
+
+<%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+    VerifyMerkleRoot(<%- starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- 1 << starkInfo.starkStruct.nBitsExt %>)(s0_last_mt_levels<%- i + 1 %>, root<%- i + 1 %>, enabled);
+<% } -%>
+
+    VerifyMerkleRoot(<%- starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- 1 << starkInfo.starkStruct.nBitsExt %>)(s0_last_mt_levels<%- qStage %>, root<%- qStage %>, enabled);
+
+    VerifyMerkleRoot(<%- starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- 1 << starkInfo.starkStruct.nBitsExt %>)(s0_last_mt_levelsC, rootC, enabled);
+
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    VerifyMerkleRoot(<%- starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- 1 << starkInfo.starkStruct.nBitsExt %>)(s0_last_mt_levels_<%- starkInfo.customCommits[i].name %>_0, root_<%- starkInfo.customCommits[i].name %>_0, enabled);
+<% } -%>
+
+<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
+    VerifyMerkleRoot(<%- starkInfo.starkStruct.lastLevelVerification %>, <%- starkInfo.starkStruct.merkleTreeArity %>, <%- 1 << starkInfo.starkStruct.steps[s].nBits %>)(s<%- s %>_last_mt_levels, s<%- s %>_root, enabled);
+<% } -%>
+<%  } -%>
         
 
     ///////////

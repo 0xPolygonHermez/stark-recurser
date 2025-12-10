@@ -3,43 +3,43 @@ pragma custom_templates;
 
 include "utils.circom";
 
-template SelectValue(arity, nLastLevels) {
+template SelectValue(arity, nLastLevels, num_nodes_level) {
     var nBits = log2(arity);
     signal input values[arity**nLastLevels][4];
     signal input {binary}key[nLastLevels][nBits];
     signal output selected_value[4];
 
-    var total = 0;
-    var lev = arity**nLastLevels;
-    for (var i = 0; i < nLastLevels; i++) {
-        lev = lev/arity;
-        total += lev;
-    }
+    if (nLastLevels == 0) {
+        selected_value <== values[0];
+    } else {
+        var next_n = (num_nodes_level + (arity -  1)) \ arity;        
+        component mNext = SelectValue(arity, nLastLevels - 1, next_n);
 
-    component im[total];
+        component selected_values[next_n];
 
-    var index = 0;
-    var current_level_index = 0;
-    var last_level_index = 0;
-    for (var i = 0; i < nLastLevels; i++) {
-        for (var j = 0; j < (arity**(nLastLevels - i - 1)); j++) {
-            im[index] = SelectValue1();
-            im[index].key <== key[i];
-            for (var l = 0; l < arity; l++) {
-                if (i == 0) {
-                    im[index].values[l] <== values[j*arity + l];
-                } else {
-                    im[index].values[l] <== im[last_level_index + j*arity + l].selected_value;
-                }
+        for (var j = 0; j < next_n; j++) {
+            selected_values[j] = SelectValue1();
+            selected_values[j].key <== key[0];
+            for (var a = 0; a < arity; a++) {
+                selected_values[j].values[a] <== values[arity * j + a];
             }
-            index++;
+            mNext.values[j] <== selected_values[j].selected_value;
         }
-        last_level_index += current_level_index;
-        current_level_index = (arity**(nLastLevels - i - 1));
-    }
 
-    selected_value <== im[total - 1].selected_value;
-    
+        for (var k = next_n; k < arity**(nLastLevels - 1); k++) {
+            for (var t = 0; t < 4; t++) {
+                mNext.values[k][t] <== 0;
+            }
+        }
+
+        signal {binary} keyTags[nLastLevels - 1][nBits];
+        for (var b = 0; b < nLastLevels - 1; b++) {
+            keyTags[b] <== key[b + 1];
+        }
+        mNext.key <== keyTags;
+
+        selected_value <== mNext.selected_value;
+    }
 }
 
 template custom SelectValue1() {

@@ -46,7 +46,7 @@ template VerifyMerkleHash(eSize, elementsInLinear, arity, nLevels) {
     enable * (merkleRoot[3] - root[3]) === 0;
 }
 
-template VerifyMerkleHashUntilLevel(eSize, elementsInLinear, arity, nLevels, nLastLevels) {
+template VerifyMerkleHashUntilLevel(eSize, elementsInLinear, arity, nLevels, nLastLevels, height) {
     var nBits = log2(arity);
     signal input values[elementsInLinear][eSize]; // Values that are contained in a leaf
     signal input siblings[nLevels][(arity - 1) * 4]; // Sibling path to calculate the merkle root given a set of values
@@ -67,7 +67,13 @@ template VerifyMerkleHashUntilLevel(eSize, elementsInLinear, arity, nLevels, nLa
         }
     }
 
-    signal expectedVal[4] <== SelectValue(arity, nLastLevels)(last_mt_levels, last_levels_keys);
+    var num_nodes_level = height;
+    while (num_nodes_level > arity ** nLastLevels) {
+        num_nodes_level = (num_nodes_level + (arity - 1)) \ arity;
+    }
+
+
+    signal expectedVal[4] <== SelectValue(arity, nLastLevels, num_nodes_level)(last_mt_levels, last_levels_keys);
 
     // If enable is set to 1, check that the expectedRoot being calculated matches with the one sent as input
     enable * (calculatedVal[0] - expectedVal[0]) === 0;
@@ -76,10 +82,87 @@ template VerifyMerkleHashUntilLevel(eSize, elementsInLinear, arity, nLevels, nLa
     enable * (calculatedVal[3] - expectedVal[3]) === 0;
 }
 
-template VerifyMerkleRoot(nLevels, arity) {
+template VerifyMerkleHashUntilLevelEmpty(eSize, elementsInLinear, arity, nLastLevels, height) {
+    var nBits = log2(arity);
+    signal input values[elementsInLinear][eSize]; // Values that are contained in a leaf
+    signal input {binary} key[nLastLevels][nBits]; // Defines either each element of the sibling path is the left or right one
+    signal input last_mt_levels[arity**nLastLevels][4]; // The last two levels of the merkle tree, used to optimize the verification process
+    signal input {binary} enable; // Boolean that determines either we want to check that roots matches or not
+    
+    signal calculatedVal[4] <== LinearHash(elementsInLinear, arity, eSize)(values);
+
+    signal last_levels_keys[nLastLevels][nBits];
+    for (var i=0; i<nLastLevels; i++) {
+        for (var j=0; j<nBits; j++) {
+            last_levels_keys[i][j] <== key[i][j];
+        }
+    }
+
+    var num_nodes_level = height;
+    while (num_nodes_level > arity ** nLastLevels) {
+        num_nodes_level = (num_nodes_level + (arity - 1)) \ arity;
+    }
+
+
+    signal expectedVal[4] <== SelectValue(arity, nLastLevels, num_nodes_level)(last_mt_levels, last_levels_keys);
+
+    // If enable is set to 1, check that the expectedRoot being calculated matches with the one sent as input
+    enable * (calculatedVal[0] - expectedVal[0]) === 0;
+    enable * (calculatedVal[1] - expectedVal[1]) === 0;
+    enable * (calculatedVal[2] - expectedVal[2]) === 0;
+    enable * (calculatedVal[3] - expectedVal[3]) === 0;
+}
+
+template VerifyMerkleRoot(nLevels, arity, height) {
     signal input mt_values[arity**nLevels][4];
     signal input root[4];
     signal input {binary} enable;
 
-    // TODO
+    var num_nodes_level = height;
+    while (num_nodes_level > arity ** nLevels) {
+        num_nodes_level = (num_nodes_level + (arity - 1)) \ arity;
+    }
+
+    signal calculatedRoot[4] <== CalculateLevelMT(nLevels, arity, num_nodes_level)(mt_values);
+
+    // If enable is set to 1, check that the merkleRoot being calculated matches with the one sent as input
+    enable * (calculatedRoot[0] - root[0]) === 0;
+    enable * (calculatedRoot[1] - root[1]) === 0;
+    enable * (calculatedRoot[2] - root[2]) === 0;
+    enable * (calculatedRoot[3] - root[3]) === 0;
+}
+
+template CalculateLevelMT(nLevels, arity, num_nodes_level) {
+    signal input values[arity**nLevels][4];
+    signal output root[4];
+
+    if (nLevels == 0) {
+        root <== values[0];
+    } else {
+        var next_n = (num_nodes_level + (arity -  1)) \ arity;
+        component hashes[next_n];
+
+        component mNext = CalculateLevelMT(nLevels - 1, arity, next_n);
+       
+        for (var j = 0; j < next_n; j++) {
+            hashes[j] = Poseidon2(4, 4);
+            for (var a = 0; a < arity; a++) {
+                for (var k = 0; k < 4; k++) {  
+                    if (a == 3) {
+                        hashes[j].capacity[k] <== values[arity * j + a][k];
+                    } else {
+                        hashes[j].in[4*a + k] <== values[arity * j + a][k];
+                    }
+                }
+            }
+            mNext.values[j] <== hashes[j].out;
+        }
+
+        for (var k = next_n; k < arity**(nLevels - 1); k++) {
+            for (var t = 0; t < 4; t++) {
+                mNext.values[k][t] <== 0;
+            }
+        }
+        root <== mNext.root;
+    }
 }

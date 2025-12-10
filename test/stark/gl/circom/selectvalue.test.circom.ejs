@@ -4,14 +4,21 @@ pragma custom_templates;
 include "<%- dirName %>/../../../../src/pil2circom/circuits.gl/bitify.circom";
 include "<%- dirName %>/../../../../src/pil2circom/circuits.gl/selectval.circom";
 
-template SelectVal(arity, nLastLevels) {
+template SelectVal(arity, nLastLevels, height) {
     var nBits = log2(arity);
     signal input values[arity**nLastLevels][4];
     signal input key;
     signal output out[4];
 
-    signal {binary} keyTags[nLastLevels][nBits] <== Num2Ternary(nLastLevels)(key);
+    signal {binary} keyTags[nLastLevels*nBits] <== Num2Bits(nLastLevels*nBits)(key);
 
-    out <== SelectValue(arity, nLastLevels)(values, keyTags);
+    signal {binary} keys[nLastLevels][nBits];
+    for (var b = 0; b < nLastLevels; b++) {
+        for (var bit = 0; bit < nBits; bit++) {
+            keys[b][bit] <== keyTags[b*nBits + bit];
+        }
+    }
+
+    out <== SelectValue(arity, nLastLevels, height)(values, keys);
 }
-component main = SelectVal(3, <%- nLevels %>);
+component main = SelectVal(4, <%- nLevels %>, <%- 4**nLevels %>);
