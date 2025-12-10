@@ -48,9 +48,9 @@ template MatMul_M4() {
     out[3] <== t4;
 }
 
-template Poseidon2_1() {
+template Poseidon2_1(nOuts) {
     signal input in[4];
-    signal output out[4];
+    signal output out[nOuts];
 
     signal initial_st[4] <== MatMul_M4()(in);
 
@@ -98,7 +98,7 @@ template Poseidon2_1() {
         matmul[4 + r].in <== [sigmaF[4 + r][0].out, sigmaF[4 + r][1].out, sigmaF[4 + r][2].out, sigmaF[4 + r][3].out];
     }
 
-    for (var t=0; t < 4; t++) {
+    for (var t=0; t < nOuts; t++) {
         out[t] <== matmul[7].out[t];
     }
    

@@ -321,6 +321,7 @@ include "bitify.circom";
 include "fft.circom";
 include "evalpol.circom";
 include "treeselector4.circom";
+include "pow.circom";
 <% if(starkStruct.splitLinearHash) { -%>
 include "merklehash_gpu.circom";
 <% } else { -%>
@@ -345,10 +346,15 @@ include "merklehash.circom";
 template <%- calculateFriQueriesName %>() {
     
     signal input challengeFRIQueries[3];
+    signal input nonce;
+    signal input {binary} enable;
     signal output {binary} queriesFRI[<%- starkStruct.nQueries %>][<%- starkStruct.steps[0].nBits %>];
+
+    VerifyPoW(<%- starkStruct.powBits %>)(challengeFRIQueries, nonce, enable);
 
 <%  const transcriptQueries = new Transcript("friQueries"); -%>
 <%  transcriptQueries.put("challengeFRIQueries", 3); -%>
+<%  transcriptQueries.put("nonce"); -%>    
 
 <% transcriptQueries.getPermutations("queriesFRI", starkStruct.nQueries, starkStruct.steps[0].nBits); -%>
 <%- transcriptQueries.getCode(); %>
@@ -387,7 +393,9 @@ template <%- transcriptName %>() {
     signal input s<%- s %>_root[4];
 <% }                                                     -%>
     signal input finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
-    
+    signal input nonce;
+    signal input {binary} enable;
+
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  if(starkInfo.challengesMap.filter(c => c.stage === i + 1).length === 0) continue; -%>
     signal output challengesStage<%- i + 1 %>[<%- starkInfo.challengesMap.filter(c => c.stage === i + 1).length %>][3];
@@ -486,7 +494,7 @@ template <%- transcriptName %>() {
 <%  transcript.getField(`challengesFRISteps[${starkStruct.steps.length}]`, 3); -%>
 <%- transcript.getCode() %>
 
-    queriesFRI <== <%- calculateFriQueriesName %>()(challengesFRISteps[<%- starkStruct.steps.length %>]);
+    queriesFRI <== <%- calculateFriQueriesName %>()(challengesFRISteps[<%- starkStruct.steps.length %>], nonce, enable);
 }
 
 /*
@@ -939,6 +947,8 @@ template <%- verifierName %>() {
     // Evaluations of the final FRI polynomial over a set of points of size bounded its degree
     signal input finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
 
+    signal input nonce;
+
     signal {binary} enabled;
 <% if (options.enableInput) { -%>
     signal input enable;
@@ -996,7 +1006,7 @@ template <%- verifierName %>() {
 <%  const stageRoots = []; -%> 
 <%  for(let i = 1; i < starkInfo.nStages; i++) { stageRoots.push(`root${i + 1}`) } -%>
 
-    (<%- challengeNames.join(",") %>,challengesFRISteps,queriesFRI) <== <%- transcriptName %>()(<%- inputs.join(",") %>,<%- stageRoots.join(",") %>,root<%- qStage %>,evals<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPol);
+    (<%- challengeNames.join(",") %>,challengesFRISteps,queriesFRI) <== <%- transcriptName %>()(<%- inputs.join(",") %>,<%- stageRoots.join(",") %>,root<%- qStage %>,evals<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPol, nonce, enabled);
 
     ///////////
     // Check constraints polynomial in the evaluation point
