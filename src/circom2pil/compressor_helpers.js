@@ -1,34 +1,6 @@
 const { assert } = require("chai");
 
 module.exports ={
-    
-    /*
-        Calculate the number of times that each set of gates (qL, qR, qM, qO, qC) is used
-    */ 
-    calculatePlonkConstraintsHalfs: function(plonkConstraints) {
-
-        // Each constraint is defined by the following five polynomial gates [qM, qL, qR, qO, qC].
-        // Store all the different combinations (and how many times each) appears in the plonkConstraints
-        const constraints = {};
-        for (let i=0; i<plonkConstraints.length; i++) {
-            if ((i%10000) == 0) {
-                console.log(`Point Check -> Plonk info constraint processing... ${i}/${plonkConstraints.length}`);
-            }
-            //Each plonkConstraint has the following form: [a,b,c, qM, qL, qR, qO, qC]
-            const c = plonkConstraints[i]; 
-            const k= c.slice(3, 8).map( a=> a.toString(16)).join(","); //Calculate
-            constraints[k] ||=  0; //If k is not in uses, initialize it
-            constraints[k]++; // Update the counter of the constraint
-        };
-
-        // For each different combination of constraints, calculate how many packs of two are needed to fit all of the constraints
-        // So, if for example a set of polynomial gates values [qM, qL, qR, qO, qC] appears 21 times, those will fit in 11 groups of 2 elements 
-        // Store the sumatory in this variable
-       
-        
-        return constraints;
-    },
-
     calculatePlonkConstraintsRowsFinalCompressor: function(plonkConstraints, tenExtraConstraints, fourExtraConstraints, threeExtraConstraints, twoExtraConstraints) {
         let partialRows = {};
         let halfRows = [];
@@ -189,42 +161,6 @@ module.exports ={
         console.log(`Number of totalplonk constraints: ${plonkConstraints.length}`); 
         console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows} in ${r} rows`);
         console.log(`Number of plonk constraints stored in custom gates: ${constraintsCustomRows}`);
-
-        return r;
-    },
-
-    /*
-        Calculate the number of rows needed to verify all plonk constraints
-    */ 
-    calculatePlonkConstraintsRowsC12: function(plonkConstraints, evalPolCMulRows, treeSelectorRows) {
-
-        let partialRows = {};
-        let halfRows = false;
-        let r = 0;
-        for (let i=0; i<plonkConstraints.length; i++) {
-            if ((i%10000) == 0) {
-                console.log(`Point Check -> Plonk info constraint processing... ${i}/${plonkConstraints.length}`);
-            }
-            //Each plonkConstraint has the following form: [a,b,c, qM, qL, qR, qO, qC]
-            const c = plonkConstraints[i]; 
-            const k= c.slice(3, 8).map( a=> a.toString(16)).join(","); //Calculate
-            if(partialRows[k]) {
-                ++partialRows[k];
-                if(partialRows[k] === 2 || partialRows[k] === 4) delete partialRows[k];
-            } else if(halfRows) {
-                partialRows[k] = 3;
-                halfRows = false;
-            } else if(treeSelectorRows > 0) {
-                --treeSelectorRows;
-                partialRows[k] = 1;
-            } else if(evalPolCMulRows > 0) {
-                --evalPolCMulRows;
-            } else {
-                partialRows[k] = 1;
-                halfRows = true;
-                r++;
-            }
-        };
 
         return r;
     },
