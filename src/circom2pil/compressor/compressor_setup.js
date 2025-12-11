@@ -416,11 +416,11 @@ module.exports = async function plonkSetup(r1cs, options) {
             };
         } else if (twoExtraConstraints.length > 0) {
             const row = twoExtraConstraints.shift();
-            C[0].values[row] = c[3];
-            C[1].values[row] = c[4];
-            C[2].values[row] = c[5];
-            C[3].values[row] = c[6];
-            C[4].values[row] = c[7];
+            C[5].values[row] = c[3];
+            C[6].values[row] = c[4];
+            C[7].values[row] = c[5];
+            C[8].values[row] = c[6];
+            C[9].values[row] = c[7];
 
             sMap[21][row] = c[0];
             sMap[22][row] = c[1];
@@ -437,11 +437,11 @@ module.exports = async function plonkSetup(r1cs, options) {
             };
         } else if (oneExtraConstraint.length > 0) {
             const row = oneExtraConstraint.shift();
-            C[0].values[row] = c[3];
-            C[1].values[row] = c[4];
-            C[2].values[row] = c[5];
-            C[3].values[row] = c[6];
-            C[4].values[row] = c[7];
+            C[5].values[row] = c[3];
+            C[6].values[row] = c[4];
+            C[7].values[row] = c[5];
+            C[8].values[row] = c[6];
+            C[9].values[row] = c[7];
 
             sMap[24][row] = c[0];
             sMap[25][row] = c[1];

@@ -29,7 +29,7 @@ module.exports ={
         return constraints;
     },
 
-    calculatePlonkConstraintsRowsFinalCompressor: function(plonkConstraints, eightExtraConstraints, sixExtraConstraints, twoExtraConstraintsPoseidon, twoExtraConstraints) {
+    calculatePlonkConstraintsRowsFinalCompressor: function(plonkConstraints, tenExtraConstraints, fourExtraConstraints, threeExtraConstraints, twoExtraConstraints) {
         let partialRows = {};
         let halfRows = [];
         let r = 0;
@@ -50,7 +50,7 @@ module.exports ={
                     constraintsPlonkRows++;
                 }
                 ++partialRows[k].nUsed;
-                if(partialRows[k].nUsed === 2 || partialRows[k].nUsed === 8 || partialRows[k].nUsed == partialRows[k].maxUsed) {
+                if(partialRows[k].nUsed == partialRows[k].maxUsed) {
                     delete partialRows[k];
                 }
             } else if(halfRows.length > 0) {
@@ -61,27 +61,26 @@ module.exports ={
                 } else {
                     constraintsPlonkRows++;
                 }
-            } else if(eightExtraConstraints > 0) {
-                --eightExtraConstraints;
+            } else if(tenExtraConstraints > 0) {
+                --tenExtraConstraints;
                 partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
-                halfRows.push({nUsed: 2, custom: true, maxUsed: 8});
+                halfRows.push({nUsed: 2, custom: true, maxUsed: 10});
                 constraintsCustomRows++;
-            } else if(sixExtraConstraints > 0) {
-                --sixExtraConstraints;
-                partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
-                halfRows.push({nUsed: 2, custom: true, maxUsed: 6});
+            } else if(fourExtraConstraints > 0) {
+                --fourExtraConstraints;
+                partialRows[k] = {nUsed: 7, custom: true, maxUsed: 10};
                 constraintsCustomRows++;
-            } else if(twoExtraConstraintsPoseidon > 0) {
-                --twoExtraConstraintsPoseidon;
-                partialRows[k] = {nUsed: 5, custom: true, maxUsed: 6};
+            } else if(threeExtraConstraints > 0) {
+                --threeExtraConstraints;
+                partialRows[k] = {nUsed: 8, custom: true, maxUsed: 10};
                 constraintsCustomRows++;
             } else if(twoExtraConstraints > 0) {
                 --twoExtraConstraints;
-                partialRows[k] = {nUsed: 7, custom: true, maxUsed: 8};
+                partialRows[k] = {nUsed: 9, custom: true, maxUsed: 10};
                 constraintsCustomRows++;
             } else {
                 partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
-                halfRows.push({nUsed: 2, custom: false, maxUsed: 8});
+                halfRows.push({nUsed: 2, custom: false, maxUsed: 10});
                 constraintsPlonkRows++;
                 r++;
             }

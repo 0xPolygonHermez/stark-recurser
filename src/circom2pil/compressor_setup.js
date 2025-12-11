@@ -8,11 +8,11 @@ module.exports.compressorSetup = async function compressorSetup(r1csFile, cols, 
     
     const r1cs = await readR1cs(r1csFile, { logger:console });
 
-    if(cols != 59 && cols != 42 && cols != 12) throw new Error("Invalid number of cols");
+    if(cols != 59 && cols != 62 && cols != 16) throw new Error("Invalid number of cols");
 
     let res = cols == 59 
         ? await compressorRecursive(r1cs, options)
-        : cols == 42 ? await compressorFinal(r1cs, options)
+        : cols == 62 ? await compressorFinal(r1cs, options)
         : await compressorLight(r1cs, options);
 
     const exec = await writeExecFile(res.plonkAdditions, res.sMap);

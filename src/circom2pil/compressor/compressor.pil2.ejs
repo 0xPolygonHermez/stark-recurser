@@ -456,7 +456,7 @@ airtemplate <%= namespaceName %> (const int N, const int nPlonkRows, const int n
     plonk([a[15], a[16], a[17]], q1, CHECK_PLONK);
     plonk([a[18], a[19], a[20]], q1, CHECK_PLONK + POSEIDON_FINAL + TREESELECTOR4);
     plonk([a[21], a[22], a[23]], q1, CHECK_PLONK + POSEIDON_FINAL + TREESELECTOR4 + EVPOL4);
-    plonk([a[24], a[25], a[26]], q1, CHECK_PLONK + POSEIDON_FINAL + TREESELECTOR4 + POSEIDONSPONGE + POSEIDONCOMPRESSION + EVPOL4);
+    plonk([a[24], a[25], a[26]], q1, CHECK_PLONK + POSEIDON_FINAL + TREESELECTOR4 + EVPOL4 + POSEIDONSPONGE + POSEIDONCOMPRESSION + SELECTVAL1);
 
     const expr b0 = a[16];
     const expr b1 = a[17];

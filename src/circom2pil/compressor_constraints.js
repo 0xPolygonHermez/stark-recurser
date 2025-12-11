@@ -86,21 +86,22 @@ module.exports.getFinalCompressorConstraints = function getFinalCompressorConstr
     // Get information about the custom gates from the R1CS
     const customGatesInfo = getCustomGatesInfo(r1cs);
     
-    // Each Poseidon2 custom gate uses 6 rows (Input -> Round 2 -> Round 4 -> Round 26 -> Round 28 -> Output)
-    let nCMulRows = Math.ceil(customGatesInfo.nCMul/2);
-    let nPoseidon12Rows = customGatesInfo.nPoseidon12*6;
-    let nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*6;
+    // Each Poseidon2 gate uses 5 rows
+    let nCMulRows = Math.ceil(customGatesInfo.nCMul/3);
+    let nPoseidon12Rows = customGatesInfo.nPoseidon12*5;
+    let nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*5;
     let nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
     let nFFT4Rows = customGatesInfo.nFFT4;
     let nEvPol4Rows = customGatesInfo.nEvPol4;
     let nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
+    let nSelectVal1Rows = customGatesInfo.nSelectVal1;
     
     // Calculate how many groups of two plonk constraints can be made 
-    const CPlonkConstraints = calculatePlonkConstraintsRowsFinalCompressor(plonkConstraints, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*3, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*2, nCMulRows + nTreeSelector4Rows);
+    const CPlonkConstraints = calculatePlonkConstraintsRowsFinalCompressor(plonkConstraints, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*3, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nTreeSelector4Rows, customGatesInfo.nEvPol4, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nSelectVal1Rows);
 
     customGatesInfo.nPlonkRows = CPlonkConstraints;
 
-    let NUsed = CPlonkConstraints + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows;
+    let NUsed = CPlonkConstraints + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows + nSelectVal1Rows;
     
 
     console.log(`Number of CMul: ${customGatesInfo.nCMul} -> Constraints: ${nCMulRows}`);
@@ -110,6 +111,7 @@ module.exports.getFinalCompressorConstraints = function getFinalCompressorConstr
     console.log(`Number of FFT4: ${customGatesInfo.nFFT4} -> Constraints: ${nFFT4Rows}`);
     console.log(`Number of EvPol4: ${customGatesInfo.nEvPol4} -> Constraints: ${nEvPol4Rows}`);
     console.log(`Number of TreeSelector4: ${customGatesInfo.nTreeSelector4} -> Constraints: ${nTreeSelector4Rows}`);
+    console.log(`Number of SelectVal1: ${customGatesInfo.nSelectVal1} -> Constraints: ${nSelectVal1Rows}`);
 
     return {plonkConstraints, plonkAdditions, customGatesInfo, NUsed};
 }
