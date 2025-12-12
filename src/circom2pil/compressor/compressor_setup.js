@@ -2,16 +2,119 @@ const { assert } = require("chai");
 const fs = require("fs");
 const path = require("path");
 const ejs = require("ejs");
-const { getCompressorConstraints } = require("../compressor_constraints.js");
 const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P } = require("../../utils/utils.js");
+const { r1cs2plonk, getCustomGatesInfo } = require("../r1cs2plonk.js");
+
+function calculatePlonkConstraintsRows(plonkConstraints, twelveExtraConstraints, sixExtraConstraints, fiveExtraConstraints, fourExtraConstraints) {
+    let partialRows = {};
+    let halfRows = [];
+    let r = 0;
+
+    let constraintsCustomRows = 0;
+    let constraintsPlonkRows = 0;
+    for (let i=0; i<plonkConstraints.length; i++) {
+        if ((i%10000) == 0) {
+            console.log(`Point Check -> Plonk info constraint processing... ${i}/${plonkConstraints.length}`);
+        }
+        //Each plonkConstraint has the following form: [a,b,c, qM, qL, qR, qO, qC]
+        const c = plonkConstraints[i]; 
+        const k= c.slice(3, 8).map( a=> a.toString(16)).join(","); //Calculate
+        if(partialRows[k]) {
+            if(partialRows[k].custom) {
+                constraintsCustomRows++;
+            } else {
+                constraintsPlonkRows++;
+            }
+            ++partialRows[k].nUsed;
+            if(partialRows[k].nUsed == partialRows[k].maxUsed) {
+                delete partialRows[k];
+            }
+        } else if(halfRows.length > 0) {
+            partialRows[k] = halfRows.shift();
+            partialRows[k].nUsed++;
+            if(partialRows[k].custom) {
+                constraintsCustomRows++;
+            } else {
+                constraintsPlonkRows++;
+            }
+        } else if(twelveExtraConstraints > 0) {
+            --twelveExtraConstraints;
+            partialRows[k] = {nUsed: 1, custom: true, maxUsed: 6};
+            halfRows.push({nUsed: 6, custom: true, maxUsed: 12});
+            constraintsCustomRows++;
+        } else if(sixExtraConstraints > 0) {
+            --sixExtraConstraints;
+            partialRows[k] = {nUsed: 7, custom: true, maxUsed: 12};
+            constraintsCustomRows++;
+        } else if(fiveExtraConstraints > 0) {
+            --fiveExtraConstraints;
+            partialRows[k] = {nUsed: 8, custom: true, maxUsed: 12};
+            constraintsCustomRows++;
+        } else if(fourExtraConstraints > 0) {
+            --fourExtraConstraints;
+            partialRows[k] = {nUsed: 9, custom: true, maxUsed: 12};
+            constraintsCustomRows++;
+        } else {
+            partialRows[k] = {nUsed: 1, custom: false, maxUsed: 6};
+            halfRows.push({nUsed: 6, custom: false, maxUsed: 12});
+            constraintsPlonkRows++;
+            r++;
+        }
+    };
+
+    console.log(`Number of totalplonk constraints: ${plonkConstraints.length}`); 
+    console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows} in ${r} rows`);
+    console.log(`Number of plonk constraints stored in custom gates: ${constraintsCustomRows}`);
+
+    return r;
+}
+
+function getNumberConstraints(r1cs) {
+    // Calculate the number plonk Additions and plonk constraints from the R1CS
+    const [plonkConstraints, plonkAdditions] = r1cs2plonk(r1cs);
+
+    console.log(`Number of plonk constraints: ${plonkConstraints.length}`);
+
+    // Get information about the custom gates from the R1CS
+    const customGatesInfo = getCustomGatesInfo(r1cs);
+    
+    // Each Poseidon2 gate uses 5 rows
+    let nCMulRows = Math.ceil(customGatesInfo.nCMul/4);
+    let nPoseidon12Rows = customGatesInfo.nPoseidon12*10;
+    let nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*10;
+    let nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
+    let nFFT4Rows = customGatesInfo.nFFT4;
+    let nEvPol4Rows = customGatesInfo.nEvPol4;
+    let nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
+    let nSelectVal1Rows = customGatesInfo.nSelectVal1;
+    
+    // Calculate how many groups of two plonk constraints can be made 
+    const CPlonkConstraints = calculatePlonkConstraintsRows(plonkConstraints, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*8, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nTreeSelector4Rows, customGatesInfo.nEvPol4, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nSelectVal1Rows);
+
+    customGatesInfo.nPlonkRows = CPlonkConstraints;
+
+    let NUsed = CPlonkConstraints + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows + nSelectVal1Rows;
+    
+
+    console.log(`Number of CMul: ${customGatesInfo.nCMul} -> Constraints: ${nCMulRows}`);
+    console.log(`Number of Poseidon2 sponge: ${customGatesInfo.nPoseidon12} -> Constraints: ${nPoseidon12Rows}`);
+    console.log(`Number of Poseidon2 compressor: ${customGatesInfo.nCustPoseidon12} -> Constraints: ${nCustPoseidon12Rows}`)
+    console.log(`Total Number of Poseidon2:  ${customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12} -> Constraints ${nTotalPoseidon12Rows}`);
+    console.log(`Number of FFT4: ${customGatesInfo.nFFT4} -> Constraints: ${nFFT4Rows}`);
+    console.log(`Number of EvPol4: ${customGatesInfo.nEvPol4} -> Constraints: ${nEvPol4Rows}`);
+    console.log(`Number of TreeSelector4: ${customGatesInfo.nTreeSelector4} -> Constraints: ${nTreeSelector4Rows}`);
+    console.log(`Number of SelectVal1: ${customGatesInfo.nSelectVal1} -> Constraints: ${nSelectVal1Rows}`);
+
+    return {plonkConstraints, plonkAdditions, customGatesInfo, NUsed};
+}
 
 /*
     Compress plonk constraints and verifies custom gates using 21 committed polynomials
 */
-module.exports = async function plonkSetup(r1cs, options) {
-    const committedPols = 59;
+module.exports.compressor = function compressor(r1cs, options) {
+    const committedPols = 52;
 
-    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getCompressorConstraints(r1cs);
+    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getNumberConstraints(r1cs);
 
     //Calculate the first power of 2 that's bigger than the number of constraints
     let nBits = log2(NUsed - 1) + 1;
@@ -24,16 +127,17 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`NUsed: ${NUsed}`);
     console.log(`nBits: ${nBits}, 2^nBits: ${N}`);
     
-    const template = await fs.promises.readFile(path.join(__dirname, "compressor.pil2.ejs"), "utf8");
+    const template = fs.readFileSync(path.join(__dirname, "../pil/compressor.pil2.ejs"), "utf8");
     const airGroupName = options.airgroupName || `Compressor${Math.random().toString(16).slice(2)}`;
     const obj = {
         namespaceName: airGroupName,
+        templateName: "Compressor",
         nBits,
         nPublics,
-        maxConstraintDegree: options.maxConstraintDegree || 8,
+        maxConstraintDegree: 5,
         nPoseidonCompressor: customGatesInfo.nCustPoseidon12,
         nPoseidonSponge: customGatesInfo.nPoseidon12,
-        nCMulRows: Math.ceil(customGatesInfo.nCMul/3),
+        nCMulRows: Math.ceil(customGatesInfo.nCMul/4),
         nPlonkRows: customGatesInfo.nPlonkRows,
         nFFT4: customGatesInfo.nFFT4,
         nEvPol4: customGatesInfo.nEvPol4,
@@ -44,7 +148,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     let pilStr = ejs.render(template ,  obj);
     
     // Stores the positions of all the values that each of the committed polynomials takes in each row 
-    // Remember that there are 59 committed polynomials and the number of rows is stored in NUsed
+    // Remember that there are 52 committed polynomials and the number of rows is stored in NUsed
     const sMap = [];
     for (let i=0;i<committedPols; i++) {
         sMap[i] = new Uint32Array(N).fill(0);
@@ -59,10 +163,10 @@ module.exports = async function plonkSetup(r1cs, options) {
         }
     }
 
-    const oneExtraConstraint = [];
-    const twoExtraConstraints = [];
-    const threeExtraConstraints = [];
-    const nineExtraConstraints = [];
+    const fourExtraConstraints = [];
+    const fiveExtraConstraints = [];
+    const sixExtraConstraints = [];
+    const twelveExtraConstraints = [];
     
 
     let partialRowsCMul = {row: -1, nUsed: 0};
@@ -101,44 +205,49 @@ module.exports = async function plonkSetup(r1cs, options) {
 
         for (let i = 0; i < 16; i++) {
             sMap[i][r] = input[i];
-            sMap[i + 27][r] = round0[i];
-            sMap[i + 43][r] = round1[i];
-            sMap[i + 27][r + 1] = round2[i];
-            sMap[i + 43][r + 1] = round3[i];
-            sMap[i + 27][r + 2] = round4[i];
-            sMap[i + 27][r + 3] = round26[i];
-            sMap[i + 43][r + 3] = round27[i];
-            sMap[i + 27][r + 4] = round28[i];
-            sMap[i + 43][r + 4] = round29[i];
-            sMap[i][r + 4] = output[i];
+            sMap[i + 36][r] = round0[i];
+            sMap[i + 36][r+1] = round1[i];
+            sMap[i + 36][r+2] = round2[i];
+            sMap[i + 36][r+3] = round3[i];
+            sMap[i + 36][r+4] = round4[i];
+            sMap[i + 36][r+6] = round26[i];
+            sMap[i + 36][r+7] = round27[i];
+            sMap[i + 36][r+8] = round28[i];
+            sMap[i + 36][r+9] = round29[i];
+            sMap[i][r+9] = output[i];
         }
 
         for (let i = 0; i < 11; i++) {
-            sMap[i + 43][r + 2] = im1[i];
+            sMap[i + 36][r+5] = im1[i];
             if (i < 5) {
-                sMap[i + 54][r + 2] = im2[i];
+                sMap[i+47][r+5] = im2[i];
             } else {
                 let pos = i - 5;
                 sMap[pos + 18][r] = im2[i];
             }
         }
         
-        for (let i = 0; i < 5; ++i) {
+        for (let i = 0; i < 10; ++i) {
             for (let k=0; k<10; k++) {
                 C[k].values[r+i] = 0n;
             }
         }
 
-        oneExtraConstraint.push(r);
-        nineExtraConstraints.push(r+1);
-        nineExtraConstraints.push(r+2);
-        nineExtraConstraints.push(r+3);
-        threeExtraConstraints.push(r+4);
+        fourExtraConstraints.push(r);
+        twelveExtraConstraints.push(r+1);
+        twelveExtraConstraints.push(r+2);
+        twelveExtraConstraints.push(r+3);
+        twelveExtraConstraints.push(r+4);
+        twelveExtraConstraints.push(r+5);
+        twelveExtraConstraints.push(r+6);
+        twelveExtraConstraints.push(r+7);
+        twelveExtraConstraints.push(r+8);
+        sixExtraConstraints.push(r+4);
         
-        r+=5;
+        r+=10;
     }
 
-    assert(r == 5*poseidonGateUses.length);
+    assert(r == 10*poseidonGateUses.length);
     
     console.log(`Point check -> Processing ${poseidonCustGateUses.length} poseidon custom gates...`);
     for (let i=0; i<poseidonCustGateUses.length; i++) {
@@ -163,46 +272,51 @@ module.exports = async function plonkSetup(r1cs, options) {
         
         for (let i = 0; i < 16; i++) {
             sMap[i][r] = input[i];
-            sMap[i + 27][r] = round0[i];
-            sMap[i + 43][r] = round1[i];
-            sMap[i + 27][r + 1] = round2[i];
-            sMap[i + 43][r + 1] = round3[i];
-            sMap[i + 27][r + 2] = round4[i];
-            sMap[i + 27][r + 3] = round26[i];
-            sMap[i + 43][r + 3] = round27[i];
-            sMap[i + 27][r + 4] = round28[i];
-            sMap[i + 43][r + 4] = round29[i];
-            sMap[i][r + 4] = output[i];
+            sMap[i + 36][r] = round0[i];
+            sMap[i + 36][r+1] = round1[i];
+            sMap[i + 36][r+2] = round2[i];
+            sMap[i + 36][r+3] = round3[i];
+            sMap[i + 36][r+4] = round4[i];
+            sMap[i + 36][r+6] = round26[i];
+            sMap[i + 36][r+7] = round27[i];
+            sMap[i + 36][r+8] = round28[i];
+            sMap[i + 36][r+9] = round29[i];
+            sMap[i][r+9] = output[i];
         }
         
         sMap[16][r] = first_bit;
         sMap[17][r] = second_bit;
         for (let i = 0; i < 11; i++) {
-            sMap[i + 43][r + 2] = im1[i];
+            sMap[i + 36][r+5] = im1[i];
             if (i < 5) {
-                sMap[i + 54][r + 2] = im2[i];
+                sMap[i+47][r+5] = im2[i];
             } else {
                 let pos = i - 5;
                 sMap[pos + 18][r] = im2[i];
             }
         }
 
-        for (let i = 0; i < 6; ++i) {
+        for (let i = 0; i < 10; ++i) {
             for (let k=0; k<10; k++) {
                 C[k].values[r+i] = 0n;
             }
         }
 
-        oneExtraConstraint.push(r);
-        nineExtraConstraints.push(r+1);
-        nineExtraConstraints.push(r+2);
-        nineExtraConstraints.push(r+3);
-        threeExtraConstraints.push(r+4);
+        fourExtraConstraints.push(r);
+        twelveExtraConstraints.push(r+1);
+        twelveExtraConstraints.push(r+2);
+        twelveExtraConstraints.push(r+3);
+        twelveExtraConstraints.push(r+4);
+        twelveExtraConstraints.push(r+5);
+        twelveExtraConstraints.push(r+6);
+        twelveExtraConstraints.push(r+7);
+        twelveExtraConstraints.push(r+8);
+        sixExtraConstraints.push(r+4);
 
-        r+=5;
+        r+=10;
     }
 
-    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length);
+    assert(r == 10*poseidonGateUses.length + 10*poseidonCustGateUses.length);
     console.log(`Point check -> Processing ${cmulGateUses.length} cmul gates...`);
     for (let i=0; i<cmulGateUses.length; i++) {
         const cgu = cmulGateUses[i];
@@ -212,7 +326,7 @@ module.exports = async function plonkSetup(r1cs, options) {
                 sMap[i + 9*partialRowsCMul.nUsed][partialRowsCMul.row] = cgu.signals[i];
             }
             partialRowsCMul.nUsed++;
-            if(partialRowsCMul.nUsed === 3) {
+            if(partialRowsCMul.nUsed === 4) {
                 partialRowsCMul = {row: -1, nUsed: 0};
             }
         } else {
@@ -228,7 +342,7 @@ module.exports = async function plonkSetup(r1cs, options) {
         }
     }
 
-    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows);
+    assert(r == 10*poseidonGateUses.length + 10*poseidonCustGateUses.length + obj.nCMulRows);
     console.log(`Point check -> Processing ${evPol4GateUses.length} evPol4 gates...`);
     for (let i=0; i<evPol4GateUses.length; i++) {
         const cgu = evPol4GateUses[i];
@@ -240,11 +354,11 @@ module.exports = async function plonkSetup(r1cs, options) {
             C[k].values[r] = 0n;
         }
 
-        twoExtraConstraints.push(r);
+        fiveExtraConstraints.push(r);
         r+= 1;
     }
 
-    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + evPol4GateUses.length);
+    assert(r == 10*poseidonGateUses.length + 10*poseidonCustGateUses.length + obj.nCMulRows + evPol4GateUses.length);
     console.log(`Point check -> Processing ${fft4GateUses.length} fft4 gates...`);
     for (let i=0; i<fft4GateUses.length; i++) {
         const cgu = fft4GateUses[i];
@@ -286,7 +400,7 @@ module.exports = async function plonkSetup(r1cs, options) {
         r += 1;
     }
 
-    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length);
+    assert(r == 10*poseidonGateUses.length + 10*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length);
     console.log(`Point check -> Processing ${treeSelector4GateUses.length} treeSelector4 gates...`);
     for (let i=0; i<treeSelector4GateUses.length; i++) {
         const cgu = treeSelector4GateUses[i];
@@ -298,11 +412,11 @@ module.exports = async function plonkSetup(r1cs, options) {
         for (let k=0; k<10; k++) {
             C[k].values[r] = 0n;
         }
-        threeExtraConstraints.push(r);
+        sixExtraConstraints.push(r);
         r += 1;
     }
 
-    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length);
+    assert(r == 10*poseidonGateUses.length + 10*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length);
 
     console.log(`Point check -> Processing ${selectVal1GateUses.length} selectVal1 gates...`);
     for (let i=0; i<selectVal1GateUses.length; i++) {
@@ -315,12 +429,11 @@ module.exports = async function plonkSetup(r1cs, options) {
         for (let k=0; k<10; k++) {
             C[k].values[r] = 0n;
         }
-        oneExtraConstraint.push(r);
+        fourExtraConstraints.push(r);
         r += 1;
     }
 
-    assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length + selectVal1GateUses.length);
-
+    assert(r == 10*poseidonGateUses.length + 10*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length + selectVal1GateUses.length);
     // Paste plonk constraints. 
     // Each row can be split in three subsets: 
     // a[0], a[1], a[2] and a[3], a[4], a[5] --> C[0], C[1], C[2], C[3], C[4]
@@ -341,7 +454,7 @@ module.exports = async function plonkSetup(r1cs, options) {
             sMap[pr.nUsed*3+1][pr.row] = c[1];
             sMap[pr.nUsed*3+2][pr.row] = c[2];           
             pr.nUsed++;
-            if(pr.nUsed === 2 || pr.nUsed === 9 || pr.nUsed === pr.maxUsed) {
+            if(pr.nUsed === pr.maxUsed) {
                 delete partialRows[k];
             }
         // If the constraint is not stored in partialRows (which means that there is no other row that is using this very same set of constraints and is not full)
@@ -362,90 +475,93 @@ module.exports = async function plonkSetup(r1cs, options) {
             
             pr.nUsed++;
             partialRows[k] = pr;
-        } else if(nineExtraConstraints.length > 0) {
-            const row = nineExtraConstraints.shift();
+        } else if(twelveExtraConstraints.length > 0) {
+            const row = twelveExtraConstraints.shift();
             C[0].values[row] = c[3];
             C[1].values[row] = c[4];
             C[2].values[row] = c[5];
             C[3].values[row] = c[6];
             C[4].values[row] = c[7];
 
-            sMap[0][row] = c[0];
-            sMap[1][row] = c[1];
-            sMap[2][row] = c[2];
-            sMap[3][row] = c[0];
-            sMap[4][row] = c[1];
-            sMap[5][row] = c[2];
-
+            for (let i = 0; i < 6; ++i) {
+                sMap[3*i][row] = c[0];
+                sMap[3*i + 1][row] = c[1];
+                sMap[3*i + 2][row] = c[2];
+            }
+         
             partialRows[k] = {
                 row,
                 nUsed: 1,
                 custom: true,
-                maxUsed: 2,
+                maxUsed: 6,
             };
 
             halfRows.push({
                 row,
-                nUsed: 2,
+                nUsed: 6,
                 custom: true,
-                maxUsed: 9,
+                maxUsed: 12,
             });
-        } else if (threeExtraConstraints.length > 0) {
-            const row = threeExtraConstraints.shift();
+        } else if (sixExtraConstraints.length > 0) {
+            const row = sixExtraConstraints.shift();
             C[5].values[row] = c[3];
             C[6].values[row] = c[4];
             C[7].values[row] = c[5];
             C[8].values[row] = c[6];
             C[9].values[row] = c[7];
 
-            sMap[18][row] = c[0];
-            sMap[19][row] = c[1];
-            sMap[20][row] = c[2];
-            sMap[21][row] = c[0];
-            sMap[22][row] = c[1];
-            sMap[23][row] = c[2];
-            sMap[24][row] = c[0];
-            sMap[25][row] = c[1];
-            sMap[26][row] = c[2];
-
+            for (let i = 6; i < 12; ++i) {
+                sMap[3*i][row] = c[0];
+                sMap[3*i + 1][row] = c[1];
+                sMap[3*i + 2][row] = c[2];
+            }
+           
             partialRows[k] = {
                 row,
                 nUsed: 7,
                 custom: true,
-                maxUsed: 9,
+                maxUsed: 12,
             };
-        } else if (twoExtraConstraints.length > 0) {
-            const row = twoExtraConstraints.shift();
+        } else if (fiveExtraConstraints.length > 0) {
+            const row = fiveExtraConstraints.shift();
             C[5].values[row] = c[3];
             C[6].values[row] = c[4];
             C[7].values[row] = c[5];
             C[8].values[row] = c[6];
             C[9].values[row] = c[7];
 
-            sMap[21][row] = c[0];
-            sMap[22][row] = c[1];
-            sMap[23][row] = c[2];
-            sMap[24][row] = c[0];
-            sMap[25][row] = c[1];
-            sMap[26][row] = c[2];
+            for (let i = 7; i < 12; ++i) {
+                sMap[3*i][row] = c[0];
+                sMap[3*i + 1][row] = c[1];
+                sMap[3*i + 2][row] = c[2];
+            }
 
             partialRows[k] = {
                 row,
                 nUsed: 8,
                 custom: true,
-                maxUsed: 9,
+                maxUsed: 12,
             };
-        } else if (oneExtraConstraint.length > 0) {
-            const row = oneExtraConstraint.shift();
+        } else if (fourExtraConstraints.length > 0) {
+            const row = fourExtraConstraints.shift();
             C[5].values[row] = c[3];
             C[6].values[row] = c[4];
             C[7].values[row] = c[5];
             C[8].values[row] = c[6];
             C[9].values[row] = c[7];
 
-            sMap[24][row] = c[0];
-            sMap[25][row] = c[1];
-            sMap[26][row] = c[2];
+            for (let i = 8; i < 12; ++i) {
+                sMap[3*i][row] = c[0];
+                sMap[3*i + 1][row] = c[1];
+                sMap[3*i + 2][row] = c[2];
+            }
+
+            partialRows[k] = {
+                row,
+                nUsed: 9,
+                custom: true,
+                maxUsed: 12,
+            };
         } else {
             C[0].values[r] = c[3];
             C[1].values[r] = c[4];
@@ -453,26 +569,25 @@ module.exports = async function plonkSetup(r1cs, options) {
             C[3].values[r] = c[6];
             C[4].values[r] = c[7];
 
-            sMap[0][r] = c[0];
-            sMap[1][r] = c[1];
-            sMap[2][r] = c[2];
-            sMap[3][r] = c[0];
-            sMap[4][r] = c[1];
-            sMap[5][r] = c[2];
+            for (let i = 0; i < 6; ++i) {
+                sMap[3*i][r] = c[0];
+                sMap[3*i + 1][r] = c[1];
+                sMap[3*i + 2][r] = c[2];
+            }
             
             // Add the partial row
             partialRows[k] = {
                 row: r,
                 nUsed: 1,
                 custom: false,
-                maxUsed: 2,
+                maxUsed: 6,
             };
 
             halfRows.push({
                 row: r,
-                nUsed: 2,
+                nUsed: 6,
                 custom: false,
-                maxUsed: 9,
+                maxUsed: 12,
             });
 
 
@@ -482,7 +597,7 @@ module.exports = async function plonkSetup(r1cs, options) {
 
     assert(r == NUsed, `Number of rows used in plonk constraints (${r}) does not match the expected number of rows (${NUsed})`);
 
-    const nColsConnections = 27;
+    const nColsConnections = 36;
 
     const S = [];
     for (let i = 0; i < nColsConnections; ++i) {

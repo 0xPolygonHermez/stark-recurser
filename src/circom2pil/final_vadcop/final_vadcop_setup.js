@@ -2,16 +2,119 @@ const { assert } = require("chai");
 const fs = require("fs");
 const path = require("path");
 const ejs = require("ejs");
-const { getFinalCompressorConstraints } = require("../compressor_constraints.js");
 const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P } = require("../../utils/utils.js");
+const { r1cs2plonk, getCustomGatesInfo } = require("../r1cs2plonk.js");
+
+function calculatePlonkConstraintsRows(plonkConstraints, tenExtraConstraints, fourExtraConstraints, threeExtraConstraints, twoExtraConstraints) {
+    let partialRows = {};
+    let halfRows = [];
+    let r = 0;
+
+    let constraintsCustomRows = 0;
+    let constraintsPlonkRows = 0;
+    for (let i=0; i<plonkConstraints.length; i++) {
+        if ((i%10000) == 0) {
+            console.log(`Point Check -> Plonk info constraint processing... ${i}/${plonkConstraints.length}`);
+        }
+        //Each plonkConstraint has the following form: [a,b,c, qM, qL, qR, qO, qC]
+        const c = plonkConstraints[i]; 
+        const k= c.slice(3, 8).map( a=> a.toString(16)).join(","); //Calculate
+        if(partialRows[k]) {
+            if(partialRows[k].custom) {
+                constraintsCustomRows++;
+            } else {
+                constraintsPlonkRows++;
+            }
+            ++partialRows[k].nUsed;
+            if(partialRows[k].nUsed == partialRows[k].maxUsed) {
+                delete partialRows[k];
+            }
+        } else if(halfRows.length > 0) {
+            partialRows[k] = halfRows.shift();
+            partialRows[k].nUsed++;
+            if(partialRows[k].custom) {
+                constraintsCustomRows++;
+            } else {
+                constraintsPlonkRows++;
+            }
+        } else if(tenExtraConstraints > 0) {
+            --tenExtraConstraints;
+            partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
+            halfRows.push({nUsed: 2, custom: true, maxUsed: 10});
+            constraintsCustomRows++;
+        } else if(fourExtraConstraints > 0) {
+            --fourExtraConstraints;
+            partialRows[k] = {nUsed: 7, custom: true, maxUsed: 10};
+            constraintsCustomRows++;
+        } else if(threeExtraConstraints > 0) {
+            --threeExtraConstraints;
+            partialRows[k] = {nUsed: 8, custom: true, maxUsed: 10};
+            constraintsCustomRows++;
+        } else if(twoExtraConstraints > 0) {
+            --twoExtraConstraints;
+            partialRows[k] = {nUsed: 9, custom: true, maxUsed: 10};
+            constraintsCustomRows++;
+        } else {
+            partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
+            halfRows.push({nUsed: 2, custom: false, maxUsed: 10});
+            constraintsPlonkRows++;
+            r++;
+        }
+    };
+
+    console.log(`Number of totalplonk constraints: ${plonkConstraints.length}`); 
+    console.log(`Number of Plonk constraints stored in rows -> ${constraintsPlonkRows} in ${r} rows`);
+    console.log(`Number of plonk constraints stored in custom gates: ${constraintsCustomRows}`);
+
+    return r;
+};
+
+function getNumberConstraints(r1cs) {
+    // Calculate the number plonk Additions and plonk constraints from the R1CS
+    const [plonkConstraints, plonkAdditions] = r1cs2plonk(r1cs);
+
+    console.log(`Number of plonk constraints: ${plonkConstraints.length}`);
+
+    // Get information about the custom gates from the R1CS
+    const customGatesInfo = getCustomGatesInfo(r1cs);
+    
+    // Each Poseidon2 gate uses 5 rows
+    let nCMulRows = Math.ceil(customGatesInfo.nCMul/3);
+    let nPoseidon12Rows = customGatesInfo.nPoseidon12*5;
+    let nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*5;
+    let nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
+    let nFFT4Rows = customGatesInfo.nFFT4;
+    let nEvPol4Rows = customGatesInfo.nEvPol4;
+    let nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
+    let nSelectVal1Rows = customGatesInfo.nSelectVal1;
+    
+    // Calculate how many groups of two plonk constraints can be made 
+    const CPlonkConstraints = calculatePlonkConstraintsRows(plonkConstraints, (customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12)*3, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nTreeSelector4Rows, customGatesInfo.nEvPol4, customGatesInfo.nCustPoseidon12 + customGatesInfo.nPoseidon12 + nSelectVal1Rows);
+
+    customGatesInfo.nPlonkRows = CPlonkConstraints;
+
+    let NUsed = CPlonkConstraints + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows + nSelectVal1Rows;
+    
+
+    console.log(`Number of CMul: ${customGatesInfo.nCMul} -> Constraints: ${nCMulRows}`);
+    console.log(`Number of Poseidon2 sponge: ${customGatesInfo.nPoseidon12} -> Constraints: ${nPoseidon12Rows}`);
+    console.log(`Number of Poseidon2 compressor: ${customGatesInfo.nCustPoseidon12} -> Constraints: ${nCustPoseidon12Rows}`)
+    console.log(`Total Number of Poseidon2:  ${customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12} -> Constraints ${nTotalPoseidon12Rows}`);
+    console.log(`Number of FFT4: ${customGatesInfo.nFFT4} -> Constraints: ${nFFT4Rows}`);
+    console.log(`Number of EvPol4: ${customGatesInfo.nEvPol4} -> Constraints: ${nEvPol4Rows}`);
+    console.log(`Number of TreeSelector4: ${customGatesInfo.nTreeSelector4} -> Constraints: ${nTreeSelector4Rows}`);
+    console.log(`Number of SelectVal1: ${customGatesInfo.nSelectVal1} -> Constraints: ${nSelectVal1Rows}`);
+
+    return {plonkConstraints, plonkAdditions, customGatesInfo, NUsed};
+}
 
 /*
     Compress plonk constraints and verifies custom gates using 21 committed polynomials
 */
-module.exports = async function plonkSetup(r1cs, options) {
+module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, options) {
     const committedPols = 62;
 
-    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getFinalCompressorConstraints(r1cs);
+    const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getNumberConstraints(r1cs);
 
     //Calculate the first power of 2 that's bigger than the number of constraints
     let nBits = log2(NUsed - 1) + 1;
@@ -24,8 +127,11 @@ module.exports = async function plonkSetup(r1cs, options) {
     console.log(`NUsed: ${NUsed}`);
     console.log(`nBits: ${nBits}, 2^nBits: ${N}`);
     
-    const template = await fs.promises.readFile(path.join(__dirname, "final.pil2.ejs"), "utf8");
+    const template = fs.readFileSync(path.join(__dirname, "../pil/compressor.pil2.ejs"), "utf8");
+    const airGroupName = options.airgroupName || "FinalVadcop";
     const obj = {
+        namespaceName: airGroupName,
+        templateName: airGroupName,
         nBits,
         nPublics,
         maxConstraintDegree: options.maxConstraintDegree || 8,
@@ -51,7 +157,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     const C = [];
     for (let i = 0; i < 10; ++i) {
         C[i] = {
-            name: `FinalVadcop.C`,
+            name: `${airGroupName}.C`,
             lengths: [i],
             values: new BigUint64Array(N),
         }
@@ -502,7 +608,7 @@ module.exports = async function plonkSetup(r1cs, options) {
     const S = [];
     for (let i = 0; i < nColsConnections; ++i) {
         S[i] = {
-            name: `FinalVadcop.S`,
+            name: `${airGroupName}.S`,
             lengths: [i],
             values: new BigUint64Array(N),
         }
@@ -559,7 +665,7 @@ module.exports = async function plonkSetup(r1cs, options) {
         nBits,
         sMap: sMap,
         plonkAdditions,
-        airgroupName: "FinalVadcop",
-        airName: "FinalVadcop",
+        airgroupName: airGroupName,
+        airName: airGroupName,
     };
 }
