@@ -197,7 +197,7 @@ function invroots(i) {
 <% return ref(code[code.length-1].dest);                                                -%>
 <% }                                                                                    -%>
 
-<% let MIN_CHUNK_SIZE = 50; -%>
+<% let MIN_CHUNK_SIZE = 1000; -%>
 <%  function getExpressionsChunks(code) {
     let tmps = {};
     let expressionsChunks= [];
