@@ -696,7 +696,7 @@ template VerifyEvaluationsChunks<%- i %>() {
 <% if(airgroupId !== undefined) { -%>
 <%      verifyEvaluationsName += airgroupId; -%>
 <% } -%>
-template <%- verifyEvaluationsName %>() {
+template parallel <%- verifyEvaluationsName %>() {
 <%  let inputsP = []; -%>
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  const stage = i + 1; -%>
@@ -894,7 +894,7 @@ template CalculateFRIPolChunks<%- i %>() {
 <% if(airgroupId !== undefined) { -%>
 <%      calculateFRIPolName += airgroupId; -%>
 <% } -%>
-template <%- calculateFRIPolName %>() {
+template parallel <%- calculateFRIPolName %>() {
 <%  let inputsQ = []; -%>
     signal input {binary} queriesFRI[<%- starkStruct.steps[0].nBits %>];
     signal input challengeXi[3];
