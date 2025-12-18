@@ -78,6 +78,6 @@
 
     signal input <%- prefix_ %>finalPol[<%- 1 << parseInt(starkInfo.starkStruct.steps[starkInfo.starkStruct.steps.length-1].nBits) %>][3];
 
-<%  if(starkInfo.starkStruct.powBits > 0) { -%>
+<%  if(starkInfo.starkStruct.powBits > 0 && starkInfo.starkStruct.verificationHashType === "GL") { -%>
     signal input <%- prefix_ %>nonce;
 <%  } -%>
