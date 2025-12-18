@@ -325,6 +325,7 @@ template calculateFRIQueries() {
 <%  if(starkInfo.starkStruct.powBits > 0) { -%>
     signal input nonce;
 <%  } -%>
+    signal input {binary} enable;
     signal output {binary} queriesFRI[<%- starkStruct.nQueries %>][<%- starkStruct.steps[0].nBits %>];
 
 <%  if(starkInfo.starkStruct.powBits > 0) { -%>
@@ -360,6 +361,7 @@ template Transcript() {
 <%  if(starkInfo.starkStruct.powBits > 0) { -%>
     signal input nonce;
 <%  } -%>
+    signal input {binary} enable;
 
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  if(starkInfo.challengesMap.filter(c => c.stage === i + 1).length === 0) continue; -%>
@@ -451,9 +453,9 @@ template Transcript() {
 <%- transcript.getCode() %>
 
 <%  if(starkInfo.starkStruct.powBits > 0) { -%>
-    queriesFRI <== calculateFRIQueries()(challengeFRIQueries, nonce);
+    queriesFRI <== calculateFRIQueries()(challengeFRIQueries, nonce, enable);
 <%  } else { -%>
-    queriesFRI <== calculateFRIQueries()(challengeFRIQueries);
+    queriesFRI <== calculateFRIQueries()(challengeFRIQueries, enable);
 <%  } -%>
 }
 
@@ -1058,9 +1060,9 @@ template StarkVerifier() {
 <%  const stageRoots = []; -%> 
 <%  for(let i = 0; i < starkInfo.nStages; i++) { stageRoots.push(`root${i + 1}`) } -%>
 <%  if(starkInfo.starkStruct.powBits > 0) { -%>
-    (<%- challengeNames.join(",") %>,challengesFRIStepsGL,queriesFRIGL) <== Transcript()(<%- starkInfo.nPublics > 0 ? "publicsGL," : "" %>rootC, <%- stageRoots.join(",") %>,root<%- qStage %>,evalsGL<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPolGL, nonce);
+    (<%- challengeNames.join(",") %>,challengesFRIStepsGL,queriesFRIGL) <== Transcript()(<%- starkInfo.nPublics > 0 ? "publicsGL," : "" %>rootC, <%- stageRoots.join(",") %>,root<%- qStage %>,evalsGL<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPolGL, nonce, enabled);
 <% } else { -%>
-    (<%- challengeNames.join(",") %>,challengesFRIStepsGL,queriesFRIGL) <== Transcript()(<%- starkInfo.nPublics > 0 ? "publicsGL," : "" %>rootC, <%- stageRoots.join(",") %>,root<%- qStage %>,evalsGL<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPolGL);
+    (<%- challengeNames.join(",") %>,challengesFRIStepsGL,queriesFRIGL) <== Transcript()(<%- starkInfo.nPublics > 0 ? "publicsGL," : "" %>rootC, <%- stageRoots.join(",") %>,root<%- qStage %>,evalsGL<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPolGL, enabled);
 <% } -%>
     var p = 0xFFFFFFFF00000001;
 
