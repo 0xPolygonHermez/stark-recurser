@@ -71,7 +71,7 @@
 <% }                                                -%>
 
     <%- componentName %>.finalPol <== <%- prefix_ %>finalPol;
-<%  if(starkInfo.starkStruct.powBits > 0 && starkInfo.starkStruct.verificationHashType === "GL") { -%>
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
     <%- componentName %>.nonce <== <%- prefix_ %>nonce;
 <%  } -%>
 

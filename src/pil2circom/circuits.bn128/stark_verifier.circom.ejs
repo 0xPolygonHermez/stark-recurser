@@ -283,6 +283,7 @@ include "poseidon.circom";
 include "bitifyT.circom";
 include "bn1togl3.circom";
 include "treeselector.circom";
+include "pow.circom";
 <% if (!options.skipMain) {  -%>
 include "compconstant64.circom";
 include "bitify.circom";
@@ -321,10 +322,18 @@ template GLC3() {
 template calculateFRIQueries() {
     
     signal input challengeFRIQueries[3];
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
+    signal input nonce;
+<%  } -%>
     signal output {binary} queriesFRI[<%- starkStruct.nQueries %>][<%- starkStruct.steps[0].nBits %>];
+
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
+    VerifyPoW(<%- starkStruct.powBits %>)(challengeFRIQueries, nonce, enable);
+<%  } -%>
 
 <%  const transcriptQueries = new Transcript("friQueries"); -%>
 <%  transcriptQueries.put("challengeFRIQueries", 3); -%>
+<%  if(starkInfo.starkStruct.powBits > 0) { transcriptQueries.put("nonce"); } -%>    
 
 <% transcriptQueries.getPermutations("queriesFRI", starkStruct.nQueries, starkStruct.steps[0].nBits, true); -%>
 <%- transcriptQueries.getCode(); %>
@@ -348,6 +357,9 @@ template Transcript() {
     signal input s<%- s %>_root;
 <% }                                                     -%>
     signal input {maxNum} finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
+    signal input nonce;
+<%  } -%>
 
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  if(starkInfo.challengesMap.filter(c => c.stage === i + 1).length === 0) continue; -%>
@@ -438,7 +450,11 @@ template Transcript() {
 <%  transcript.getField("challengeFRIQueries", 3); -%>
 <%- transcript.getCode() %>
 
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
+    queriesFRI <== calculateFRIQueries()(challengeFRIQueries, nonce);
+<%  } else { -%>
     queriesFRI <== calculateFRIQueries()(challengeFRIQueries);
+<%  } -%>
 }
 
 /*
@@ -925,6 +941,10 @@ template StarkVerifier() {
     // Evaluations of the final FRI polynomial over a set of points of size bounded its degree
     signal input finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
 
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
+    signal input nonce;
+<%  } -%>
+
     signal {binary} enabled;
 <% if (options.enableInput) { -%>
     signal input enable;
@@ -1037,8 +1057,11 @@ template StarkVerifier() {
 
 <%  const stageRoots = []; -%> 
 <%  for(let i = 0; i < starkInfo.nStages; i++) { stageRoots.push(`root${i + 1}`) } -%>
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
+    (<%- challengeNames.join(",") %>,challengesFRIStepsGL,queriesFRIGL) <== Transcript()(<%- starkInfo.nPublics > 0 ? "publicsGL," : "" %>rootC, <%- stageRoots.join(",") %>,root<%- qStage %>,evalsGL<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPolGL, nonce);
+<% } else { -%>
     (<%- challengeNames.join(",") %>,challengesFRIStepsGL,queriesFRIGL) <== Transcript()(<%- starkInfo.nPublics > 0 ? "publicsGL," : "" %>rootC, <%- stageRoots.join(",") %>,root<%- qStage %>,evalsGL<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPolGL);
-
+<% } -%>
     var p = 0xFFFFFFFF00000001;
 
     ///////////
@@ -1264,6 +1287,10 @@ template StarkVerifier() {
 
     signal input finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
 
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
+    signal input nonce;
+<%  } -%>
+
     component sv = StarkVerifier();
 
 <%  if(starkInfo.nPublics > 0) { -%>
@@ -1303,6 +1330,9 @@ template StarkVerifier() {
     sv.s<%- s %>_siblings <== s<%- s %>_siblings;
 <% }                                                  -%>
     sv.finalPol <== finalPol;
+<% if(starkInfo.starkStruct.powBits > 0) { -%>
+    sv.nonce <== nonce;
+<% } -%>
 
     //////
     // Calculate Publics Hash
