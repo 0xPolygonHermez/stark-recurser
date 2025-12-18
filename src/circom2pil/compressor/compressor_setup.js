@@ -132,6 +132,7 @@ module.exports.compressor = function compressor(r1cs, options) {
     const obj = {
         namespaceName: airGroupName,
         templateName: "Compressor",
+        templateFile: "compressor",
         nBits,
         nPublics,
         maxConstraintDegree: 5,

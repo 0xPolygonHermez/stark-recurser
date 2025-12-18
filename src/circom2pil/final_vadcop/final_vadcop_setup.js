@@ -131,7 +131,8 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
     const airGroupName = options.airgroupName || "FinalVadcop";
     const obj = {
         namespaceName: airGroupName,
-        templateName: airGroupName,
+        templateName: "FinalVadcop",
+        templateFile: "final",
         nBits,
         nPublics,
         maxConstraintDegree: options.maxConstraintDegree || 8,

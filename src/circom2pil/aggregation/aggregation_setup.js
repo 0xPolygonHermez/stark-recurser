@@ -131,6 +131,7 @@ module.exports.aggregationCompressor = function aggregationCompressor(r1cs, opti
     const obj = {
         namespaceName: airGroupName,
         templateName: "Aggregator",
+        templateFile: "aggregator",
         nBits,
         nPublics,
         maxConstraintDegree: options.maxConstraintDegree || 8,

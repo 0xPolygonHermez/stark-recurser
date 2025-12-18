@@ -3,10 +3,9 @@ const fs = require("fs");
 const path = require("path");
 const ejs = require("ejs");
 const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P } = require("../../utils/utils.js");
-const { C: POSEIDON_C } = require("../../utils/hash/poseidon/poseidon2_constants.js")
 const { r1cs2plonk, getCustomGatesInfo } = require("../r1cs2plonk.js");
 
-function calculatePlonkConstraintsRows(plonkConstraints) {
+function calculatePlonkConstraintsRows(plonkConstraints, twoExtraConstraints) {
     let partialRows = {};
     let halfRows = [];
     let r = 0;
@@ -29,9 +28,12 @@ function calculatePlonkConstraintsRows(plonkConstraints) {
             partialRows[k] = halfRows.shift();
             partialRows[k].nUsed++;
             constraintsPlonkRows++;
+        } else if(twoExtraConstraints > 0) {
+            --twoExtraConstraints;
+            partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
+            constraintsPlonkRows++;
         } else {
-            partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
-            halfRows.push({nUsed: 2, custom: false, maxUsed: 4});
+            partialRows[k] = {nUsed: 1, custom: false, maxUsed: 7};
             constraintsPlonkRows++;
             r++;
         }
@@ -52,20 +54,21 @@ function getNumberConstraints(r1cs) {
     // Get information about the custom gates from the R1CS
     const customGatesInfo = getCustomGatesInfo(r1cs);
     
-    let nCMulRows = customGatesInfo.nCMul;
+    let nCMulRows = Math.ceil(customGatesInfo.nCMul/2);
     let nPoseidon12Rows = customGatesInfo.nPoseidon12*14;
     let nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*14;
     let nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
     let nFFT4Rows = 2*customGatesInfo.nFFT4;
-    let nEvPol4Rows = 2*customGatesInfo.nEvPol4;
-    let nTreeSelector4Rows = 2*customGatesInfo.nTreeSelector4;
+    let nEvPol4Rows = customGatesInfo.nEvPol4;
+    let nTreeSelector4Rows = customGatesInfo.nTreeSelector4;
+    let nSelectVal1Rows = customGatesInfo.nSelectVal1;
     
     // Calculate how many groups of two plonk constraints can be made 
-    const CPlonkConstraints = calculatePlonkConstraintsRows(plonkConstraints);
+    const CPlonkConstraints = calculatePlonkConstraintsRows(plonkConstraints, 12*(customGatesInfo.nPoseidon12 + customGatesInfo.nCustPoseidon12));
 
     customGatesInfo.nPlonkRows = CPlonkConstraints;
 
-    let NUsed = CPlonkConstraints + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows;
+    let NUsed = CPlonkConstraints + nCMulRows + nTotalPoseidon12Rows + nFFT4Rows + nEvPol4Rows + nTreeSelector4Rows + nSelectVal1Rows;
     
 
     console.log(`Number of CMul: ${customGatesInfo.nCMul} -> Constraints: ${nCMulRows}`);
@@ -75,6 +78,7 @@ function getNumberConstraints(r1cs) {
     console.log(`Number of FFT4: ${customGatesInfo.nFFT4} -> Constraints: ${nFFT4Rows}`);
     console.log(`Number of EvPol4: ${customGatesInfo.nEvPol4} -> Constraints: ${nEvPol4Rows}`);
     console.log(`Number of TreeSelector4: ${customGatesInfo.nTreeSelector4} -> Constraints: ${nTreeSelector4Rows}`);
+    console.log(`Number of SelectVal1: ${customGatesInfo.nSelectVal1} -> Constraints: ${nSelectVal1Rows}`);
 
     return {plonkConstraints, plonkAdditions, customGatesInfo, NUsed};
 }
@@ -83,7 +87,7 @@ function getNumberConstraints(r1cs) {
     Compress plonk constraints and verifies custom gates using 21 committed polynomials
 */
 module.exports.lightCompressor = function lightCompressor(r1cs, options) {
-    const committedPols = 12;
+    const committedPols = 22;
 
     const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getNumberConstraints(r1cs);
 
@@ -98,20 +102,23 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
     console.log(`NUsed: ${NUsed}`);
     console.log(`nBits: ${nBits}, 2^nBits: ${N}`);
     
-    const template = fs.readFileSync(path.join(__dirname, "compressor_light.pil2.ejs"), "utf8");
-    const airName = `Compressor${Math.random().toString(16).slice(2)}`;
+    const template = fs.readFileSync(path.join(__dirname, "../pil/compressor.pil2.ejs"), "utf8");
+    const airGroupName = options.airgroupName || `Compressor${Math.random().toString(16).slice(2)}`;
     const obj = {
-        namespaceName: airName,
+        namespaceName: airGroupName,
+        templateName: "CompressorLight",
+        templateFile: "compressor_light",
         nBits,
         nPublics,
         maxConstraintDegree: options.maxConstraintDegree || 8,
         nPoseidonCompressor: customGatesInfo.nCustPoseidon12,
         nPoseidonSponge: customGatesInfo.nPoseidon12,
-        nCMulRows: customGatesInfo.nCMul,
+        nCMulRows: Math.ceil(customGatesInfo.nCMul/2),
         nPlonkRows: customGatesInfo.nPlonkRows,
         nFFT4: customGatesInfo.nFFT4,
         nEvPol4: customGatesInfo.nEvPol4,
         nTreeSelector4: customGatesInfo.nTreeSelector4,
+        nSelectVal1: customGatesInfo.nSelectVal1,
     };
 
     let pilStr = ejs.render(template ,  obj);
@@ -124,13 +131,15 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
     }
 
     const C = [];
-    for (let i = 0; i < 12; ++i) {
+    for (let i = 0; i < 16; ++i) {
         C[i] = {
-            name: `${airName}.C`,
+            name: `${airGroupName}.C`,
             lengths: [i],
             values: new BigUint64Array(N),
         }
     }
+
+    const twoExtraConstraints = [];
 
     let r = 0;
 
@@ -140,6 +149,7 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
     let fft4GateUses = r1cs.customGatesUses.filter(cgu => typeof customGatesInfo.FFT4Parameters[cgu.id] !== "undefined");
     let evPol4GateUses = r1cs.customGatesUses.filter(cgu => cgu.id == customGatesInfo.EvPol4Id);
     let treeSelector4GateUses = r1cs.customGatesUses.filter(cgu => cgu.id == customGatesInfo.TreeSelector4Id);
+    let selectVal1GateUses = r1cs.customGatesUses.filter(cgu => cgu.id == customGatesInfo.SelectVal1Id);
 
 
     // Generate Custom Gate
@@ -148,50 +158,53 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
     for (let i=0; i<poseidonGateUses.length; i++) {
         const cgu = poseidonGateUses[i];
         assert(cgu.signals.length == 14*16);
-        let input = cgu.signals.slice(0, 12);
-        let round0 = cgu.signals.slice(12, 24);
-        let round1 = cgu.signals.slice(24, 36);
-        let round2 = cgu.signals.slice(36, 48);
-        let round3 = cgu.signals.slice(48, 60);
-        let round4 = cgu.signals.slice(60, 72);
-        let im1 = cgu.signals.slice(72, 84);
-        let round15 = cgu.signals.slice(84, 96);
-        let im2 = cgu.signals.slice(96, 108);
-        let round26 = cgu.signals.slice(108, 120);
-        let round27 = cgu.signals.slice(120, 132);
-        let round28 = cgu.signals.slice(132, 144);
-        let round29 = cgu.signals.slice(144, 156);
-        let output = cgu.signals.slice(156, 168);
+        let input = cgu.signals.slice(0, 16);
+        let round0 = cgu.signals.slice(16, 32);
+        let round1 = cgu.signals.slice(32, 48);
+        let round2 = cgu.signals.slice(48, 64);
+        let round3 = cgu.signals.slice(64, 80);
+        let round4 = cgu.signals.slice(80, 96);
+        let im1 = cgu.signals.slice(96, 112);
+        let round15 = cgu.signals.slice(112, 128);
+        let im2 = cgu.signals.slice(128, 144);
+        let round26 = cgu.signals.slice(144, 160);
+        let round27 = cgu.signals.slice(160, 176);
+        let round28 = cgu.signals.slice(176, 192);
+        let round29 = cgu.signals.slice(192, 208);
+        let output = cgu.signals.slice(208, 224);
 
-        for (let k = 0; k < 12; k++) {
+        for (let k = 0; k < 16; k++) {
             sMap[k][r] = input[k];
             sMap[k][r + 1] = round0[k];
-            C[k].values[r + 1] = POSEIDON_C[k];
             sMap[k][r + 2] = round1[k];
-            C[k].values[r + 2] = POSEIDON_C[12 + k];
             sMap[k][r + 3] = round2[k];
-            C[k].values[r + 3] = POSEIDON_C[24 + k];
             sMap[k][r + 4] = round3[k];
-            C[k].values[r + 4] = POSEIDON_C[36 + k];
             sMap[k][r + 5] = round4[k];
             sMap[k][r + 7] = round15[k];
             sMap[k][r + 9] = round26[k];
-            C[k].values[r + 9] = POSEIDON_C[70 + k];
             sMap[k][r + 10] = round27[k];
-            C[k].values[r + 10] = POSEIDON_C[82 + k];
             sMap[k][r + 11] = round28[k];
-            C[k].values[r + 11] = POSEIDON_C[94 + k];
             sMap[k][r + 12] = round29[k];
-            C[k].values[r + 12] = POSEIDON_C[106 + k];
             sMap[k][r + 13] = output[k];
         }
 
         for (let k = 0; k < 11; k++) {
             sMap[k][r + 6] = im1[k];
-            C[k].values[r + 6] = POSEIDON_C[48 + k];
             sMap[k][r + 8] = im2[k];
-            C[k].values[r + 8] = POSEIDON_C[59 + k];
         }
+
+        twoExtraConstraints.push(r+1);
+        twoExtraConstraints.push(r+2);
+        twoExtraConstraints.push(r+3);
+        twoExtraConstraints.push(r+4);
+        twoExtraConstraints.push(r+5);
+        twoExtraConstraints.push(r+6);
+        twoExtraConstraints.push(r+7);
+        twoExtraConstraints.push(r+8);
+        twoExtraConstraints.push(r+9);
+        twoExtraConstraints.push(r+10);
+        twoExtraConstraints.push(r+11);
+        twoExtraConstraints.push(r+12);
                 
         r+=14;
     }
@@ -202,90 +215,104 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
     for (let i=0; i<poseidonCustGateUses.length; i++) {
         const cgu = poseidonCustGateUses[i];
         assert(cgu.signals.length == 14*16 + 2);
-        let input = cgu.signals.slice(0, 12);
-        let first_bit = cgu.signals[12];
-        let second_bit = cgu.signals[13];
-        let round0 = cgu.signals.slice(14, 26);
-        let round1 = cgu.signals.slice(26, 38);
-        let round2 = cgu.signals.slice(38, 50);
-        let round3 = cgu.signals.slice(50, 62);
-        let round4 = cgu.signals.slice(62, 74);
-        let im1 = cgu.signals.slice(74, 86);
-        let round15 = cgu.signals.slice(86, 98);
-        let im2 = cgu.signals.slice(98, 110);
-        let round26 = cgu.signals.slice(110, 122);
-        let round27 = cgu.signals.slice(122, 134);
-        let round28 = cgu.signals.slice(134, 146);
-        let round29 = cgu.signals.slice(146, 158);
-        let output = cgu.signals.slice(158, 170);
+        let input = cgu.signals.slice(0, 16);
+        let first_bit = cgu.signals[16];
+        let second_bit = cgu.signals[17];
+        let round0 = cgu.signals.slice(18, 34);
+        let round1 = cgu.signals.slice(34, 50);
+        let round2 = cgu.signals.slice(50, 66);
+        let round3 = cgu.signals.slice(66, 82);
+        let round4 = cgu.signals.slice(82, 98);
+        let im1 = cgu.signals.slice(98, 114);
+        let round15 = cgu.signals.slice(114, 130);
+        let im2 = cgu.signals.slice(130, 146);
+        let round26 = cgu.signals.slice(146, 162);
+        let round27 = cgu.signals.slice(162, 178);
+        let round28 = cgu.signals.slice(178, 194);
+        let round29 = cgu.signals.slice(194, 210);
+        let output = cgu.signals.slice(210, 226);
         
-        for (let k = 0; k < 12; k++) {
+        for (let k = 0; k < 16; k++) {
             sMap[k][r] = input[k];
             sMap[k][r + 1] = round0[k];
-            C[k].values[r + 1] = POSEIDON_C[k];
             sMap[k][r + 2] = round1[k];
-            C[k].values[r + 2] = POSEIDON_C[12 + k];
             sMap[k][r + 3] = round2[k];
-            C[k].values[r + 3] = POSEIDON_C[24 + k];
             sMap[k][r + 4] = round3[k];
-            C[k].values[r + 4] = POSEIDON_C[36 + k];
             sMap[k][r + 5] = round4[k];
             sMap[k][r + 7] = round15[k];
             sMap[k][r + 9] = round26[k];
-            C[k].values[r + 9] = POSEIDON_C[70 + k];
             sMap[k][r + 10] = round27[k];
-            C[k].values[r + 10] = POSEIDON_C[82 + k];
             sMap[k][r + 11] = round28[k];
-            C[k].values[r + 11] = POSEIDON_C[94 + k];
             sMap[k][r + 12] = round29[k];
-            C[k].values[r + 12] = POSEIDON_C[106 + k];
             sMap[k][r + 13] = output[k];
         }
         
-        sMap[11][r + 6] = first_bit;
-        sMap[11][r + 8] = second_bit;
+        sMap[16][r] = first_bit;
+        sMap[17][r] = second_bit;
         for (let k = 0; k < 11; k++) {
             sMap[k][r + 6] = im1[k];
-            C[k].values[r + 6] = POSEIDON_C[48 + k];
             sMap[k][r + 8] = im2[k];
-            C[k].values[r + 8] = POSEIDON_C[59 + k];
         }
+
+        twoExtraConstraints.push(r+1);
+        twoExtraConstraints.push(r+2);
+        twoExtraConstraints.push(r+3);
+        twoExtraConstraints.push(r+4);
+        twoExtraConstraints.push(r+5);
+        twoExtraConstraints.push(r+6);
+        twoExtraConstraints.push(r+7);
+        twoExtraConstraints.push(r+8);
+        twoExtraConstraints.push(r+9);
+        twoExtraConstraints.push(r+10);
+        twoExtraConstraints.push(r+11);
+        twoExtraConstraints.push(r+12);
 
         r+=14;
     }
 
     assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length);
     console.log(`Point check -> Processing ${cmulGateUses.length} cmul gates...`);
+    let partialRowsCMul = {row: -1, nUsed: 0};
     for (let i=0; i<cmulGateUses.length; i++) {
         const cgu = cmulGateUses[i];
         assert(cgu.signals.length === 9);
-        for (let i=0; i<9; i++) {
-            sMap[i][r] = cgu.signals[i];
+        if(partialRowsCMul.row !== -1) {
+            for (let i=0; i<9; i++) {
+                sMap[i + 9*partialRowsCMul.nUsed][partialRowsCMul.row] = cgu.signals[i];
+            }
+            partialRowsCMul.nUsed++;
+            if(partialRowsCMul.nUsed === 2) {
+                partialRowsCMul = {row: -1, nUsed: 0};
+            }
+        } else {
+            for (let i=0; i<9; i++) {
+                sMap[i][r] = cgu.signals[i];
+            }
+            
+            for (let k=0; k<5; k++) {
+                C[k].values[r] = 0n;
+            }
+            partialRowsCMul = {row: r, nUsed: 1};
+            r += 1;
         }
-        
-        for (let k=0; k<12; k++) {
-            C[k].values[r] = 0n;
-        }
-        r += 1;
     }
 
-    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + cmulGateUses.length);
+    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + obj.nCMulRows);
     console.log(`Point check -> Processing ${evPol4GateUses.length} evPol4 gates...`);
     for (let i=0; i<evPol4GateUses.length; i++) {
         const cgu = evPol4GateUses[i];
         for (let i=0; i<21; i++) {
-            if (i === 12) r+= 1;
-            sMap[i%12][r] = cgu.signals[i];
+            sMap[i][r] = cgu.signals[i];
         }
     
-        for (let k=0; k<12; k++) {
+        for (let k=0; k<5; k++) {
             C[k].values[r] = 0n;
         }
 
         r+= 1;
     }
 
-    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + cmulGateUses.length + 2*evPol4GateUses.length);
+    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + obj.nCMulRows + evPol4GateUses.length);
     console.log(`Point check -> Processing ${fft4GateUses.length} fft4 gates...`);
     for (let i=0; i<fft4GateUses.length; i++) {
         const cgu = fft4GateUses[i];
@@ -305,26 +332,20 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
             C[2].values[r] = (scale * firstW) % GOLDILOCKS_P;
             C[3].values[r] = (scale * firstW * firstW2) % GOLDILOCKS_P;
             C[4].values[r] = (scale * firstW * incW) % GOLDILOCKS_P;
-            C[5].values[r] = (scale * firstW * firstW2 * incW) % GOLDILOCKS_P;
-            C[6].values[r] = 0n;
-            C[7].values[r] = 0n;
-            C[8].values[r] = 0n;
-            C[9].values[r] = 0n;
-            C[10].values[r] = 0n;
-            C[11].values[r] = 0n;
+            C[0].values[r+1] = (scale * firstW * firstW2 * incW) % GOLDILOCKS_P;
+            C[1].values[r+1] = 0n;
+            C[2].values[r+1] = 0n;
+            C[3].values[r+1] = 0n;
         } else if (type == 2n) {
             C[0].values[r] = 0n;
             C[1].values[r] = 0n;
             C[2].values[r] = 0n;
             C[3].values[r] = 0n;
             C[4].values[r] = 0n;
-            C[5].values[r] = 0n;
-            C[6].values[r] = scale;
-            C[7].values[r] = (scale * firstW) % GOLDILOCKS_P;
-            C[8].values[r] = (scale * firstW * incW) % GOLDILOCKS_P;
-            C[9].values[r] = 0n;
-            C[10].values[r] = 0n;
-            C[11].values[r] = 0n;
+            C[0].values[r+1] = 0n;
+            C[1].values[r+1] = scale;
+            C[2].values[r+1] = (scale * firstW) % GOLDILOCKS_P;
+            C[3].values[r+1] = (scale * firstW * incW) % GOLDILOCKS_P;
         } else {
             throw new Error("Invalid FFT4 type: "+cgu.parameters[0]);
         }
@@ -332,23 +353,38 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
         r += 2;
     }
 
-    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + cmulGateUses.length + 2*fft4GateUses.length + 2*evPol4GateUses.length);
+    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + obj.nCMulRows + 2*fft4GateUses.length + evPol4GateUses.length);
     console.log(`Point check -> Processing ${treeSelector4GateUses.length} treeSelector4 gates...`);
     for (let i=0; i<treeSelector4GateUses.length; i++) {
         const cgu = treeSelector4GateUses[i];
         assert(cgu.signals.length === 17);
         for (let i=0; i<17; i++) {
-            if (i === 12) r+= 1;
-            sMap[i%12][r] = cgu.signals[i];
+            sMap[i][r] = cgu.signals[i];
         }
 
-        for (let k=0; k<12; k++) {
+        for (let k=0; k<5; k++) {
             C[k].values[r] = 0n;
         }
         r += 1;
     }
 
-    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + cmulGateUses.length + 2*fft4GateUses.length + 2*evPol4GateUses.length + 2*treeSelector4GateUses.length);
+    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + obj.nCMulRows + 2*fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length);
+
+    console.log(`Point check -> Processing ${selectVal1GateUses.length} selectVal1 gates...`);
+    for (let i=0; i<selectVal1GateUses.length; i++) {
+        const cgu = selectVal1GateUses[i];
+        assert(cgu.signals.length === 22);
+        for (let i=0; i<22; i++) {
+            sMap[i][r] = cgu.signals[i];
+        }
+
+        for (let k=0; k<5; k++) {
+            C[k].values[r] = 0n;
+        }
+        r += 1;
+    }
+
+    assert(r == 14*poseidonGateUses.length + 14*poseidonCustGateUses.length + obj.nCMulRows + 2*fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length + selectVal1GateUses.length);
 
     // Paste plonk constraints. 
     // Each row can be split in three subsets: 
@@ -366,32 +402,34 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
         // the corresponding row
         if (partialRows[k]) {
             const pr = partialRows[k];
-            sMap[pr.nUsed*3][pr.row] = c[0];
-            sMap[pr.nUsed*3+1][pr.row] = c[1];
-            sMap[pr.nUsed*3+2][pr.row] = c[2];           
+            sMap[pr.offset + pr.nUsed*3][pr.row] = c[0];
+            sMap[pr.offset + pr.nUsed*3 + 1][pr.row] = c[1];
+            sMap[pr.offset + pr.nUsed*3 + 2][pr.row] = c[2];           
             pr.nUsed++;
             if(pr.nUsed === pr.maxUsed) {
                 delete partialRows[k];
             }
-        // If the constraint is not stored in partialRows (which means that there is no other row that is using this very same set of constraints and is not full)
-        // check if there's any half row. If that's the case, attach the new set of constraints values to that row 
-        } else if (halfRows.length > 0) {
-            const pr = halfRows.shift();
-            C[5].values[pr.row] = c[3];
-            C[6].values[pr.row] = c[4];
-            C[7].values[pr.row] = c[5];
-            C[8].values[pr.row] = c[6];
-            C[9].values[pr.row] = c[7];
+        } else if(twoExtraConstraints.length > 0) {
+            const row = twoExtraConstraints.shift();
+            C[0].values[row] = c[3];
+            C[1].values[row] = c[4];
+            C[2].values[row] = c[5];
+            C[3].values[row] = c[6];
+            C[4].values[row] = c[7];
 
-            sMap[6][pr.row] = c[0];
-            sMap[7][pr.row] = c[1];
-            sMap[8][pr.row] = c[2];
-            sMap[9][pr.row] = c[0];
-            sMap[10][pr.row] = c[1];
-            sMap[11][pr.row] = c[2];
-            
-            pr.nUsed++;
-            partialRows[k] = pr;
+            for (let i = 0; i < 2; ++i) {
+                sMap[16 + 3*i][row] = c[0];
+                sMap[16 + 3*i + 1][row] = c[1];
+                sMap[16 + 3*i + 2][row] = c[2];
+            }
+
+            partialRows[k] = {
+                row,
+                offset: 16,
+                nUsed: 1,
+                custom: true,
+                maxUsed: 2,
+            };
         } else {
             C[0].values[r] = c[3];
             C[1].values[r] = c[4];
@@ -399,28 +437,20 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
             C[3].values[r] = c[6];
             C[4].values[r] = c[7];
 
-            sMap[0][r] = c[0];
-            sMap[1][r] = c[1];
-            sMap[2][r] = c[2];
-            sMap[3][r] = c[0];
-            sMap[4][r] = c[1];
-            sMap[5][r] = c[2];
+            for (let i = 0; i < 7; ++i) {
+                sMap[3*i][r] = c[0];
+                sMap[3*i + 1][r] = c[1];
+                sMap[3*i + 2][r] = c[2];
+            }
             
             // Add the partial row
             partialRows[k] = {
                 row: r,
+                offset: 0,
                 nUsed: 1,
                 custom: false,
-                maxUsed: 2,
+                maxUsed: 7,
             };
-
-            halfRows.push({
-                row: r,
-                nUsed: 2,
-                custom: false,
-                maxUsed: 4,
-            });
-
 
             r++;
         }
@@ -428,14 +458,14 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
 
     assert(r == NUsed, `Number of rows used in plonk constraints (${r}) does not match the expected number of rows (${NUsed})`);
 
-    const nColsConnections = 12;
+    const nColsConnections = 22;
 
     const S = [];
     for (let i = 0; i < nColsConnections; ++i) {
         S[i] = {
-            name: `${airName}.S`,
+            name: `${airGroupName}.S`,
             lengths: [i],
-            values: new BigUint64Array(N),
+            values: new BigUint64Array(N).fill(0n),
         }
     }
 
@@ -476,7 +506,7 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
     // Fill unused rows (NUsed < r < N) with empty gates
     while (r<N) {
         if ((r%100000) == 0) console.log(`Point check -> Empty gates... ${r}/${N}`);
-        for (let k=0; k<12; k++) {
+        for (let k=0; k<5; k++) {
             C[k].values[r] = 0n;
         }
         r +=1;
@@ -490,7 +520,7 @@ module.exports.lightCompressor = function lightCompressor(r1cs, options) {
         nBits,
         sMap: sMap,
         plonkAdditions,
-        airgroupName: airName,
-        airName: airName,
+        airgroupName: airGroupName,
+        airName: airGroupName,
     };
 }

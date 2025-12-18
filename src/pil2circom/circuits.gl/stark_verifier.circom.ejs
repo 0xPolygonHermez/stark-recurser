@@ -438,15 +438,19 @@ include "merklehash.circom";
 template <%- calculateFriQueriesName %>() {
     
     signal input challengeFRIQueries[3];
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
     signal input nonce;
+<%  } -%>
     signal input {binary} enable;
     signal output {binary} queriesFRI[<%- starkStruct.nQueries %>][<%- starkStruct.steps[0].nBits %>];
 
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
     VerifyPoW(<%- starkStruct.powBits %>)(challengeFRIQueries, nonce, enable);
+<%  } -%>
 
 <%  const transcriptQueries = new Transcript("friQueries"); -%>
 <%  transcriptQueries.put("challengeFRIQueries", 3); -%>
-<%  transcriptQueries.put("nonce"); -%>    
+<%  if(starkInfo.starkStruct.powBits > 0) { transcriptQueries.put("nonce"); } -%>    
 
 <% transcriptQueries.getPermutations("queriesFRI", starkStruct.nQueries, starkStruct.steps[0].nBits); -%>
 <%- transcriptQueries.getCode(); %>
@@ -485,7 +489,9 @@ template <%- transcriptName %>() {
     signal input s<%- s %>_root[4];
 <% }                                                     -%>
     signal input finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
     signal input nonce;
+<%  } -%>
     signal input {binary} enable;
 
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
@@ -586,7 +592,11 @@ template <%- transcriptName %>() {
 <%  transcript.getField(`challengesFRISteps[${starkStruct.steps.length}]`, 3); -%>
 <%- transcript.getCode() %>
 
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
     queriesFRI <== <%- calculateFriQueriesName %>()(challengesFRISteps[<%- starkStruct.steps.length %>], nonce, enable);
+<%  } else { -%>
+    queriesFRI <== <%- calculateFriQueriesName %>()(challengesFRISteps[<%- starkStruct.steps.length %>], enable);
+<%  } -%>
 }
 
 /*
@@ -1182,7 +1192,9 @@ template <%- verifierName %>() {
     // Evaluations of the final FRI polynomial over a set of points of size bounded its degree
     signal input finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
 
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
     signal input nonce;
+<%  } -%>
 
     signal {binary} enabled;
 <% if (options.enableInput) { -%>
@@ -1241,7 +1253,11 @@ template <%- verifierName %>() {
 <%  const stageRoots = []; -%> 
 <%  for(let i = 1; i < starkInfo.nStages; i++) { stageRoots.push(`root${i + 1}`) } -%>
 
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
     (<%- challengeNames.join(",") %>,challengesFRISteps,queriesFRI) <== <%- transcriptName %>()(<%- inputsC.join(",") %>,<%- stageRoots.join(",") %>,root<%- qStage %>,evals<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPol, nonce, enabled);
+<%  } else { -%>
+    (<%- challengeNames.join(",") %>,challengesFRISteps,queriesFRI) <== <%- transcriptName %>()(<%- inputsC.join(",") %>,<%- stageRoots.join(",") %>,root<%- qStage %>,evals<%- si_roots.length > 0 ? "," + si_roots.join(",") : "" %>,finalPol, enabled);
+<%  } -%>
 
     ///////////
     // Check constraints polynomial in the evaluation point

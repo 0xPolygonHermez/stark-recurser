@@ -71,7 +71,9 @@
 <% }                                                -%>
 
     <%- componentName %>.finalPol <== <%- prefix_ %>finalPol;
+<%  if(starkInfo.starkStruct.powBits > 0) { -%>
     <%- componentName %>.nonce <== <%- prefix_ %>nonce;
+<%  } -%>
 
 <%  if(options.setEnableInput) { -%>
 <%  let enableInput = options.setEnableInput === true ? 1 : options.setEnableInput -%>
