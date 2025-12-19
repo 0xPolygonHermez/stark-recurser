@@ -1,4 +1,4 @@
-pragma circom 2.1.5;
+pragma circom 2.1.0;
 
 include "compconstant.circom";
 
