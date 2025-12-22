@@ -17,10 +17,14 @@ module.exports.genCircom = async function genCircom(templateFile, starkInfos = [
         optionsCircom.starkInfo = starkInfos;
     }
 
-    if(publics.length === 1) {
-        optionsCircom.publics = publics[0];
+    if(publics.length > 0) {
+        if(publics.length === 1) {
+            optionsCircom.publics = publics[0];
+        } else {
+            optionsCircom.publics = publics;
+        }
     } else {
-        optionsCircom.publics = publics;
+        optionsCircom.publics = null;
     }
 
     optionsCircom.basicVK = basicVerificationKeys;

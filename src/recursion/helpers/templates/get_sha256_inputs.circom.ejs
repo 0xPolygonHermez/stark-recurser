@@ -1,4 +1,4 @@
-
+<% if (publics) { -%>
 <% if(isTest) { -%>
     pragma circom 2.1.0;
     pragma custom_templates;
@@ -81,4 +81,5 @@ template getSha256Inputs() {
 
 <% if(isTest) { -%>
 component main = getSha256Inputs();
+<% } -%>
 <% } -%>
