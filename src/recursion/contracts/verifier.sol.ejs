@@ -1,0 +1,68 @@
+// SPDX-License-Identifier: AGPL-3.0
+pragma solidity ^0.8.20;
+
+import {I<%- name %>Verifier} from "./I<%- name %>Verifier.sol";
+import {<%- useFflonk ? "Fflonk" : "Plonk" %>Verifier} from "./<%- useFflonk ? "Fflonk" : "Plonk" %>Verifier.sol";
+
+/// @title <%- name %> Verifier
+/// @author SilentSig
+/// @notice This contracts implements a solidity verifier for <%- name %>.
+contract <%- name %>Verifier is <%- useFflonk ? "Fflonk" : "Plonk" %>Verifier, I<%- name %>Verifier {
+    /// @notice Thrown when the verifier selector from this proof does not match the one in this
+    /// verifier. This indicates that this proof was sent to the wrong verifier.
+    
+    /// @notice Thrown when the proof is invalid.
+    error InvalidProof();
+
+    function VERSION() external pure returns (string memory) {
+        return "v0.15.0";
+    }
+
+    // Modulus zkSNARK
+    uint256 internal constant _RFIELD =
+        21888242871839275222246405745257275088548364400416034343698204186575808495617;
+
+    /// @notice Hashes the public values to a field elements inside Bn254.
+    /// @param publicValues The public values.
+    function hashPublicValues(
+        <%-  publics.hasProgramVK ? "uint64[4] calldata programVK, " : "" %>
+        bytes calldata publicValues
+    ) public pure returns (uint256) {
+<%  if (publics.hasProgramVK) { -%>
+<%      if (publics.definitions[0].verificationKey) { -%>
+            return uint256(sha256(abi.encodePacked(bytes8(programVK[0]), bytes8(programVK[1]), bytes8(programVK[2]), bytes8(programVK[3]), publicValues))) % _RFIELD;
+<%      } else if (publics.definitions[publics.definitions.length - 1].verificationKey) { -%>
+            return uint256(sha256(abi.encodePacked(publicValues, bytes8(programVK[0]), bytes8(programVK[1]), bytes8(programVK[2]), bytes8(programVK[3])))) % _RFIELD;
+<%      } -%>
+<%  } else { -%>
+        return uint256(sha256(publicValues)) % _RFIELD;
+<%  } -%>
+    }
+
+    /// @notice Verifies a proof with given public values and vkey.
+    <%-  publics.hasProgramVK ? "/// @param programVK The verification key for the RISC-V program." : "" %>
+    /// @param publicValues The public values encoded as bytes.
+    /// @param proofBytes The proof of the program execution the <%- name %> zkVM encoded as bytes.
+    function verifySnarkProof(
+        <%-  publics.hasProgramVK ? "uint64[4] calldata programVK, " : "" %>
+        bytes calldata publicValues,
+        bytes calldata proofBytes
+    ) external view {
+        uint256 publicValuesDigest = hashPublicValues(<%- publics.hasProgramVK ? "programVK, " : "" %>publicValues);
+
+<%  if (!useFflonk) { -%>
+        uint256[24] memory proofDecoded = abi.decode(proofBytes, (uint256[24]));
+<%  } else { -%>
+        bytes32[24] memory proofDecoded = abi.decode(proofBytes, (bytes32[24]));
+<%  } -%>
+
+        bool success = this.verifyProof(
+            proofDecoded,
+            [publicValuesDigest]
+        );
+
+        if (!success) {
+            revert InvalidProof();
+        }
+    }
+}

@@ -17,7 +17,11 @@ template getSha256Inputs() {
 
     signal output publicsHash;
 
-<%  let totalBits = publics.definitions.reduce((curr, acc) => curr + acc.chunks[0]*acc.chunks[1], 0); -%>
+    for (var i = 0; i < <%- publics.nPublics %>; i++) {
+        _<== LessThanGoldilocks()(publics[i]); 
+    }
+
+<%  let totalBits = publics.definitions.reduce((curr, acc) => curr + acc.nValues*acc.chunks[0]*acc.chunks[1], 0); -%>
 <%  if(options.addAggregatorAddr) { -%>
 <%  totalBits += 160; -%> 
 <%  } -%>
@@ -28,37 +32,37 @@ template getSha256Inputs() {
 
 <%  let offset = 0; -%>
 <%  for(let i = 0; i < publics.definitions.length; i++) { -%>
+<%      let nValues = publics.definitions[i].nValues; -%>
 <%      let nChunks = publics.definitions[i].chunks[0]; -%>
 <%      let nBitsPerChunk = publics.definitions[i].chunks[1]; -%>
 <%      let name = publics.definitions[i].name; -%>
     var <%- name %>Pos = <%- publics.definitions[i].initialPos %>;
     var <%- name %>BitsOffset = <%- offset %>;
-<% offset += nChunks * nBitsPerChunk -%>
+<% offset += nValues * nChunks * nBitsPerChunk -%>
 <%  if(nChunks === 1) { -%>
-    signal <%- name %> <== publics[<%- name %>Pos];
-<%  let nBitsPerChunk_ = publics.definitions[i].avoidAlias ? nBitsPerChunk - 1 : nBitsPerChunk; -%>
-    signal <%- name %>Bits[<%- nBitsPerChunk_ %>] <== Num2Bits(<%- nChunks * nBitsPerChunk_ %>)(<%- name %>);
-    for (var j=0; j< <%- nBitsPerChunk_ %>; j++) {
-        publicsHasher.in[<%- name %>BitsOffset + <%- nBitsPerChunk %> - 1 - j] <== <%- name %>Bits[j];
-    }
+<%      let nBitsPerChunk_ = publics.definitions[i].avoidAlias ? nBitsPerChunk - 1 : nBitsPerChunk; -%>
+    component <%- name %>Bits[<%- nValues %>];
+    for(var i=0; i< <%- nValues %>; i++) {
+        <%- name %>Bits[i] = Num2Bits(<%- nChunks * nBitsPerChunk_ %>);
+        <%- name %>Bits[i].in <== publics[<%- name %>Pos + i];
+        for (var j=0; j< <%- nBitsPerChunk_ %>; j++) {
+            publicsHasher.in[<%- name %>BitsOffset + i*<%- nBitsPerChunk %> + <%- nBitsPerChunk %> - 1 - j] <== <%- name %>Bits[i].out[j];
+        }
 <%      if(publics.definitions[i].avoidAlias) { -%>
-    publicsHasher.in[<%- name %>BitsOffset] <== 0;
+        publicsHasher.in[<%- name %>BitsOffset] <== 0;
 <%      } -%>
+    }
 <%  } else { -%>
-    signal <%- name %>[<%- nChunks %>];
-    signal <%- name %>Bits[<%- nChunks %>][<%- nBitsPerChunk %>];
-    for(var i=0; i< <%- nChunks %>; i++) {
-        <%- name %>[i] <== publics[<%- name %>Pos + i];
-        <%- name %>Bits[i] <== Num2Bits(<%- nBitsPerChunk %>)(<%- name %>[i]);
-        for(var j = 0; j < <%- nBitsPerChunk %>; j++) {
-            publicsHasher.in[<%- name%>BitsOffset + <%- nBitsPerChunk %>*(<%- nChunks %> - i) - 1 - j] <== <%- name %>Bits[i][j];
+    signal <%- name %>Bits[<%- nValues %>][<%- nChunks %>];
+    for (var k = 0; k < <%- nValues %>; k++) {
+        for(var i=0; i< <%- nChunks %>; i++) {
+            <%- name %>Bits[k][i] = Num2Bits(<%- nBitsPerChunk %>);
+            <%- name %>Bits[k][i].in <== publics[<%- name %>Pos + k * <%- nChunks %> + i];
+            for(var j = 0; j < <%- nBitsPerChunk %>; j++) {
+                publicsHasher.in[<%- name%>BitsOffset + (k*<%- nChunks %> + i)*<%- nBitsPerChunk %> + <%- nBitsPerChunk %>*(<%- nChunks %> - i) - 1 - j] <== <%- name %>Bits[k][i].out[j];
+            }
         }
     }
-<%  if(publics.definitions[i].lessThanGL) { -%>
-    for (var i = 0; i < <%- nChunks / 2 %>; i++) {
-        _<== LessThanGoldilocks()(<%- name %>[2*i] + (1 << 32) * <%- name %>[2*i + 1]); 
-    }
-<%  } -%>
 <%  } -%>
 
 <%  } -%>

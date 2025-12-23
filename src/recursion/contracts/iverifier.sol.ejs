@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: AGPL-3.0
+pragma solidity ^0.8.20;
+
+/// @title <%- name %> Verifier Interface
+/// @author SilentSig
+/// @notice This contract is the interface for the <%- name %> Verifier.
+interface I<%- name %>Verifier {
+    /// @notice Verifies a proof with given public values and vkey.
+     <%-  publics.hasProgramVK ? "/// @param programVK The verification key for the RISC-V program." : "" %>
+    /// @param publicValues The public values encoded as bytes.
+    /// @param proofBytes The proof of the program execution the <%- name %> zkVM encoded as bytes.
+    function verifySnarkProof(
+        <%-  publics.hasProgramVK ? "uint64[4] calldata programVK, " : "" %>
+        bytes calldata publicValues,
+        bytes calldata proofBytes
+    ) external view;
+}
