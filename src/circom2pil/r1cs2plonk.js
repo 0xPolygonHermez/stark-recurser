@@ -16,10 +16,11 @@ module.exports.r1cs2plonk = function r1cs2plonk(r1cs, logger ) {
             }
         }
         for (let s in lc2) {
+            const val = (0xFFFFFFFF00000001n - lc2[s]) % 0xFFFFFFFF00000001n;
             if (typeof res[s] == "undefined") {
-                res[s] = lc2[s];
+                res[s] = val;
             } else {
-                res[s] = (res[s] + lc2[s]) % 0xFFFFFFFF00000001n;
+                res[s] = (res[s] + val) % 0xFFFFFFFF00000001n;
             }
         }
         normalize(res);
