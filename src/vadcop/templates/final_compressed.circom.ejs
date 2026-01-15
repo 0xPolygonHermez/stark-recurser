@@ -1,0 +1,16 @@
+pragma circom 2.1.0;
+pragma custom_templates;
+
+<% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
+include "<%- verifierFilenames[i] %>";
+<% } -%>
+
+template FinalCompressed() {
+
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: options.hasRecursion ? starkInfo.nPublics - 4 : starkInfo.nPublics, options: { ...options, addPublics: true } }); %>
+
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: options.hasRecursion ? starkInfo.nPublics - 4 : starkInfo.nPublics,  options: { ...options, addPublics: true } }); %>
+
+}
+
+component main {public [ publics ]}= FinalCompressed();
