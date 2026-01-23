@@ -462,7 +462,7 @@ template Transcript() {
 /*
     Verify that FRI polynomials are built properly
 */
-template parallel VerifyFRI(prevStepBits, currStepBits, nextStepBits, e0, e1) {
+template VerifyFRI(prevStepBits, currStepBits, nextStepBits, e0, e1) {
     var nextStep = currStepBits - nextStepBits;
     var step = prevStepBits - currStepBits;
 
@@ -527,7 +527,7 @@ template parallel VerifyFRI(prevStepBits, currStepBits, nextStepBits, e0, e1) {
 /* 
     Verify that all committed polynomials are calculated correctly
 */
-template parallel VerifyEvaluations() {
+template VerifyEvaluations() {
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  const stage = i + 1; -%>
 <%  if(starkInfo.challengesMap.filter(c => c.stage === stage).length === 0) continue; -%>
@@ -666,7 +666,7 @@ template parallel VerifyEvaluations() {
     Verify that the initial FRI polynomial, which is the lineal combination of the committed polynomials
     during the STARK phases, is built properly
 */
-template parallel VerifyQuery(currStepBits, nextStepBits) {
+template VerifyQuery(currStepBits, nextStepBits) {
     var nextStep = currStepBits - nextStepBits;
     signal input {binary} queriesFRI[<%- starkStruct.steps[0].nBits %>];
     signal input {maxNum} challengeXi[3];
@@ -851,7 +851,7 @@ template MapValues() {
 }
 
 
-template parallel VerifyFinalPol() {
+template VerifyFinalPol() {
     ///////
     // Check Degree last pol
     ///////

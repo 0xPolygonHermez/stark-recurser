@@ -28,7 +28,7 @@ template MerkleHash(eSize, elementsInLinear, nLinears, arity) {
 }
 
 
-template parallel VerifyMerkleHash(eSize, elementsInLinear, nLinears, arity) {
+template VerifyMerkleHash(eSize, elementsInLinear, nLinears, arity) {
     var nLeaves = log2(arity);
     var nBits = log2(nLinears);
     assert(1 << nBits == nLinears);
