@@ -1,0 +1,63 @@
+const path = require("path");
+const tmp = require('temporary');
+const fs = require("fs");
+const ejs = require("ejs");
+
+const { assert } = require("chai");
+
+const { generatePublicsAggregation, preparePublics, generateRandom32 } = require(path.join(process.cwd(), "test/helpers"));
+
+const wasm_tester = require("circom_tester").wasm;
+
+const publics = require(path.join(process.cwd(), "<%- publicsPath %>"));
+
+<% let arrayMap = { A: "publicsA", B: "publicsB" }; -%>
+
+
+describe("Aggregate Publics test", function () {
+    this.timeout(10000000);
+
+    let circuit;
+
+    beforeEach( async() => {
+        const template = await fs.promises.readFile(path.join(process.cwd(), "src", "recursion", "helpers", "templates", "aggregate_publics.circom.ejs"), "utf8");
+        const options = { publics, nPublics: 64, isTest: true}
+        const content = ejs.render(template, options);
+        const circuitFile = path.join("tmp/aggregate_publics.circom");
+        await fs.promises.writeFile(circuitFile, content);
+        circuit = await wasm_tester(circuitFile, {O:1, prime: "goldilocks", include: "src/pil2circom/circuits.gl"});
+    });
+
+    it("Check that correct aggregate publics are generated in the happy path", async () => {
+        const { publicsA, publicsB, publicsAggregated } = generatePublicsAggregation(publics);
+        const circomPublicsA = preparePublics(publicsA, publics);
+        const circomPublicsB = preparePublics(publicsB, publics);
+        const circomPublicsAggregated = preparePublics(publicsAggregated, publics);
+
+        const witness = await circuit.calculateWitness({ a_publics: circomPublicsA, b_publics: circomPublicsB}, true);
+        
+        await circuit.assertOut(witness, { aggregated_publics: circomPublicsAggregated });
+    });
+
+<%  for(let i = 0; i < publics.checks.length; ++i) { -%>
+<%     let check = publics.checks[i]; -%>
+<%     let operator = Object.keys(check)[0]; -%>
+<%     let [fullName1, fullName2] = check[operator]; -%>
+<%     let [prefix1, name1] = fullName1.split("."); -%>
+<%     let [prefix2, name2] = fullName2.split("."); -%>
+    it("Fails if <%- fullName1 %> from first publics doesn't match with <%- fullName2 %> from the second one", async () => {
+        const { publicsA, publicsB, publicsAggregated } = generatePublicsAggregation(publics);
+        <%- arrayMap[prefix2] %>["<%- name2 %>"][0] = generateRandom32(<%- arrayMap[prefix1] %>["<%- 
+        name1 %>"][0]);
+        const circomPublicsA = preparePublics(publicsA, publics);
+        const circomPublicsB = preparePublics(publicsB, publics);
+        try {
+            await circuit.calculateWitness({ a_publics: circomPublicsA, b_publics: circomPublicsB}, true);
+            assert(false);
+        } catch(err) {
+            
+            assert(err.message.includes("Error: Assert Failed."));
+        }
+    });
+<%  } -%>
+});

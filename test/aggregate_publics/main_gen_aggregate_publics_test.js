@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 const argv = require("yargs")
     .version(version)
-    .usage("node main_genrecursive2_test.js -p <publics_path.json> -t <test_final.js>")
+    .usage("node main_gen_aggregate_publics_test.js -p <publics_path.json> -t <test_final.js>")
     .alias("p", "publics")
     .alias("t", "test")
     .argv;
@@ -15,7 +15,7 @@ async function run() {
     const publicsPath = argv.publics;
     const testFile = argv.test;
     const publics = JSON.parse(await fs.promises.readFile(publicsPath, "utf8"));
-    const template = await fs.promises.readFile("test/recursive2/gen_recursive2_test.ejs", "utf8");
+    const template = await fs.promises.readFile("test/aggregate_publics/gen_aggregate_publics_test.ejs", "utf8");
     const test = ejs.render(template, { publicsPath, publics });
 
     await fs.promises.writeFile(testFile, test, "utf8");

@@ -4,37 +4,28 @@ pragma custom_templates;
 <% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
 include "<%- verifierFilenames[i] %>";
 <% } -%>
-
-<%  if(options.hasRecursion) { -%>
-<%- include('src/recursion/helpers/select_vk.circom.ejs', { publics, isTest: false }); %>
-<%  } -%>
+include "mux1.circom";
+include "iszero.circom";
 
 template Main() {
-<%  if(options.selectCircuitInput) { -%> 
+    <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics, options: { ...options, addPublics: true } }); %>
+
     signal input isAggregatedCircuit;
-<%  } -%>
 
-<%  if(options.hasRecursion) { -%>
+    signal input rootC[4];
+
     var rootCBasic[4] = [<%- basicVK[0].join(",") %>];
-    var rootCAgg[4] = [<%- aggregatedVK[0].join(",") %>];
-<%  } -%>
 
-    <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: options.hasRecursion ? starkInfo.nPublics - 4 : starkInfo.nPublics, options: { ...options, addPublics: true } }); %>
-
-    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: options.hasRecursion ? starkInfo.nPublics - 4 : starkInfo.nPublics,  options: { ...options, addPublics: true } }); %>
-
-<%  if(options.hasRecursion) { -%>
+    signal isBasicCircuit <== IsZero()(isAggregatedCircuit);
+    
     for (var i=0; i<4; i++) {
-        vA.publics[<%- nPublics %> + i] <== rootCAgg[i];
+        isBasicCircuit * (rootC[i] - rootCBasic[i]) === 0;
     }
 
-<%  if(options.selectCircuitInput) { -%> 
-    sV.rootC <== SelectVerificationKey(publics, rootCBasic, rootCAgg);
-<%  } else { -%>
-    sV.rootC <== SelectVerificationKey(isAggregatedCircuit, rootCBasic, rootCAgg);
-<%  } -%>
 
-<%  } -%>
+    <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: starkInfo.nPublics,  options: { ...options, addPublics: true } }); %>
+   
+    sV.rootC <== rootCBasic;
 }
 
 component main {public [ publics ]}= Main();

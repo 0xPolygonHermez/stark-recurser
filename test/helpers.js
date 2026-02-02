@@ -1,32 +1,6 @@
 const { scalar2fea } = require("@0xpolygonhermez/zkevm-commonjs/src/smt-utils");
 const { F1Field, Scalar } = require("ffjavascript");
 
-function preparePublics(publics, publicsInfo) {
-    const Fr = new F1Field(0xffffffff00000001n);
-
-    const publicsCircom = new Array(publicsInfo.nPublics);
-
-    for(let i = 0; i < publicsInfo.definitions.length; i++) {
-        const name = publicsInfo.definitions[i].name;
-        const initialPos = publicsInfo.definitions[i].initialPos;
-        const length = i === publicsInfo.definitions.length - 1 
-                ? publicsInfo.nPublics - initialPos
-                : publicsInfo.definitions[i + 1].initialPos - initialPos;
-        const value = publics[name];
-        if(length === 1) {
-            publicsCircom[initialPos] = Fr.e(value);
-        } else if(length === 8) {
-            const circomInputs = scalar2fea(Fr, Scalar.e(value));
-            for(let j = 0; j < circomInputs.length; j++) {
-                publicsCircom[initialPos + j] = circomInputs[j];
-            }
-        } else throw new Error("Unsupported length: ", + length);
-
-    }
-
-    return publicsCircom;
-}
-
 module.exports.generatePublics = function generatePublics(aggregatorAddress, publicsInfo) {
     const publics = {};
     const publicsSolidity = [];
@@ -50,38 +24,68 @@ module.exports.generatePublics = function generatePublics(aggregatorAddress, pub
 }
 
 module.exports.generatePublicsAggregation = function generatePublicsAggregation(publicsInfo) {
-
     const publicsA = {};
     const publicsB = {};
     const publicsAggregated = {};
 
-    for(let i = 0; i < publicsInfo.definitions.length; ++i) {
-        const def = publicsInfo.definitions[i];
+    for (const def of publicsInfo.definitions) {
         const name = def.name;
-        const prevSource = def.prevSource;
-        publicsA[name] = generateRandomHex(63);
-        publicsB[name] = generateRandomHex(63);
-        if(prevSource) {
-            publicsAggregated[name] = publicsA[name];
+
+        publicsA[name] = Array.from({ length: def.size }, () => generateRandom32());
+        publicsB[name] = Array.from({ length: def.size }, () => generateRandom32());
+
+        const source = def.aggregation === "A" ? publicsA : publicsB;
+        publicsAggregated[name] = source[name];
+    }
+
+    for (const check of publicsInfo.checks) {
+        const operator = Object.keys(check)[0]; // e.g., "equal"
+        const [fullName1, fullName2] = check[operator];
+        const name1 = fullName1.split(".")[1];
+        const name2 = fullName2.split(".")[1];
+
+        if (operator === "equal") {
+            publicsB[name2] = [...publicsA[name1]];
         } else {
-            publicsAggregated[name] = publicsB[name];
+            throw new Error(`Unsupported operator in test generation: ${operator}`);
         }
     }
 
-    for(let i = 0; i < publicsInfo.checks.length; ++i) {
-        let check = publicsInfo.checks[i];
-        publicsB[check[1]] = publicsA[check[0]];
-    }   
-
-    
-    return { 
-        publicsA, 
-        publicsB, 
-        publicsAggregated, 
-        circomPublicsA: preparePublics(publicsA, publicsInfo), 
+    return {
+        publicsA,
+        publicsB,
+        publicsAggregated,
+        circomPublicsA: preparePublics(publicsA, publicsInfo),
         circomPublicsB: preparePublics(publicsB, publicsInfo),
         circomPublicsAggregated: preparePublics(publicsAggregated, publicsInfo),
     };
+};
+
+function generateRandom32(forbidden = null) {
+    let value = Math.floor(Math.random() * 0x100000000); // 0 to 2^32-1
+    if (forbidden !== null) {
+        while (value === forbidden) {
+            value = Math.floor(Math.random() * 0x100000000);
+        }
+    }
+    return value;
+}
+
+function preparePublics(publics, publicsInfo) {
+    const Fr = new F1Field(0xffffffff00000001n);
+    const publicsCircom = new Array(publicsInfo.nPublics);
+
+    for (const def of publicsInfo.definitions) {
+        const pos = def.pos;
+        const size = def.size;
+        const values = publics[def.name];
+
+        for (let j = 0; j < size; j++) {
+            publicsCircom[pos + j] = Fr.e(values[j]);
+        }
+    }
+
+    return publicsCircom;
 }
 
 function generateRandomHex(maxBits = 32, forbiddenHex = null) {
@@ -95,5 +99,6 @@ function generateRandomHex(maxBits = 32, forbiddenHex = null) {
     return hexValue;
 }
 
+module.exports.generateRandom32 = generateRandom32;
 module.exports.generateRandomHex = generateRandomHex;
 module.exports.preparePublics = preparePublics;

@@ -1,0 +1,17 @@
+{
+    "nPublics": 64,
+    "definitions": [
+        { "name": "startBlock", "pos": 0, "size": 8, "aggregation": "B" },
+        { "name": "endBlock", "pos": 8, "size": 8, "aggregation": "B" },
+        { "name": "globalExitRoot", "pos": 16, "size": 8, "aggregation": "B" },
+        { "name": "accountRoot", "pos": 24, "size": 8, "aggregation": "B" },
+        { "name": "depositRoot", "pos": 32, "size": 8, "aggregation": "B" },
+        { "name": "priorityExitRoot", "pos": 40, "size": 8, "aggregation": "B" },
+        { "name": "oldGlobalExitRoot", "pos": 48, "size": 8, "aggregation": "A" },
+        { "name": "oldAccountRoot", "pos": 56, "size": 8, "aggregation": "A" }
+    ],
+    "checks": [
+        { "equal": ["A.globalExitRoot", "B.oldGlobalExitRoot"] },
+        { "equal": ["A.accountRoot", "B.oldAccountRoot"] }
+    ]
+}

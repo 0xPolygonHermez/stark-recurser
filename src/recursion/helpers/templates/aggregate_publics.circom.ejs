@@ -1,0 +1,55 @@
+<% if(isTest) { -%>
+pragma circom 2.1.0;
+pragma custom_templates;
+<% } -%>
+
+<% let arrayMap = { A: "a_publics", B: "b_publics" }; -%>
+
+template AggregatePublics() {
+<%  for(let i = 0; i < publics.definitions.length; i++) { -%>
+    var <%- publics.definitions[i].name %>Pos = <%- publics.definitions[i].pos %>;
+<%  } -%>
+
+    signal output aggregated_publics[<%- nPublics %>];
+
+    signal input a_publics[<%- nPublics %>];
+    signal input b_publics[<%- nPublics %>];
+
+    // Check recursive 2 publics
+<% for(let i = 0; i < publics.checks.length; i++) { -%>
+<%     let check = publics.checks[i]; -%>
+<%     let operator = Object.keys(check)[0]; -%>
+<%     let [fullName1, fullName2] = check[operator]; -%>
+<%     let [prefix1, name1] = fullName1.split('.'); -%>
+<%     let [prefix2, name2] = fullName2.split('.'); -%>
+<%     let def1 = publics.definitions.find(d => d.name === name1); -%> 
+<%     let def2 = publics.definitions.find(d => d.name === name2); -%>
+<%     if(!def1 || !def2 || def1.size !== def2.size) { 
+           throw new Error(`Publics definition not found or size mismatch for ${fullName1} and ${fullName2}`);
+} -%>
+    // Checking that <%- fullName1 %> matches <%- fullName2 %>
+    for(var i = 0; i < <%- def1.size %>; i++) {
+        <%- arrayMap[prefix1] %>[<%- def1.name %>Pos + i] === <%- arrayMap[prefix2] %>[<%- def2.name %>Pos + i];
+    }
+<% } -%>
+
+    // Aggregate publics
+<% for(let i = 0; i < publics.definitions.length; i++) { -%>
+<%     let def = publics.definitions[i]; -%>
+<%     let prefix = def.aggregation; -%>
+<%     if(!prefix || !arrayMap[prefix]) throw new Error(`Invalid aggregation prefix for ${def.name}`); -%>
+    for(var i = 0; i < <%- def.size %>; i++) {
+        aggregated_publics[<%- def.name %>Pos + i] <== <%- arrayMap[prefix] %>[<%- def.name %>Pos + i];
+    }
+<% } -%>
+
+<% if(publics.nPublics < nPublics) { -%>
+    for(var i = <%- publics.nPublics %>; i < <%- nPublics %>; i++) {
+        aggregated_publics[i] <== 0;
+    }
+<% } -%>
+}
+
+<% if(isTest) { -%>
+component main = AggregatePublics();
+<% } -%>
