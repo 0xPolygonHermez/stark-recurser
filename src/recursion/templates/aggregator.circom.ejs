@@ -1,0 +1,54 @@
+pragma circom 2.1.0;
+pragma custom_templates;
+
+<% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
+include "<%- verifierFilenames[i] %>";
+<% } -%>
+include "mux1.circom";
+include "iszero.circom";
+
+<% let nPublics = starkInfo.nPublics - 4; -%>
+<%- include('src/recursion/helpers/templates/aggregate_publics.circom.ejs', { nPublics, publics, isTest: false, options }); %>
+
+template Main() {
+    signal output publics[<%- starkInfo.nPublics %>];
+
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "a_sv", starkInfo, nPublics: starkInfo.nPublics, options: { ...options, addPublics: true } }); %>
+
+    signal input isAggregatedCircuitA;
+
+<%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "b_sv", starkInfo, nPublics: starkInfo.nPublics, options: { ...options, addPublics: true } }); %>
+
+    signal input isAggregatedCircuitB;
+
+    signal input rootC[4];
+    
+    var rootCBasic[4] = [<%- basicVK[0].join(",") %>];
+    
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vA", prefix: "a_sv", starkInfo, nPublics: starkInfo.nPublics,  options: { ...options, addPublics: true } }); %>
+<%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "vB", prefix: "b_sv", starkInfo, nPublics: starkInfo.nPublics,  options: { ...options, addPublics: true } }); %>
+   
+    signal {binary} isAggCircuitA <== isAggregatedCircuitA;
+    signal {binary} isAggCircuitB <== isAggregatedCircuitB;
+
+    vA.rootC <== MultiMux1(4)([rootCBasic, rootC], isAggCircuitA);
+    vB.rootC <== MultiMux1(4)([rootCBasic, rootC], isAggCircuitB);
+
+    signal ziskPublicsA[<%- nPublics %>];
+    signal ziskPublicsB[<%- nPublics %>];
+    for (var i = 0; i < <%- nPublics %>; i++) {
+        ziskPublicsA[i] <== a_sv_publics[i + 4];
+        ziskPublicsB[i] <== b_sv_publics[i + 4];
+    }
+
+    signal aggregatedPublics[<%- nPublics %>] <== AggregatePublics()(ziskPublicsA, ziskPublicsB);
+    for (var i = 0; i < <%- nPublics %>; i++) {
+        publics[i + 4] <== aggregatedPublics[i];
+    }
+    for (var i = 0; i < 4; i++) {
+        a_sv_publics[i] === b_sv_publics[i];
+        publics[i] <== a_sv_publics[i];
+    }
+}
+
+component main = Main();

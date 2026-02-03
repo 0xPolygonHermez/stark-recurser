@@ -15,7 +15,7 @@ template AggregatePublics() {
     signal input a_publics[<%- nPublics %>];
     signal input b_publics[<%- nPublics %>];
 
-    // Check recursive 2 publics
+    // Checks
 <% for(let i = 0; i < publics.checks.length; i++) { -%>
 <%     let check = publics.checks[i]; -%>
 <%     let operator = Object.keys(check)[0]; -%>
