@@ -34,18 +34,21 @@ module.exports.generatePublicsAggregation = function generatePublicsAggregation(
         publicsA[name] = Array.from({ length: def.size }, () => generateRandom32());
         publicsB[name] = Array.from({ length: def.size }, () => generateRandom32());
 
-        const source = def.aggregation === "A" ? publicsA : publicsB;
+        const source = def.aggregation === "prev" ? publicsA : publicsB;
         publicsAggregated[name] = source[name];
     }
 
     for (const check of publicsInfo.checks) {
         const operator = Object.keys(check)[0]; // e.g., "equal"
         const [fullName1, fullName2] = check[operator];
-        const name1 = fullName1.split(".")[1];
-        const name2 = fullName2.split(".")[1];
+        const [prefix1, name1] = fullName1.split(".");
+        const [prefix2, name2] = fullName2.split(".");
+
+        const source = prefix1 === "prev" ? publicsA : publicsB;
+        const target = prefix2 === "prev" ? publicsA : publicsB;
 
         if (operator === "equal") {
-            publicsB[name2] = [...publicsA[name1]];
+            target[name2] = [...source[name1]];
         } else {
             throw new Error(`Unsupported operator in test generation: ${operator}`);
         }

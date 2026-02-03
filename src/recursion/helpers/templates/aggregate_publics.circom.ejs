@@ -3,7 +3,7 @@ pragma circom 2.1.0;
 pragma custom_templates;
 <% } -%>
 
-<% let arrayMap = { A: "a_publics", B: "b_publics" }; -%>
+<% let arrayMap = { prev: "a_publics", next: "b_publics" }; -%>
 
 template AggregatePublics() {
 <%  for(let i = 0; i < publics.definitions.length; i++) { -%>
