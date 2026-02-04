@@ -2,9 +2,10 @@ const fs = require("fs");
 const ejs = require("ejs");
 const path = require("path");
 
-module.exports.genSolidity = async function genSolidity(name, publics, useFflonk = false) {    
+module.exports.genSolidity = async function genSolidity(name, rootC, publics, useFflonk = false) {    
     const optionsSolidity = {
         name: name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(),
+        rootC,
         publics,
         useFflonk
     };

@@ -4,28 +4,16 @@ pragma custom_templates;
 <% for (let i = 0; i < verifierFilenames.length; ++i) { -%>
 include "<%- verifierFilenames[i] %>";
 <% } -%>
-include "mux1.circom";
-include "iszero.circom";
 
 template Main() {
-    <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics, options: { ...options, addPublics: true } }); %>
-
-    signal input isAggregatedCircuit;
-
     signal input rootC[4];
 
-    var rootCBasic[4] = [<%- basicVK[0].join(",") %>];
-
-    signal isBasicCircuit <== IsZero()(isAggregatedCircuit);
+    <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics, options: { ...options, addPublics: true } }); %>
     
-    for (var i=0; i<4; i++) {
-        isBasicCircuit * (rootC[i] - rootCBasic[i]) === 0;
-    }
-
 
     <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix: "", starkInfo, nPublics: starkInfo.nPublics,  options: { ...options, addPublics: true } }); %>
    
-    sV.rootC <== rootCBasic;
+    sV.rootC <== rootC;
 }
 
-component main {public [ publics ]}= Main();
+component main {public [ rootC, publics ]}= Main();

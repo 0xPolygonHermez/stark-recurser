@@ -9,29 +9,24 @@ pragma circom 2.1.0;
 <%  } -%>
 
 template Main() {
-<%  if (publics) { -%>
     signal output publicsHash;
-<%  } -%>
-
-<% if(options.addAggregatorAddr) { -%>
-    signal input aggregatorAddr;
-<% } -%>
 
 <%- include('src/main_templates/define_stark_inputs.circom.ejs', { prefix: "", starkInfo, nPublics: starkInfo.nPublics, options: { ...options, addPublics: true, final: true } }); %>
 
 <%- include('src/main_templates/assign_stark_inputs.circom.ejs', { componentName: "sV", prefix:"", starkInfo, nPublics: starkInfo.nPublics, options: { addPublics: true, final: true } }); %>
 
-<%  if (publics) { -%>
-<%      if(options.addAggregatorAddr) { -%>
-    publicsHash <== getSha256Inputs()(aggregatorAddr, publics);
-<%      } else { -%>
-    publicsHash <== getSha256Inputs()(publics);
-<%      } -%>
-<%  } -%>
+    signal rootC[4];
+    for (var i = 0; i < 4; i++) {
+        rootC[i] <== publics[i];
+    }
+
+
+    signal publicsProof[<%- starkInfo.nPublics - 4 %>];
+    for (var i = 0; i < <%- starkInfo.nPublics - 4 %>; i++) {
+        publicsProof[i] <== publics[i + 4];
+    }
+    
+    publicsHash <== getSha256Inputs()(publicsProof, rootC);
 }
 
-<%  if (publics) { -%>
 component main = Main();
-<%  } else { -%>
-component main {public [publics]} = Main();
-<%  } -%>

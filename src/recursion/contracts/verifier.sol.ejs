@@ -15,7 +15,11 @@ contract <%- name %>Verifier is <%- useFflonk ? "Fflonk" : "Plonk" %>Verifier, I
     error InvalidProof();
 
     function VERSION() external pure returns (string memory) {
-        return "v0.15.0";
+        return "v0.16.0";
+    }
+
+    function getRootCVadcopFinal() external pure returns (uint64[4] memory) {
+        return [uint64(<%- rootC[0] %>), uint64(<%- rootC[1] %>), uint64(<%- rootC[2] %>), uint64(<%- rootC[3] %>)];
     }
 
     // Modulus zkSNARK
@@ -26,13 +30,14 @@ contract <%- name %>Verifier is <%- useFflonk ? "Fflonk" : "Plonk" %>Verifier, I
     /// @param publicValues The public values.
     function hashPublicValues(
         <%-  publics.hasProgramVK ? "uint64[4] calldata programVK, " : "" %>
+        uint64[4] calldata rootCVadcopFinal,
         bytes calldata publicValues
     ) public pure returns (uint256) {
 <%  if (publics.hasProgramVK) { -%>
 <%      if (publics.definitions[0].verificationKey) { -%>
-            return uint256(sha256(abi.encodePacked(bytes8(programVK[0]), bytes8(programVK[1]), bytes8(programVK[2]), bytes8(programVK[3]), publicValues))) % _RFIELD;
+            return uint256(sha256(abi.encodePacked(bytes8(programVK[0]), bytes8(programVK[1]), bytes8(programVK[2]), bytes8(programVK[3]), publicValues, bytes8(rootCVadcopFinal[0]), bytes8(rootCVadcopFinal[1]), bytes8(rootCVadcopFinal[2]), bytes8(rootCVadcopFinal[3])))) % _RFIELD;
 <%      } else if (publics.definitions[publics.definitions.length - 1].verificationKey) { -%>
-            return uint256(sha256(abi.encodePacked(publicValues, bytes8(programVK[0]), bytes8(programVK[1]), bytes8(programVK[2]), bytes8(programVK[3])))) % _RFIELD;
+            return uint256(sha256(abi.encodePacked(publicValues, bytes8(programVK[0]), bytes8(programVK[1]), bytes8(programVK[2]), bytes8(programVK[3]), bytes8(rootCVadcopFinal[0]), bytes8(rootCVadcopFinal[1]), bytes8(rootCVadcopFinal[2]), bytes8(rootCVadcopFinal[3])))) % _RFIELD;
 <%      } -%>
 <%  } else { -%>
         return uint256(sha256(publicValues)) % _RFIELD;
@@ -41,14 +46,16 @@ contract <%- name %>Verifier is <%- useFflonk ? "Fflonk" : "Plonk" %>Verifier, I
 
     /// @notice Verifies a proof with given public values and vkey.
     <%-  publics.hasProgramVK ? "/// @param programVK The verification key for the RISC-V program." : "" %>
+    /// @param rootCVadcopFinal The rootC value for the Vadcop final.
     /// @param publicValues The public values encoded as bytes.
     /// @param proofBytes The proof of the program execution the <%- name %> zkVM encoded as bytes.
     function verifySnarkProof(
         <%-  publics.hasProgramVK ? "uint64[4] calldata programVK, " : "" %>
+        uint64[4] calldata rootCVadcopFinal,
         bytes calldata publicValues,
         bytes calldata proofBytes
     ) external view {
-        uint256 publicValuesDigest = hashPublicValues(<%- publics.hasProgramVK ? "programVK, " : "" %>publicValues);
+        uint256 publicValuesDigest = hashPublicValues(<%- publics.hasProgramVK ? "programVK, " : "" %>rootCVadcopFinal, publicValues);
 
 <%  if (!useFflonk) { -%>
         uint256[24] memory proofDecoded = abi.decode(proofBytes, (uint256[24]));
