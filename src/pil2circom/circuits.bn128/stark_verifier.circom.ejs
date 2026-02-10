@@ -527,7 +527,7 @@ template VerifyFRI(prevStepBits, currStepBits, nextStepBits, e0, e1) {
 /* 
     Verify that all committed polynomials are calculated correctly
 */
-template VerifyEvaluations() {
+template parallel VerifyEvaluations() {
 <%  for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  const stage = i + 1; -%>
 <%  if(starkInfo.challengesMap.filter(c => c.stage === stage).length === 0) continue; -%>
@@ -666,7 +666,7 @@ template VerifyEvaluations() {
     Verify that the initial FRI polynomial, which is the lineal combination of the committed polynomials
     during the STARK phases, is built properly
 */
-template VerifyQuery(currStepBits, nextStepBits) {
+template parallel VerifyQuery(currStepBits, nextStepBits) {
     var nextStep = currStepBits - nextStepBits;
     signal input {binary} queriesFRI[<%- starkStruct.steps[0].nBits %>];
     signal input {maxNum} challengeXi[3];

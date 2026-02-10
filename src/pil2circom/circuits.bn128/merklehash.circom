@@ -33,7 +33,7 @@ template MerkleHash(eSize, elementsInLinear, nLinears, arity) {
     - elementsInLinear: Each leave of the merkle tree is made by this number of values. 
     - nLinears: Number of leaves of the merkle tree
 */
-template VerifyMerkleHash(eSize, elementsInLinear, nLinears, arity) {
+template parallel VerifyMerkleHash(eSize, elementsInLinear, nLinears, arity) {
     var nLeaves = log2(arity);
     var nBits = log2(nLinears);
     assert(1 << nBits == nLinears);
