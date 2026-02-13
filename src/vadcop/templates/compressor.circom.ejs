@@ -5,7 +5,9 @@ pragma custom_templates;
 include "<%- verifierFilenames[i] %>";
 <% } -%>
 
+<% if (vadcopInfo.curve != "None") { -%>
 include "elliptic_curve.circom";
+<% } %>
 <%- include('src/vadcop/helpers/templates/calculate_hashes.circom.ejs', { starkInfo, vadcopInfo }); %>
 
 template Compressor() {

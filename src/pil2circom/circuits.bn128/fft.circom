@@ -84,11 +84,12 @@ function invroots(i) {
 }
 
 template FFT(nBits, inv) {
+    assert(nBits > 1);
 
     var p = 0xFFFFFFFF00000001;
     var N = 1<<nBits;
 
-    signal input in[N][3];
+    signal input {maxNum} in[N][3];
     signal output {maxNum} out[N][3];
 
     signal k[N][3];
