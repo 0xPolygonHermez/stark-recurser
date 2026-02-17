@@ -10,10 +10,10 @@ require "circuits/poseidon2.pil";
 require "circuits/plonk.pil";
 
 airtemplate FinalVadcop (const int N, const int nPlonkRows, const int nPoseidonCompressor, const int nPoseidonSponge, const int nCMulRows, const int nEvPol4, const int nFFT4, const int nTreeSelector4, const int nSelectVal1) {
-    col witness a[62];
+    col witness a[65];
 
     #pragma fixed_external
-    col fixed S[30];
+    col fixed S[33];
     
     #pragma fixed_external
     col fixed C[10];
@@ -48,20 +48,21 @@ airtemplate FinalVadcop (const int N, const int nPlonkRows, const int nPoseidonC
     plonk([a[21], a[22], a[23]], q1, CHECK_PLONK + POSEIDON_FINAL + TREESELECTOR4 + EVPOL4);
     plonk([a[24], a[25], a[26]], q1, CHECK_PLONK + POSEIDON_FINAL + TREESELECTOR4 + EVPOL4 + POSEIDONSPONGE + POSEIDONCOMPRESSION + SELECTVAL1);
     plonk([a[27], a[28], a[29]], q1, CHECK_PLONK + POSEIDON_FINAL + TREESELECTOR4 + EVPOL4 + POSEIDONSPONGE + POSEIDONCOMPRESSION + SELECTVAL1);
+    plonk([a[30], a[31], a[32]], q1, CHECK_PLONK + POSEIDON_FINAL + TREESELECTOR4 + EVPOL4 + POSEIDONSPONGE + POSEIDONCOMPRESSION + SELECTVAL1);
 
     const expr b0 = a[16];
     const expr b1 = a[17];
+
+    const int firstColP = 33;
 
     const expr inputO[POSEIDON_WIDTH];
     const expr outputO[POSEIDON_WIDTH];
     for (int i = 0; i < POSEIDON_WIDTH; i++) {
         inputO[i] = a[i];
-        outputO[i] = a[30 + i];
+        outputO[i] = a[firstColP + i];
     }
     poseidonInputOrder(inputO, [a[16], a[17]], outputO, POSEIDONSPONGE, POSEIDONCOMPRESSION);
     
-    const int firstColP = 30;
-
     const expr inputP[POSEIDON_WIDTH];
     const expr outputP[POSEIDON_WIDTH];
     for (int i = 0; i < POSEIDON_WIDTH; i++) {
@@ -154,8 +155,8 @@ airtemplate FinalVadcop (const int N, const int nPlonkRows, const int nPoseidonC
     const expr selected[4] = [a[18], a[19], a[20], a[21]];
     selectval1(selectvals, selectvals_key, selected, SELECTVAL1);
 
-    const expr A[30];
-    for (int i = 0; i < 30; i++) {
+    const expr A[33];
+    for (int i = 0; i < 33; i++) {
         A[i] = a[i];
     }
     connection(1, A, S, PIOP_BUS_PROD);
