@@ -1,7 +1,7 @@
 pragma circom 2.1.0;
 pragma custom_templates;
 
-include "poseidon.circom";
+include "poseidon2.circom";
 include "bitifyT.circom";
 
 template VerifyPoW(powBits) {
@@ -9,7 +9,7 @@ template VerifyPoW(powBits) {
     signal input nonce;
     signal input {binary} enable;
 
-    signal hash[1] <== PoseidonEx(4, 1)([challengeFRIQueries[0], challengeFRIQueries[1], challengeFRIQueries[2], nonce], 0);
+    signal hash[1] <== Poseidon2(4, 1)([challengeFRIQueries[0], challengeFRIQueries[1], challengeFRIQueries[2], nonce]);
 
 
     signal {binary} n2b[254] <== Num2Bits_strictT()(hash[0]);
