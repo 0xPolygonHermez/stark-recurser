@@ -46,7 +46,11 @@ template getSha256Inputs() {
 <% if(publics.definitions[i].verificationKey) { -%>
             publicsHasher.in[<%- name %>BitsOffset + i*<%- nBitsPerChunk %> + <%- nBitsPerChunk %> - 1 - j] <== <%- name %>Bits[i].out[j];
 <% } else { -%>
-            publicsHasher.in[<%- name %>BitsOffset + i*<%- nBitsPerChunk %> + j] <== <%- name %>Bits[i].out[j];
+        for (var byte_idx = 0; byte_idx < 4; byte_idx++) {
+            for (var bit_idx = 0; bit_idx < 8; bit_idx++) {
+                publicsHasher.in[<%- name %>BitsOffset + i*<%- nBitsPerChunk %> + byte_idx*8 + bit_idx] <== <%- name %>Bits[i].out[byte_idx*8 + (7 - bit_idx)];
+            }
+        }   
 <% } -%>
         }
 <%      if(publics.definitions[i].avoidAlias) { -%>
@@ -63,7 +67,11 @@ template getSha256Inputs() {
 <% if(publics.definitions[i].verificationKey) { -%>
                 publicsHasher.in[<%- name%>BitsOffset + (k*<%- nChunks %> + i)*<%- nBitsPerChunk %> + <%- nBitsPerChunk %>*(<%- nChunks %> - i) - 1 - j] <== <%- name %>Bits[k][i].out[j];
 <% } else { -%>
-                publicsHasher.in[<%- name%>BitsOffset + (k*<%- nChunks %> + i)*<%- nBitsPerChunk %> + j] <== <%- name %>Bits[k][i].out[j];
+                for (var byte_idx = 0; byte_idx < 4; byte_idx++) {
+                    for (var bit_idx = 0; bit_idx < 8; bit_idx++) {
+                        publicsHasher.in[<%- name%>BitsOffset + (k*<%- nChunks %> + i)*<%- nBitsPerChunk %> + byte_idx*8 + bit_idx] <== <%- name %>Bits[k][i].out[byte_idx*8 + (7 - bit_idx)];
+                    }
+                }
 <% } -%>
         }
     }
