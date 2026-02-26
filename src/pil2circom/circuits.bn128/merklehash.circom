@@ -9,7 +9,7 @@ include "utils.circom";
     - eSize: Size of the extended field (usually it will be either 3 if we are in Fp³ or 1)
     - elementsInLinear: Each leave of the merkle tree is made by this number of values. 
 */
-template MerkleHash(eSize, elementsInLinear, nLinears, arity) {
+template MerkleHash(eSize, elementsInLinear, nLinears, linearHashArity, arity) {
     var nBits = log2(nLinears);
     var logArity = log2(arity);
     var nLevels = (nBits - 1)\logArity +1;
@@ -20,7 +20,7 @@ template MerkleHash(eSize, elementsInLinear, nLinears, arity) {
 
     // Each leaf in the merkle tree might be composed by multiple values. Therefore, the first step is to 
     // reduce all those values into a single one by hashing all of them
-    signal linearHash <== LinearHash(elementsInLinear, eSize, arity)(values);
+    signal linearHash <== LinearHash(elementsInLinear, eSize, linearHashArity)(values);
 
     // Calculate the merkle root 
     root <== Merkle(nBits, arity)(linearHash, siblings ,key);
@@ -33,7 +33,7 @@ template MerkleHash(eSize, elementsInLinear, nLinears, arity) {
     - elementsInLinear: Each leave of the merkle tree is made by this number of values. 
     - nLinears: Number of leaves of the merkle tree
 */
-template parallel VerifyMerkleHash(eSize, elementsInLinear, nLinears, arity) {
+template parallel VerifyMerkleHash(eSize, elementsInLinear, nLinears, linearHashArity, arity) {
     var nLeaves = log2(arity);
     var nBits = log2(nLinears);
     assert(1 << nBits == nLinears);
@@ -45,7 +45,7 @@ template parallel VerifyMerkleHash(eSize, elementsInLinear, nLinears, arity) {
     signal input {binary} enable; // Boolean that determines either we want to check that roots matches or not
 
     // Calculate the merkle root 
-    signal merkleRoot <== MerkleHash(eSize, elementsInLinear, nLinears, arity)(values, siblings, key);
+    signal merkleRoot <== MerkleHash(eSize, elementsInLinear, nLinears, linearHashArity, arity)(values, siblings, key);
 
     // If enable is set to 1, check that the merkleRoot being calculated matches with the one sent as input
     enable * (merkleRoot - root) === 0;

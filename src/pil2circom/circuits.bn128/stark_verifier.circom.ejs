@@ -1151,23 +1151,23 @@ template StarkVerifier() {
 <%  const stage = i + 1; -%>
 <%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${stage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>,<%- arity %>)(s0_vals<%- stage %>_p[q], s0_siblings<%- stage %>[q], queriesFRIGL[q], root<%- stage %>, enabled);
+        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${stage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- transcriptArity %>, <%- arity %>)(s0_vals<%- stage %>_p[q], s0_siblings<%- stage %>[q], queriesFRIGL[q], root<%- stage %>, enabled);
     }
 <%  } -%>
 <% } -%>
 
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${qStage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>,<%- arity %>)(s0_vals<%- qStage %>_p[q], s0_siblings<%- qStage %>[q], queriesFRIGL[q], root<%- qStage %>, enabled);
+        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${qStage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- transcriptArity %>, <%- arity %>)(s0_vals<%- qStage %>_p[q], s0_siblings<%- qStage %>[q], queriesFRIGL[q], root<%- qStage %>, enabled);
     }
 
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        VerifyMerkleHash(1, <%- starkInfo.nConstants %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- arity %>)(s0_valsC_p[q], s0_siblingsC[q], queriesFRIGL[q], rootC, enabled);  
+        VerifyMerkleHash(1, <%- starkInfo.nConstants %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- transcriptArity %>, <%- arity %>)(s0_valsC_p[q], s0_siblingsC[q], queriesFRIGL[q], rootC, enabled);  
     }                                  
 
 <% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
     signal root_<%- starkInfo.customCommits[i].name %>_0 <== publics[<%- starkInfo.customCommits[i].publicValues[0].idx %>];
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- arity %>)(s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q], s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q], queriesFRIGL[q], root_<%- starkInfo.customCommits[i].name %>_0, enabled);                                    
+        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- transcriptArity %>, <%- arity %>)(s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q], s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q], queriesFRIGL[q], root_<%- starkInfo.customCommits[i].name %>_0, enabled);                                    
     }
 <% } -%>
 
@@ -1176,7 +1176,7 @@ template StarkVerifier() {
     for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
         // Calculate merkle root for s<%- s %> vals
         for(var i = 0; i < <%-starkStruct.steps[s].nBits %>; i++) { s<%- s %>_keys_merkle[q][i] <== queriesFRIGL[q][i]; }
-        VerifyMerkleHash(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- 1 << starkStruct.steps[s].nBits %>,<%- arity %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle[q], s<%- s %>_root, enabled);
+        VerifyMerkleHash(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- 1 << starkStruct.steps[s].nBits %>, <%- transcriptArity %>, <%- arity %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle[q], s<%- s %>_root, enabled);
     }
 <% } -%>
 

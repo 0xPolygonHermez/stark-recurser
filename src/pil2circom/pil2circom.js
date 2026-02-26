@@ -23,7 +23,7 @@ module.exports = async function pil2circom(constRoot, starkInfo, verifierInfo, o
 
     const arity = starkStruct.merkleTreeArity || 16;
     const custom = starkStruct.merkleTreeCustom || false;
-    const transcriptArity = custom ? starkStruct.merkleTreeArity : 16;
+    const transcriptArity = starkStruct.transcriptArity || 16;
     
     const obj = {
         F,
