@@ -243,7 +243,7 @@ module.exports.compressor = function compressor(r1cs, options) {
         twelveExtraConstraints.push(r+6);
         twelveExtraConstraints.push(r+7);
         twelveExtraConstraints.push(r+8);
-        sixExtraConstraints.push(r+4);
+        sixExtraConstraints.push(r+9);
         
         r+=10;
     }
@@ -312,7 +312,7 @@ module.exports.compressor = function compressor(r1cs, options) {
         twelveExtraConstraints.push(r+6);
         twelveExtraConstraints.push(r+7);
         twelveExtraConstraints.push(r+8);
-        sixExtraConstraints.push(r+4);
+        sixExtraConstraints.push(r+9);
 
         r+=10;
     }
