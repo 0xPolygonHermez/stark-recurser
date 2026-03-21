@@ -5,7 +5,7 @@ const ejs = require("ejs");
 const { connect, log2, getKs, GOLDILOCKS_GEN, GOLDILOCKS_P } = require("../../utils/utils.js");
 const { r1cs2plonk, getCustomGatesInfo } = require("../r1cs2plonk.js");
 
-function calculatePlonkConstraintsRows(plonkConstraints, elevenExtraConstraints, fiveExtraConstraints, fourExtraConstraints, threeExtraConstraints) {
+function calculatePlonkConstraintsRows(plonkConstraints, eightExtraConstraints, twoExtraConstraints, oneExtraConstraint) {
     let partialRows = {};
     let halfRows = [];
     let r = 0;
@@ -37,26 +37,21 @@ function calculatePlonkConstraintsRows(plonkConstraints, elevenExtraConstraints,
             } else {
                 constraintsPlonkRows++;
             }
-        } else if(elevenExtraConstraints > 0) {
-            --elevenExtraConstraints;
+        } else if(eightExtraConstraints > 0) {
+            --eightExtraConstraints;
             partialRows[k] = {nUsed: 1, custom: true, maxUsed: 2};
-            halfRows.push({nUsed: 2, custom: true, maxUsed: 11});
+            halfRows.push({nUsed: 2, custom: true, maxUsed: 8});
             constraintsCustomRows++;
-        } else if(fiveExtraConstraints > 0) {
-            --fiveExtraConstraints;
-            partialRows[k] = {nUsed: 7, custom: true, maxUsed: 11};
+        } else if(twoExtraConstraints > 0) {
+            --twoExtraConstraints;
+            partialRows[k] = {nUsed: 7, custom: true, maxUsed: 8};
             constraintsCustomRows++;
-        } else if(fourExtraConstraints > 0) {
-            --fourExtraConstraints;
-            partialRows[k] = {nUsed: 8, custom: true, maxUsed: 11};
-            constraintsCustomRows++;
-        } else if(threeExtraConstraints > 0) {
-            --threeExtraConstraints;
-            partialRows[k] = {nUsed: 9, custom: true, maxUsed: 11};
+        } else if(oneExtraConstraint > 0) {
+            --oneExtraConstraint;
             constraintsCustomRows++;
         } else {
             partialRows[k] = {nUsed: 1, custom: false, maxUsed: 2};
-            halfRows.push({nUsed: 2, custom: false, maxUsed: 11});
+            halfRows.push({nUsed: 2, custom: false, maxUsed: 8});
             constraintsPlonkRows++;
             r++;
         }
@@ -67,7 +62,7 @@ function calculatePlonkConstraintsRows(plonkConstraints, elevenExtraConstraints,
     console.log(`Number of plonk constraints stored in custom gates: ${constraintsCustomRows}`);
 
     return r;
-};
+}
 
 function getNumberConstraints(r1cs) {
     // Calculate the number plonk Additions and plonk constraints from the R1CS
@@ -79,7 +74,7 @@ function getNumberConstraints(r1cs) {
     const customGatesInfo = getCustomGatesInfo(r1cs);
     
     // Each Poseidon2 gate uses 5 rows
-    let nCMulRows = Math.ceil(customGatesInfo.nCMul/3);
+    let nCMulRows = Math.ceil(customGatesInfo.nCMul/2);
     let nPoseidon12Rows = customGatesInfo.nPoseidon12*5;
     let nCustPoseidon12Rows = customGatesInfo.nCustPoseidon12*5;
     let nTotalPoseidon12Rows = nPoseidon12Rows + nCustPoseidon12Rows;
@@ -112,7 +107,7 @@ function getNumberConstraints(r1cs) {
     Compress plonk constraints and verifies custom gates using 21 committed polynomials
 */
 module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, options) {
-    const committedPols = 65;
+    const committedPols = 56;
 
     const {plonkAdditions, plonkConstraints, customGatesInfo, NUsed} = getNumberConstraints(r1cs);
 
@@ -138,7 +133,7 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
         maxConstraintDegree: options.maxConstraintDegree || 8,
         nPoseidonCompressor: customGatesInfo.nCustPoseidon12,
         nPoseidonSponge: customGatesInfo.nPoseidon12,
-        nCMulRows: Math.ceil(customGatesInfo.nCMul/3),
+        nCMulRows: Math.ceil(customGatesInfo.nCMul/2),
         nPlonkRows: customGatesInfo.nPlonkRows,
         nFFT4: customGatesInfo.nFFT4,
         nEvPol4: customGatesInfo.nEvPol4,
@@ -149,7 +144,7 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
     let pilStr = ejs.render(template ,  obj);
     
     // Stores the positions of all the values that each of the committed polynomials takes in each row 
-    // Remember that there are 62 committed polynomials and the number of rows is stored in NUsed
+    // Remember that there are 56 committed polynomials and the number of rows is stored in NUsed
     const sMap = [];
     for (let i=0;i<committedPols; i++) {
         sMap[i] = new Uint32Array(N).fill(0);
@@ -164,10 +159,9 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
         }
     }
 
-    const threeExtraConstraints = [];
-    const fourExtraConstraints = [];
-    const fiveExtraConstraints = [];
-    const elevenExtraConstraints = [];
+    const oneExtraConstraint = [];
+    const twoExtraConstraints = [];
+    const eightExtraConstraints = [];
     
 
     let partialRowsCMul = {row: -1, nUsed: 0};
@@ -185,7 +179,6 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
 
     // Generate Custom Gate
 
-    let firstColP = 33;
     console.log(`Point check -> Processing ${poseidonGateUses.length} poseidon gates...`);
     for (let i=0; i<poseidonGateUses.length; i++) {
         const cgu = poseidonGateUses[i];
@@ -207,22 +200,22 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
 
         for (let i = 0; i < 16; i++) {
             sMap[i][r] = input[i];
-            sMap[i + firstColP][r] = round0[i];
-            sMap[i + firstColP + 16][r] = round1[i];
-            sMap[i + firstColP][r + 1] = round2[i];
-            sMap[i + firstColP + 16][r + 1] = round3[i];
-            sMap[i + firstColP][r + 2] = round4[i];
-            sMap[i + firstColP][r + 3] = round26[i];
-            sMap[i + firstColP + 16][r + 3] = round27[i];
-            sMap[i + firstColP][r + 4] = round28[i];
-            sMap[i + firstColP + 16][r + 4] = round29[i];
+            sMap[i + 24][r] = round0[i];
+            sMap[i + 40][r] = round1[i];
+            sMap[i + 24][r + 1] = round2[i];
+            sMap[i + 40][r + 1] = round3[i];
+            sMap[i + 24][r + 2] = round4[i];
+            sMap[i + 24][r + 3] = round26[i];
+            sMap[i + 40][r + 3] = round27[i];
+            sMap[i + 24][r + 4] = round28[i];
+            sMap[i + 40][r + 4] = round29[i];
             sMap[i][r + 4] = output[i];
         }
 
         for (let i = 0; i < 11; i++) {
-            sMap[i + firstColP + 16][r + 2] = im1[i];
+            sMap[i + 40][r + 2] = im1[i];
             if (i < 5) {
-                sMap[i + firstColP + 16 + 11][r + 2] = im2[i];
+                sMap[i + 51][r + 2] = im2[i];
             } else {
                 let pos = i - 5;
                 sMap[pos + 18][r] = im2[i];
@@ -235,11 +228,10 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
             }
         }
 
-        threeExtraConstraints.push(r);
-        elevenExtraConstraints.push(r+1);
-        elevenExtraConstraints.push(r+2);
-        elevenExtraConstraints.push(r+3);
-        fiveExtraConstraints.push(r+4);
+        eightExtraConstraints.push(r+1);
+        eightExtraConstraints.push(r+2);
+        eightExtraConstraints.push(r+3);
+        twoExtraConstraints.push(r+4);
         
         r+=5;
     }
@@ -269,24 +261,24 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
         
         for (let i = 0; i < 16; i++) {
             sMap[i][r] = input[i];
-            sMap[i + firstColP][r] = round0[i];
-            sMap[i + firstColP + 16][r] = round1[i];
-            sMap[i + firstColP][r + 1] = round2[i];
-            sMap[i + firstColP + 16][r + 1] = round3[i];
-            sMap[i + firstColP][r + 2] = round4[i];
-            sMap[i + firstColP][r + 3] = round26[i];
-            sMap[i + firstColP + 16][r + 3] = round27[i];
-            sMap[i + firstColP][r + 4] = round28[i];
-            sMap[i + firstColP + 16][r + 4] = round29[i];
+            sMap[i + 24][r] = round0[i];
+            sMap[i + 40][r] = round1[i];
+            sMap[i + 24][r + 1] = round2[i];
+            sMap[i + 40][r + 1] = round3[i];
+            sMap[i + 24][r + 2] = round4[i];
+            sMap[i + 24][r + 3] = round26[i];
+            sMap[i + 40][r + 3] = round27[i];
+            sMap[i + 24][r + 4] = round28[i];
+            sMap[i + 40][r + 4] = round29[i];
             sMap[i][r + 4] = output[i];
         }
-
+        
         sMap[16][r] = first_bit;
         sMap[17][r] = second_bit;
         for (let i = 0; i < 11; i++) {
-            sMap[i + firstColP + 16][r + 2] = im1[i];
+            sMap[i + 40][r + 2] = im1[i];
             if (i < 5) {
-                sMap[i + firstColP + 16 + 11][r + 2] = im2[i];
+                sMap[i + 51][r + 2] = im2[i];
             } else {
                 let pos = i - 5;
                 sMap[pos + 18][r] = im2[i];
@@ -299,11 +291,10 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
             }
         }
 
-        threeExtraConstraints.push(r);
-        elevenExtraConstraints.push(r+1);
-        elevenExtraConstraints.push(r+2);
-        elevenExtraConstraints.push(r+3);
-        fiveExtraConstraints.push(r+4);
+        eightExtraConstraints.push(r+1);
+        eightExtraConstraints.push(r+2);
+        eightExtraConstraints.push(r+3);
+        twoExtraConstraints.push(r+4);
 
         r+=5;
     }
@@ -318,7 +309,7 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
                 sMap[i + 9*partialRowsCMul.nUsed][partialRowsCMul.row] = cgu.signals[i];
             }
             partialRowsCMul.nUsed++;
-            if(partialRowsCMul.nUsed === 3) {
+            if(partialRowsCMul.nUsed === 2) {
                 partialRowsCMul = {row: -1, nUsed: 0};
             }
         } else {
@@ -346,7 +337,7 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
             C[k].values[r] = 0n;
         }
 
-        fourExtraConstraints.push(r);
+        oneExtraConstraint.push(r);
         r+= 1;
     }
 
@@ -404,7 +395,7 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
         for (let k=0; k<10; k++) {
             C[k].values[r] = 0n;
         }
-        fiveExtraConstraints.push(r);
+        twoExtraConstraints.push(r);
         r += 1;
     }
 
@@ -421,12 +412,11 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
         for (let k=0; k<10; k++) {
             C[k].values[r] = 0n;
         }
-        threeExtraConstraints.push(r);
         r += 1;
     }
 
     assert(r == 5*poseidonGateUses.length + 5*poseidonCustGateUses.length + obj.nCMulRows + fft4GateUses.length + evPol4GateUses.length + treeSelector4GateUses.length + selectVal1GateUses.length);
-    
+
     // Paste plonk constraints. 
     // Each row can be split in three subsets: 
     // a[0], a[1], a[2] and a[3], a[4], a[5] --> C[0], C[1], C[2], C[3], C[4]
@@ -468,8 +458,8 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
             
             pr.nUsed++;
             partialRows[k] = pr;
-        } else if(elevenExtraConstraints.length > 0) {
-            const row = elevenExtraConstraints.shift();
+        } else if(eightExtraConstraints.length > 0) {
+            const row = eightExtraConstraints.shift();
             C[0].values[row] = c[3];
             C[1].values[row] = c[4];
             C[2].values[row] = c[5];
@@ -494,10 +484,10 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
                 row,
                 nUsed: 2,
                 custom: true,
-                maxUsed: 11,
+                maxUsed: 8,
             });
-        } else if (fiveExtraConstraints.length > 0) {
-            const row = fiveExtraConstraints.shift();
+        } else if (twoExtraConstraints.length > 0) {
+            const row = twoExtraConstraints.shift();
             C[5].values[row] = c[3];
             C[6].values[row] = c[4];
             C[7].values[row] = c[5];
@@ -510,24 +500,15 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
             sMap[21][row] = c[0];
             sMap[22][row] = c[1];
             sMap[23][row] = c[2];
-            sMap[24][row] = c[0];
-            sMap[25][row] = c[1];
-            sMap[26][row] = c[2];
-            sMap[27][row] = c[0];
-            sMap[28][row] = c[1];
-            sMap[29][row] = c[2];
-            sMap[30][row] = c[0];
-            sMap[31][row] = c[1];
-            sMap[32][row] = c[2];
 
             partialRows[k] = {
                 row,
                 nUsed: 7,
                 custom: true,
-                maxUsed: 11,
+                maxUsed: 8,
             };
-        } else if (fourExtraConstraints.length > 0) {
-            const row = fourExtraConstraints.shift();
+        } else if (oneExtraConstraint.length > 0) {
+            const row = oneExtraConstraint.shift();
             C[5].values[row] = c[3];
             C[6].values[row] = c[4];
             C[7].values[row] = c[5];
@@ -537,46 +518,6 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
             sMap[21][row] = c[0];
             sMap[22][row] = c[1];
             sMap[23][row] = c[2];
-            sMap[24][row] = c[0];
-            sMap[25][row] = c[1];
-            sMap[26][row] = c[2];
-            sMap[27][row] = c[0];
-            sMap[28][row] = c[1];
-            sMap[29][row] = c[2];
-            sMap[30][row] = c[0];
-            sMap[31][row] = c[1];
-            sMap[32][row] = c[2];
-
-            partialRows[k] = {
-                row,
-                nUsed: 8,
-                custom: true,
-                maxUsed: 11,
-            };
-        } else if (threeExtraConstraints.length > 0) {
-            const row = threeExtraConstraints.shift();
-            C[5].values[row] = c[3];
-            C[6].values[row] = c[4];
-            C[7].values[row] = c[5];
-            C[8].values[row] = c[6];
-            C[9].values[row] = c[7];
-
-            sMap[24][row] = c[0];
-            sMap[25][row] = c[1];
-            sMap[26][row] = c[2];
-            sMap[27][row] = c[0];
-            sMap[28][row] = c[1];
-            sMap[29][row] = c[2];
-            sMap[30][row] = c[0];
-            sMap[31][row] = c[1];
-            sMap[32][row] = c[2];
-
-            partialRows[k] = {
-                row,
-                nUsed: 9,
-                custom: true,
-                maxUsed: 11,
-            };
         } else {
             C[0].values[r] = c[3];
             C[1].values[r] = c[4];
@@ -603,7 +544,7 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
                 row: r,
                 nUsed: 2,
                 custom: false,
-                maxUsed: 11,
+                maxUsed: 8,
             });
 
 
@@ -613,7 +554,7 @@ module.exports.finalVadcopCompressor = function finalVadcopCompressor(r1cs, opti
 
     assert(r == NUsed, `Number of rows used in plonk constraints (${r}) does not match the expected number of rows (${NUsed})`);
 
-    const nColsConnections = 33;
+    const nColsConnections = 24;
 
     const S = [];
     for (let i = 0; i < nColsConnections; ++i) {

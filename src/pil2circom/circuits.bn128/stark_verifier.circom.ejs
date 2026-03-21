@@ -877,6 +877,204 @@ template VerifyFinalPol() {
     }
 }
 
+<% let verifySingleQueryBN128Name = "VerifySingleQuery" + (airgroupId !== undefined ? String(airgroupId) : ""); -%>
+template <%- verifySingleQueryBN128Name %>() {
+    signal input {binary} queriesFRI[<%- starkStruct.steps[0].nBits %>];
+    signal input {maxNum} challengeXi[3];
+    signal input {maxNum} challengesFRI[2][3];
+    signal input {maxNum} challengesFRISteps[<%- starkStruct.steps.length %>][3];
+    signal input {maxNum} evals[<%- starkInfo.evMap.length %>][3];
+    signal input {binary} enable;
+
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+    signal input s0_vals<%- stage %>[<%- starkInfo.mapSectionsN[`cm${stage}`] %>];
+    signal input s0_siblings<%- stage %>[<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal input root<%- stage %>;
+<%  } -%>
+<% } -%>
+
+    signal input s0_vals<%- qStage %>[<%- starkInfo.mapSectionsN[`cm${qStage}`] %>];
+    signal input s0_siblings<%- qStage %>[<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal input root<%- qStage %>;
+    signal input s0_valsC[<%- starkInfo.nConstants %>];
+    signal input s0_siblingsC[<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal input rootC;
+
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    signal input s0_vals_<%- starkInfo.customCommits[i].name %>_0[<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>];
+    signal input s0_siblings_<%- starkInfo.customCommits[i].name %>_0[<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal input root_<%- starkInfo.customCommits[i].name %>_0;
+<% } -%>
+
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+<%  const bsqExp = 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits); -%>
+    signal input s<%- s %>_vals[<%- bsqExp * 3 %>];
+    signal input s<%- s %>_siblings[<%- Math.floor((starkStruct.steps[s].nBits -1) /nBitsArity) +1 %>][<%- arity %>];
+    signal input s<%- s %>_root;
+<% } -%>
+
+    signal input {maxNum} finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
+
+    // GL conversion and _p preprocessing for s0 vals
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+    signal {maxNum} s0_vals<%- stage %>GL[<%- starkInfo.mapSectionsN[`cm${stage}`] %>];
+    signal {maxNum} s0_vals<%- stage %>_p[<%- starkInfo.mapSectionsN[`cm${stage}`] %>][1];
+    for(var j = 0; j < <%- starkInfo.mapSectionsN[`cm${stage}`] %>; j++) {
+        s0_vals<%- stage %>GL[j] <== LessThan64Bits()(s0_vals<%- stage %>[j]);
+        s0_vals<%- stage %>_p[j][0] <== GLCopy()(s0_vals<%- stage %>GL[j]);
+    }
+<%  } -%>
+<% } -%>
+
+    signal {maxNum} s0_vals<%- qStage %>GL[<%- starkInfo.mapSectionsN[`cm${qStage}`] %>];
+    signal {maxNum} s0_vals<%- qStage %>_p[<%- starkInfo.mapSectionsN[`cm${qStage}`] %>][1];
+    for(var j = 0; j < <%- starkInfo.mapSectionsN[`cm${qStage}`] %>; j++) {
+        s0_vals<%- qStage %>GL[j] <== LessThan64Bits()(s0_vals<%- qStage %>[j]);
+        s0_vals<%- qStage %>_p[j][0] <== GLCopy()(s0_vals<%- qStage %>GL[j]);
+    }
+
+    signal {maxNum} s0_valsCGL[<%- starkInfo.nConstants %>];
+    signal {maxNum} s0_valsC_p[<%- starkInfo.nConstants %>][1];
+    for(var j = 0; j < <%- starkInfo.nConstants %>; j++) {
+        s0_valsCGL[j] <== LessThan64Bits()(s0_valsC[j]);
+        s0_valsC_p[j][0] <== GLCopy()(s0_valsCGL[j]);
+    }
+
+<%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    signal {maxNum} s0_vals_<%- starkInfo.customCommits[i].name %>_0GL[<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>];
+    signal {maxNum} s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>][1];
+    for(var j = 0; j < <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>; j++) {
+        s0_vals_<%- starkInfo.customCommits[i].name %>_0GL[j] <== LessThan64Bits()(s0_vals_<%- starkInfo.customCommits[i].name %>_0[j]);
+        s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[j][0] <== GLCopy()(s0_vals_<%- starkInfo.customCommits[i].name %>_0GL[j]);
+    }
+<% } -%>
+
+    // Merkle verification for s0 vals
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+    VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${stage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- arity %>)(s0_vals<%- stage %>_p, s0_siblings<%- stage %>, queriesFRI, root<%- stage %>, enable);
+<%  } -%>
+<% } -%>
+    VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${qStage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- arity %>)(s0_vals<%- qStage %>_p, s0_siblings<%- qStage %>, queriesFRI, root<%- qStage %>, enable);
+    VerifyMerkleHash(1, <%- starkInfo.nConstants %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- arity %>)(s0_valsC_p, s0_siblingsC, queriesFRI, rootC, enable);
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- arity %>)(s0_vals_<%- starkInfo.customCommits[i].name %>_0_p, s0_siblings_<%- starkInfo.customCommits[i].name %>_0, queriesFRI, root_<%- starkInfo.customCommits[i].name %>_0, enable);
+<% } -%>
+
+    // FRI step GL conversion, reshaping, and Merkle verification
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+<%  const bsqExp2 = 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits); -%>
+    signal {maxNum} s<%- s %>_valsGL[<%- bsqExp2 * 3 %>];
+    signal {maxNum} s<%- s %>_vals_p[<%- bsqExp2 %>][3];
+    for(var c = 0; c < <%- bsqExp2 %>; c++) {
+        for(var e = 0; e < 3; e++) {
+            s<%- s %>_valsGL[c*3+e] <== LessThan64Bits()(s<%- s %>_vals[c*3+e]);
+            s<%- s %>_vals_p[c][e] <== GLCopy()(s<%- s %>_valsGL[c*3+e]);
+        }
+    }
+    signal {binary} s<%- s %>_keys_merkle[<%- starkStruct.steps[s].nBits %>];
+    for(var i = 0; i < <%- starkStruct.steps[s].nBits %>; i++) { s<%- s %>_keys_merkle[i] <== queriesFRI[i]; }
+    VerifyMerkleHash(3, <%- bsqExp2 %>, <%- 1 << starkStruct.steps[s].nBits %>, <%- arity %>)(s<%- s %>_vals_p, s<%- s %>_siblings, s<%- s %>_keys_merkle, s<%- s %>_root, enable);
+<% } -%>
+
+    // Verify the initial FRI polynomial query
+<%  const bsqQueryVals = [];
+    for(let i = 0; i < starkInfo.nStages; ++i) {
+        const stage = i + 1;
+        if(starkInfo.mapSectionsN[`cm${stage}`] > 0) {
+            bsqQueryVals.push(`s0_vals${stage}GL`);
+        }
+    }
+    bsqQueryVals.push("s0_vals" + qStage + "GL");
+    bsqQueryVals.push("s0_valsCGL");
+    for(let i = 0; i < starkInfo.customCommits.length; ++i) {
+        bsqQueryVals.push(`s0_vals_${starkInfo.customCommits[i].name}_0GL`);
+    }
+    const bsqNextValsPol = 0 < starkStruct.steps.length-1 ? "s1_vals_p" : "finalPol";
+    const bsqNextStep = 0 < starkStruct.steps.length-1 ? starkStruct.steps[1].nBits : 0;
+-%>
+    VerifyQuery(<%- starkStruct.steps[0].nBits %>, <%- bsqNextStep %>)(queriesFRI, challengeXi, challengesFRI, evals, <%- bsqQueryVals.join(", ") %>, <%- bsqNextValsPol %>, enable);
+
+    // Verify FRI construction for each folding step
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+<%  const bsqE1 = F.inv(F.mul(F.exp(F.shift, 1 << (starkStruct.nBitsExt - starkStruct.steps[s-1].nBits)), F.w[starkStruct.steps[s-1].nBits])); -%>
+<%  const bsqE0 = F.inv(F.exp(F.shift, 1 << (starkStruct.nBitsExt - starkStruct.steps[s-1].nBits))); -%>
+<%  const bsqNextPolFRI = s < starkStruct.steps.length-1 ? `s${s+1}_vals_p` : "finalPol"; -%>
+<%  const bsqNextStepFRI = s < starkStruct.steps.length-1 ? starkStruct.steps[s+1].nBits : 0; -%>
+    signal {binary} s<%- s %>_queriesFRI[<%- starkStruct.steps[s].nBits %>];
+    for(var i = 0; i < <%- starkStruct.steps[s].nBits %>; i++) { s<%- s %>_queriesFRI[i] <== queriesFRI[i]; }
+    VerifyFRI(<%- starkStruct.steps[s-1].nBits %>, <%- starkStruct.steps[s].nBits %>, <%- bsqNextStepFRI %>, <%- bsqE0 %>, <%- bsqE1 %>)(s<%- s %>_queriesFRI, challengesFRISteps[<%- s %>], s<%- s %>_vals_p, <%- bsqNextPolFRI %>, enable);
+<% } -%>
+}
+
+<% let verifyQueriesBatchBN128Name = "VerifyQueriesBatch" + (airgroupId !== undefined ? String(airgroupId) : ""); -%>
+template <%- verifyQueriesBatchBN128Name %>(nQ) {
+    signal input {binary} queriesFRI[nQ][<%- starkStruct.steps[0].nBits %>];
+    signal input {maxNum} challengeXi[3];
+    signal input {maxNum} challengesFRI[2][3];
+    signal input {maxNum} challengesFRISteps[<%- starkStruct.steps.length %>][3];
+    signal input {maxNum} evals[<%- starkInfo.evMap.length %>][3];
+    signal input {binary} enable;
+
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+    signal input s0_vals<%- stage %>[nQ][<%- starkInfo.mapSectionsN[`cm${stage}`] %>];
+    signal input s0_siblings<%- stage %>[nQ][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal input root<%- stage %>;
+<%  } -%>
+<% } -%>
+
+    signal input s0_vals<%- qStage %>[nQ][<%- starkInfo.mapSectionsN[`cm${qStage}`] %>];
+    signal input s0_siblings<%- qStage %>[nQ][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal input root<%- qStage %>;
+    signal input s0_valsC[nQ][<%- starkInfo.nConstants %>];
+    signal input s0_siblingsC[nQ][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal input rootC;
+
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    signal input s0_vals_<%- starkInfo.customCommits[i].name %>_0[nQ][<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>];
+    signal input s0_siblings_<%- starkInfo.customCommits[i].name %>_0[nQ][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal input root_<%- starkInfo.customCommits[i].name %>_0;
+<% } -%>
+
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+<%  const bqbExp = 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits); -%>
+    signal input s<%- s %>_vals[nQ][<%- bqbExp * 3 %>];
+    signal input s<%- s %>_siblings[nQ][<%- Math.floor((starkStruct.steps[s].nBits -1) /nBitsArity) +1 %>][<%- arity %>];
+    signal input s<%- s %>_root;
+<% } -%>
+
+    signal input {maxNum} finalPol[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
+
+    for (var q = 0; q < nQ; q++) {
+        <%- verifySingleQueryBN128Name %>()(
+            queriesFRI[q],
+            challengeXi, challengesFRI, challengesFRISteps, evals, enable,
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+            s0_vals<%- stage %>[q], s0_siblings<%- stage %>[q], root<%- stage %>,
+<%  } -%>
+<% } -%>
+            s0_vals<%- qStage %>[q], s0_siblings<%- qStage %>[q], root<%- qStage %>,
+            s0_valsC[q], s0_siblingsC[q], rootC,
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+            s0_vals_<%- starkInfo.customCommits[i].name %>_0[q], s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q], root_<%- starkInfo.customCommits[i].name %>_0,
+<% } -%>
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+            s<%- s %>_vals[q], s<%- s %>_siblings[q], s<%- s %>_root,
+<% } -%>
+            finalPol
+        );
+    }
+}
+
 template StarkVerifier() {
 <%  if(starkInfo.nPublics > 0) { -%>
     signal input publics[<%- starkInfo.nPublics %>];
@@ -979,52 +1177,6 @@ template StarkVerifier() {
     }
 <%  } -%>
 
-<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
-<%  const stage = i + 1; -%>
-<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
-    signal {maxNum} s0_vals<%- stage %>GL[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${stage}`] %>];
-<% } -%>
-<% } -%>
-    signal {maxNum} s0_vals<%- qStage %>GL[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${qStage}`] %>];
-    signal {maxNum} s0_valsCGL[<%- starkStruct.nQueries %>][<%- starkInfo.nConstants%>];
-<%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
-    signal s0_vals_<%- starkInfo.customCommits[i].name %>_0GL[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>];
-<% }-%>
-<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
-    signal {maxNum} s<%- s %>_valsGL[<%- starkStruct.nQueries %>][<%- (1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits))*3 %>];
-<% }                                                  -%>
-
-    for(var i = 0; i < <%- starkStruct.nQueries %>; i++){
-        for(var j = 0; j < <%- starkInfo.nConstants %>; j++) {
-            s0_valsCGL[i][j] <== LessThan64Bits()(s0_valsC[i][j]);
-        }
-
-        for(var j = 0; j < <%- starkInfo.mapSectionsN[`cm${qStage}`] %>; j++) {
-            s0_vals<%- qStage %>GL[i][j] <== LessThan64Bits()(s0_vals<%- qStage %>[i][j]);
-        }
-
-<%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
-    for (var j = 0; j < <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>; j++) {
-        s0_vals_<%- starkInfo.customCommits[i].name %>_0GL[i][j] = LessThan64Bits()(s0_vals_<%- starkInfo.customCommits[i].name %>_0[i][j]);
-    }
-<% }-%>
-
-<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
-<%  const stage = i + 1; -%>
-<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
-        for(var j = 0; j < <%- starkInfo.mapSectionsN[`cm${stage}`] %>; j++) {
-            s0_vals<%- stage %>GL[i][j] <== LessThan64Bits()(s0_vals<%- stage %>[i][j]);
-        }
-<%  } -%>
-<% } -%>
-
-<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
-        for(var j = 0; j < <%- (1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits))*3 %>; j++) {
-            s<%- s %>_valsGL[i][j] <== LessThan64Bits()(s<%- s %>_vals[i][j]);
-        }
-<% }                                                  -%>
-    }
-
     signal {maxNum} finalPolGL[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
     for(var i = 0; i < <%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>; i++){
         for(var j = 0; j < 3; j++) {
@@ -1086,151 +1238,225 @@ template StarkVerifier() {
     VerifyEvaluations()(<%- verifyEvalsInputs.join(", ") %>);    
 
     ///////////
-    // Preprocess s_i vals
+    // Verify queries using batching
     ///////////
 
-    // Preprocess the s_i vals given as inputs so that we can use anonymous components.
-    // Two different processings are done:
-    // For s0_vals, the arrays are transposed so that they fit MerkleHash template
-    // For (s_i)_vals, the values are passed all together in a single array of length nVals*3. We convert them to vals[nVals][3]
-    
-<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
-<%  const stage = i + 1; -%>
-<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
-    signal {maxNum} s0_vals<%- stage %>_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${stage}`] %>][1];
-<% } -%>
-<% } -%> 
-    signal {maxNum} s0_vals<%- qStage %>_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`cm${qStage}`] %>][1];
-    signal {maxNum} s0_valsC_p[<%- starkStruct.nQueries %>][<%- starkInfo.nConstants %>][1];
-<%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
-    signal {maxNum} s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[<%- starkStruct.nQueries %>][<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>][1];
-<% }-%>
-<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
-    signal {maxNum} s<%- s %>_vals_p[<%- starkStruct.nQueries %>][<%- (1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits)) %>][3]; 
+    // Declare batch-size parameters as Circom vars for easy parametrization
+<%  const bn128VerifyQueriesBatchSize = 10; -%>
+    var N_QUERIES = <%- starkStruct.nQueries %>;
+    var QUERIES_BATCH_SIZE = <%- bn128VerifyQueriesBatchSize %>;  // change this and recompile to adjust batch size
+    var N_FULL_BATCHES = N_QUERIES \ QUERIES_BATCH_SIZE;
+    var LAST_BATCH_SIZE = N_QUERIES - N_FULL_BATCHES * QUERIES_BATCH_SIZE;
+    var LAST_BATCH_SIZE_SAFE = LAST_BATCH_SIZE > 0 ? LAST_BATCH_SIZE : 1;
+
+    // Custom commit roots - shared across all batches
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    signal root_<%- starkInfo.customCommits[i].name %>_0 <== publics[<%- starkInfo.customCommits[i].publicValues[0].idx %>];
 <% } -%>
 
-    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        // Preprocess vals for the initial FRI polynomial
+    // Work buffers for full batches (reused each iteration)
+    signal {binary} batch_work_queriesFRI[QUERIES_BATCH_SIZE][<%- starkStruct.steps[0].nBits %>];
 <% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  const stage = i + 1; -%>
-<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
-        for (var i = 0; i < <%- starkInfo.mapSectionsN[`cm${stage}`] %>; i++) {
-            s0_vals<%- stage %>_p[q][i][0] <== GLCopy()(s0_vals<%- stage %>GL[q][i]);
-        }
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+    signal batch_work_s0_vals<%- stage %>[QUERIES_BATCH_SIZE][<%- starkInfo.mapSectionsN[`cm${stage}`] %>];
+    signal batch_work_s0_siblings<%- stage %>[QUERIES_BATCH_SIZE][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
 <%  } -%>
-<% } -%> 
-        for (var i = 0; i < <%- starkInfo.mapSectionsN[`cm${qStage}`] %>; i++) {
-            s0_vals<%- qStage %>_p[q][i][0] <== GLCopy()(s0_vals<%- qStage %>GL[q][i]);
-        }
-        for (var i = 0; i < <%- starkInfo.nConstants %>; i++) {
-            s0_valsC_p[q][i][0] <== GLCopy()(s0_valsCGL[q][i]);
-        }
+<% } -%>
+    signal batch_work_s0_vals<%- qStage %>[QUERIES_BATCH_SIZE][<%- starkInfo.mapSectionsN[`cm${qStage}`] %>];
+    signal batch_work_s0_siblings<%- qStage %>[QUERIES_BATCH_SIZE][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal batch_work_s0_valsC[QUERIES_BATCH_SIZE][<%- starkInfo.nConstants %>];
+    signal batch_work_s0_siblingsC[QUERIES_BATCH_SIZE][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    signal batch_work_s0_vals_<%- starkInfo.customCommits[i].name %>_0[QUERIES_BATCH_SIZE][<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>];
+    signal batch_work_s0_siblings_<%- starkInfo.customCommits[i].name %>_0[QUERIES_BATCH_SIZE][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+<% } -%>
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+<%  const bn128Exp = 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits); -%>
+    signal batch_work_s<%- s %>_vals[QUERIES_BATCH_SIZE][<%- bn128Exp * 3 %>];
+    signal batch_work_s<%- s %>_siblings[QUERIES_BATCH_SIZE][<%- Math.floor((starkStruct.steps[s].nBits -1) /nBitsArity) +1 %>][<%- arity %>];
+<% } -%>
 
-<%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
-    for (var i = 0; i < <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>; i++) {
-        s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q][i][0] = GLCopy()(s0_vals_<%- starkInfo.customCommits[i].name %>_0[q][i]);
-    }
-<% }-%>
-
-        // Preprocess vals for each folded polynomial
-        for(var e=0; e < 3; e++) {
-<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
-            for(var c=0; c < <%- (1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits))%>; c++) {
-                s<%- s %>_vals_p[q][c][e] <== GLCopy()(s<%- s %>_valsGL[q][c*3+e]);
+    // Full batches
+    for (var b = 0; b < N_FULL_BATCHES; b++) {
+        var batchStart = b * QUERIES_BATCH_SIZE;
+        for (var q = 0; q < QUERIES_BATCH_SIZE; q++) {
+            for (var i = 0; i < <%- starkStruct.steps[0].nBits %>; i++) {
+                batch_work_queriesFRI[q][i] <== queriesFRIGL[batchStart + q][i];
+            }
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+            for (var i = 0; i < <%- starkInfo.mapSectionsN[`cm${stage}`] %>; i++) {
+                batch_work_s0_vals<%- stage %>[q][i] <== s0_vals<%- stage %>[batchStart + q][i];
+            }
+            for (var j = 0; j < <%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>; j++) {
+                for (var k = 0; k < <%- arity %>; k++) {
+                    batch_work_s0_siblings<%- stage %>[q][j][k] <== s0_siblings<%- stage %>[batchStart + q][j][k];
+                }
+            }
+<%  } -%>
+<% } -%>
+            for (var i = 0; i < <%- starkInfo.mapSectionsN[`cm${qStage}`] %>; i++) {
+                batch_work_s0_vals<%- qStage %>[q][i] <== s0_vals<%- qStage %>[batchStart + q][i];
+            }
+            for (var j = 0; j < <%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>; j++) {
+                for (var k = 0; k < <%- arity %>; k++) {
+                    batch_work_s0_siblings<%- qStage %>[q][j][k] <== s0_siblings<%- qStage %>[batchStart + q][j][k];
+                }
+            }
+            for (var i = 0; i < <%- starkInfo.nConstants %>; i++) {
+                batch_work_s0_valsC[q][i] <== s0_valsC[batchStart + q][i];
+            }
+            for (var j = 0; j < <%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>; j++) {
+                for (var k = 0; k < <%- arity %>; k++) {
+                    batch_work_s0_siblingsC[q][j][k] <== s0_siblingsC[batchStart + q][j][k];
+                }
+            }
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+            for (var i = 0; i < <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>; i++) {
+                batch_work_s0_vals_<%- starkInfo.customCommits[i].name %>_0[q][i] <== s0_vals_<%- starkInfo.customCommits[i].name %>_0[batchStart + q][i];
+            }
+            for (var j = 0; j < <%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>; j++) {
+                for (var k = 0; k < <%- arity %>; k++) {
+                    batch_work_s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q][j][k] <== s0_siblings_<%- starkInfo.customCommits[i].name %>_0[batchStart + q][j][k];
+                }
+            }
+<% } -%>
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+<%  const bn128Exp2 = 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits); -%>
+            for (var i = 0; i < <%- bn128Exp2 * 3 %>; i++) {
+                batch_work_s<%- s %>_vals[q][i] <== s<%- s %>_vals[batchStart + q][i];
+            }
+            for (var j = 0; j < <%- Math.floor((starkStruct.steps[s].nBits -1) /nBitsArity) +1 %>; j++) {
+                for (var k = 0; k < <%- arity %>; k++) {
+                    batch_work_s<%- s %>_siblings[q][j][k] <== s<%- s %>_siblings[batchStart + q][j][k];
+                }
             }
 <% } -%>
         }
-    }
-    
-    ///////////
-    // Verify Merkle roots
-    ///////////
-        
-    //Calculate merkle root for s0 vals
+        <%- verifyQueriesBatchBN128Name %>(QUERIES_BATCH_SIZE)(
+            batch_work_queriesFRI,
+            challengeXiGL, challengesFRIGL, challengesFRIStepsGL, evalsGL, enabled,
 <% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
 <%  const stage = i + 1; -%>
-<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%> 
-    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${stage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>,<%- arity %>)(s0_vals<%- stage %>_p[q], s0_siblings<%- stage %>[q], queriesFRIGL[q], root<%- stage %>, enabled);
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+            batch_work_s0_vals<%- stage %>, batch_work_s0_siblings<%- stage %>, root<%- stage %>,
+<%  } -%>
+<% } -%>
+            batch_work_s0_vals<%- qStage %>, batch_work_s0_siblings<%- qStage %>, root<%- qStage %>,
+            batch_work_s0_valsC, batch_work_s0_siblingsC, rootC,
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+            batch_work_s0_vals_<%- starkInfo.customCommits[i].name %>_0, batch_work_s0_siblings_<%- starkInfo.customCommits[i].name %>_0, root_<%- starkInfo.customCommits[i].name %>_0,
+<% } -%>
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+            batch_work_s<%- s %>_vals, batch_work_s<%- s %>_siblings, s<%- s %>_root,
+<% } -%>
+            finalPolGL
+        );
+    }
+
+    // Remainder batch — signal declarations always emitted; call guarded by Circom if (LAST_BATCH_SIZE > 0)
+    signal {binary} remainder_queriesFRI[LAST_BATCH_SIZE_SAFE][<%- starkStruct.steps[0].nBits %>];
+    for (var q = 0; q < LAST_BATCH_SIZE; q++) {
+        for (var i = 0; i < <%- starkStruct.steps[0].nBits %>; i++) {
+            remainder_queriesFRI[q][i] <== queriesFRIGL[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][i];
+        }
+    }
+
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+    signal remainder_s0_vals<%- stage %>[LAST_BATCH_SIZE_SAFE][<%- starkInfo.mapSectionsN[`cm${stage}`] %>];
+    signal remainder_s0_siblings<%- stage %>[LAST_BATCH_SIZE_SAFE][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    for (var q = 0; q < LAST_BATCH_SIZE; q++) {
+        for (var i = 0; i < <%- starkInfo.mapSectionsN[`cm${stage}`] %>; i++) {
+            remainder_s0_vals<%- stage %>[q][i] <== s0_vals<%- stage %>[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][i];
+        }
+        for (var j = 0; j < <%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>; j++) {
+            for (var k = 0; k < <%- arity %>; k++) {
+                remainder_s0_siblings<%- stage %>[q][j][k] <== s0_siblings<%- stage %>[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][j][k];
+            }
+        }
     }
 <%  } -%>
 <% } -%>
 
-    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`cm${qStage}`] %>, <%- 1 << starkStruct.steps[0].nBits %>,<%- arity %>)(s0_vals<%- qStage %>_p[q], s0_siblings<%- qStage %>[q], queriesFRIGL[q], root<%- qStage %>, enabled);
-    }
+    signal remainder_s0_vals<%- qStage %>[LAST_BATCH_SIZE_SAFE][<%- starkInfo.mapSectionsN[`cm${qStage}`] %>];
+    signal remainder_s0_siblings<%- qStage %>[LAST_BATCH_SIZE_SAFE][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    signal remainder_s0_valsC[LAST_BATCH_SIZE_SAFE][<%- starkInfo.nConstants %>];
+    signal remainder_s0_siblingsC[LAST_BATCH_SIZE_SAFE][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
 
-    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        VerifyMerkleHash(1, <%- starkInfo.nConstants %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- arity %>)(s0_valsC_p[q], s0_siblingsC[q], queriesFRIGL[q], rootC, enabled);  
-    }                                  
-
-<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
-    signal root_<%- starkInfo.customCommits[i].name %>_0 <== publics[<%- starkInfo.customCommits[i].publicValues[0].idx %>];
-    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        VerifyMerkleHash(1, <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>, <%- 1 << starkStruct.steps[0].nBits %>, <%- arity %>)(s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[q], s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q], queriesFRIGL[q], root_<%- starkInfo.customCommits[i].name %>_0, enabled);                                    
-    }
-<% } -%>
-
-<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
-    signal {binary} s<%- s %>_keys_merkle[<%- starkStruct.nQueries %>][<%- starkStruct.steps[s].nBits %>];
-    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-        // Calculate merkle root for s<%- s %> vals
-        for(var i = 0; i < <%-starkStruct.steps[s].nBits %>; i++) { s<%- s %>_keys_merkle[q][i] <== queriesFRIGL[q][i]; }
-        VerifyMerkleHash(3, <%- 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits) %>, <%- 1 << starkStruct.steps[s].nBits %>,<%- arity %>)(s<%- s %>_vals_p[q], s<%- s %>_siblings[q], s<%- s %>_keys_merkle[q], s<%- s %>_root, enabled);
-    }
-<% } -%>
-
-
-    ///////////
-    // Verify FRI query
-    ///////////
-
-<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
-    signal {binary} s<%- s %>_queriesFRI[<%- starkStruct.nQueries %>][<%- starkStruct.steps[s].nBits%>];
-<% } -%> 
-    // After checking that all merkle roots are properly built, the query and the intermediate 
-    // polynomials need to be verified 
-    for (var q=0; q<<%- starkStruct.nQueries %>; q++) {
-<%  let nextValsPol = 0 < starkStruct.steps.length-1 ? "s1_vals_p[q]" : "finalPolGL"; 
-    let nextStep = 0 < starkStruct.steps.length-1 ? starkStruct.steps[1].nBits : 0; 
-    let queryVals = [];
-    for(let i = 0; i < starkInfo.nStages; ++i) { 
-        const stage = i + 1;
-        if(starkInfo.mapSectionsN[`cm${stage}`] > 0) {
-            queryVals.push(`s0_vals${stage}GL[q]`);
+    for (var q = 0; q < LAST_BATCH_SIZE; q++) {
+        for (var i = 0; i < <%- starkInfo.mapSectionsN[`cm${qStage}`] %>; i++) {
+            remainder_s0_vals<%- qStage %>[q][i] <== s0_vals<%- qStage %>[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][i];
+        }
+        for (var j = 0; j < <%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>; j++) {
+            for (var k = 0; k < <%- arity %>; k++) {
+                remainder_s0_siblings<%- qStage %>[q][j][k] <== s0_siblings<%- qStage %>[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][j][k];
+            }
+        }
+        for (var i = 0; i < <%- starkInfo.nConstants %>; i++) {
+            remainder_s0_valsC[q][i] <== s0_valsC[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][i];
+        }
+        for (var j = 0; j < <%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>; j++) {
+            for (var k = 0; k < <%- arity %>; k++) {
+                remainder_s0_siblingsC[q][j][k] <== s0_siblingsC[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][j][k];
+            }
         }
     }
-    queryVals.push("s0_vals" + qStage + "GL[q]");
-    queryVals.push("s0_valsCGL[q]");
-    for(let i = 0; i < starkInfo.customCommits.length; ++i) { 
-        queryVals.push(`s0_vals_${starkInfo.customCommits[i].name}_0GL[q]`);
+
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+    signal remainder_s0_vals_<%- starkInfo.customCommits[i].name %>_0[LAST_BATCH_SIZE_SAFE][<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>];
+    signal remainder_s0_siblings_<%- starkInfo.customCommits[i].name %>_0[LAST_BATCH_SIZE_SAFE][<%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>][<%- arity %>];
+    for (var q = 0; q < LAST_BATCH_SIZE; q++) {
+        for (var i = 0; i < <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>; i++) {
+            remainder_s0_vals_<%- starkInfo.customCommits[i].name %>_0[q][i] <== s0_vals_<%- starkInfo.customCommits[i].name %>_0[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][i];
+        }
+        for (var j = 0; j < <%- Math.floor((starkStruct.steps[0].nBits - 1)/nBitsArity)+1 %>; j++) {
+            for (var k = 0; k < <%- arity %>; k++) {
+                remainder_s0_siblings_<%- starkInfo.customCommits[i].name %>_0[q][j][k] <== s0_siblings_<%- starkInfo.customCommits[i].name %>_0[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][j][k];
+            }
+        }
     }
--%>
-        // Verify that the query is properly constructed. This is done by checking that the linear combination of the set of 
-        // polynomials committed during the different rounds evaluated at z matches with the commitment of the FRI polynomial (unsure)
-        VerifyQuery(<%- starkStruct.steps[0].nBits %>, <%- nextStep %>)(queriesFRIGL[q], challengeXiGL, challengesFRIGL, evalsGL, <%- queryVals.join(", ") %>, <%- nextValsPol %>, enabled);
-
-        ///////////
-        // Verify FRI construction
-        ///////////
-
-        // For each folding level we need to check that the polynomial is properly constructed
-        // Remember that if the step between polynomials is b = 2^l, the next polynomial p_(i+1) will have degree deg(p_i) / b
-<% for (let s=1; s<starkStruct.steps.length; s++) {   -%>
-<%
-    const e1 = F.inv( F.mul(
-        F.exp(F.shift, 1 << (starkStruct.nBitsExt -starkStruct.steps[s-1].nBits) ),
-        F.w[starkStruct.steps[s-1].nBits]
-    ));
-    const e0 = F.inv(F.exp(F.shift, 1 << (starkStruct.nBitsExt -starkStruct.steps[s-1].nBits) ) );
--%>
-
-        // Check S<%- s %> 
-        for(var i = 0; i < <%- starkStruct.steps[s].nBits%>; i++) { s<%- s %>_queriesFRI[q][i] <== queriesFRIGL[q][i]; } 
-<%  const nextPolFRI = s < starkStruct.steps.length-1 ? `s${s+1}_vals_p[q]` : "finalPolGL"; -%>
-<%  const nextStepFRI = s < starkStruct.steps.length-1 ? starkStruct.steps[s+1].nBits : 0; -%>
-        VerifyFRI(<%- starkStruct.steps[s-1].nBits %>, <%- starkStruct.steps[s].nBits %>, <%- nextStepFRI %>, <%- e0 %>, <%- e1 %>)(s<%- s %>_queriesFRI[q], challengesFRIStepsGL[<%- s %>], s<%- s %>_vals_p[q], <%- nextPolFRI %>, enabled);
 <% } -%>
+
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+<%  const bn128RemExp = 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits); -%>
+    signal remainder_s<%- s %>_vals[LAST_BATCH_SIZE_SAFE][<%- bn128RemExp * 3 %>];
+    signal remainder_s<%- s %>_siblings[LAST_BATCH_SIZE_SAFE][<%- Math.floor((starkStruct.steps[s].nBits -1) /nBitsArity) +1 %>][<%- arity %>];
+    for (var q = 0; q < LAST_BATCH_SIZE; q++) {
+        for (var i = 0; i < <%- bn128RemExp * 3 %>; i++) {
+            remainder_s<%- s %>_vals[q][i] <== s<%- s %>_vals[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][i];
+        }
+        for (var j = 0; j < <%- Math.floor((starkStruct.steps[s].nBits -1) /nBitsArity) +1 %>; j++) {
+            for (var k = 0; k < <%- arity %>; k++) {
+                remainder_s<%- s %>_siblings[q][j][k] <== s<%- s %>_siblings[N_FULL_BATCHES * QUERIES_BATCH_SIZE + q][j][k];
+            }
+        }
+    }
+<% } -%>
+
+    if (LAST_BATCH_SIZE > 0) {
+    <%- verifyQueriesBatchBN128Name %>(LAST_BATCH_SIZE)(
+        remainder_queriesFRI,
+        challengeXiGL, challengesFRIGL, challengesFRIStepsGL, evalsGL, enabled,
+<% for(let i = 0; i < starkInfo.nStages; ++i) { -%>
+<%  const stage = i + 1; -%>
+<%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
+        remainder_s0_vals<%- stage %>, remainder_s0_siblings<%- stage %>, root<%- stage %>,
+<%  } -%>
+<% } -%>
+        remainder_s0_vals<%- qStage %>, remainder_s0_siblings<%- qStage %>, root<%- qStage %>,
+        remainder_s0_valsC, remainder_s0_siblingsC, rootC,
+<% for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
+        remainder_s0_vals_<%- starkInfo.customCommits[i].name %>_0, remainder_s0_siblings_<%- starkInfo.customCommits[i].name %>_0, root_<%- starkInfo.customCommits[i].name %>_0,
+<% } -%>
+<% for (let s=1; s<starkStruct.steps.length; s++) { -%>
+        remainder_s<%- s %>_vals, remainder_s<%- s %>_siblings, s<%- s %>_root,
+<% } -%>
+        finalPolGL
+    );
     }
 
     VerifyFinalPol()(finalPolGL, enabled);

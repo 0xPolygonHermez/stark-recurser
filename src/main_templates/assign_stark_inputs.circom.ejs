@@ -6,9 +6,17 @@
 <%  let prefix_ = prefix !== "" ? `${prefix}_` : ""; -%>
 
 <%  if(!options.final && !isNaN(airgroupId)) { -%>
+<%     if(options.parallel) { -%>
+    component <%- componentName %> = parallel StarkVerifier<%- airgroupId %>();
+<%     } else { -%>
     component <%- componentName %> = StarkVerifier<%- airgroupId %>();
+<%     } -%>
 <%  } else { -%>
+<%   if(options.parallel) { -%>
+    component <%- componentName %> = parallel StarkVerifier();
+<%   } else { -%>
     component <%- componentName %> = StarkVerifier();
+<%  } -%>
 <%  } -%>
 
 <%  if(options.addPublics && nPublics > 0) { -%>
