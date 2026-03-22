@@ -828,8 +828,10 @@ template MapValues() {
 <%        for (let i=0; i< sectionsStage.length; i++) {         -%>
 <%            const p = sectionsStage[i];  -%>
 <%            if (p.dim == 1) {                                                    -%>
+    custom_<%- starkInfo.customCommits[t].name%>_<%- l %>_<%- i %>.maxNum = 0xFFFFFFFFFFFFFFFF;
     custom_<%- starkInfo.customCommits[t].name%>_<%- l %>_<%- i %> <== vals_<%- starkInfo.customCommits[t].name %>_0[<%- p.stagePos %>];
 <%            } else if (p.dim == 3) {                                             -%>
+    custom_<%- starkInfo.customCommits[t].name%>_<%- l %>_<%- i %>.maxNum = 0xFFFFFFFFFFFFFFFF;
     custom_<%- starkInfo.customCommits[t].name%>_<%- l %>_<%- i %> <== [vals_<%- starkInfo.customCommits[t].name %>_0[<%- p.stagePos %>],vals_<%- starkInfo.customCommits[t].name %>_0[<%- p.stagePos + 1 %>] , vals_<%- starkInfo.customCommits[t].name %>_0[<%- p.stagePos + 2 %>]];
 <%            } else throw new Error("Invalid dim")                                -%>
 <%        } -%>
@@ -841,6 +843,7 @@ template MapValues() {
 <%      for (let i=0; i< sectionsStage.length; i++) {         -%>
 <%          const p = sectionsStage[i];  -%>
 <%          if (p.dim == 1) {                                                    -%>
+    cm<%- t %>_<%- i %>.maxNum = 0xFFFFFFFFFFFFFFFF;
     cm<%- t %>_<%- i %> <== GLCopy()(vals<%- t %>[<%- p.stagePos %>]);
 <%          } else if (p.dim == 3) {                                             -%>
     cm<%- t %>_<%- i %>.maxNum = 0xFFFFFFFFFFFFFFFF;
@@ -921,6 +924,7 @@ template parallel VerifySingleQuery() {
 <%  const stage = i + 1; -%>
 <%  if(starkInfo.mapSectionsN[`cm${stage}`] > 0) { -%>
     signal {maxNum} s0_vals<%- stage %>GL[<%- starkInfo.mapSectionsN[`cm${stage}`] %>];
+    s0_vals<%- stage %>GL.maxNum = 0xFFFFFFFFFFFFFFFF;
     signal {maxNum} s0_vals<%- stage %>_p[<%- starkInfo.mapSectionsN[`cm${stage}`] %>][1];
     for(var j = 0; j < <%- starkInfo.mapSectionsN[`cm${stage}`] %>; j++) {
         s0_vals<%- stage %>GL[j] <== LessThan64Bits()(s0_vals<%- stage %>[j]);
@@ -930,6 +934,7 @@ template parallel VerifySingleQuery() {
 <% } -%>
 
     signal {maxNum} s0_vals<%- qStage %>GL[<%- starkInfo.mapSectionsN[`cm${qStage}`] %>];
+    s0_vals<%- qStage %>GL.maxNum = 0xFFFFFFFFFFFFFFFF;
     signal {maxNum} s0_vals<%- qStage %>_p[<%- starkInfo.mapSectionsN[`cm${qStage}`] %>][1];
     for(var j = 0; j < <%- starkInfo.mapSectionsN[`cm${qStage}`] %>; j++) {
         s0_vals<%- qStage %>GL[j] <== LessThan64Bits()(s0_vals<%- qStage %>[j]);
@@ -937,6 +942,7 @@ template parallel VerifySingleQuery() {
     }
 
     signal {maxNum} s0_valsCGL[<%- starkInfo.nConstants %>];
+    s0_valsCGL.maxNum = 0xFFFFFFFFFFFFFFFF;
     signal {maxNum} s0_valsC_p[<%- starkInfo.nConstants %>][1];
     for(var j = 0; j < <%- starkInfo.nConstants %>; j++) {
         s0_valsCGL[j] <== LessThan64Bits()(s0_valsC[j]);
@@ -945,6 +951,7 @@ template parallel VerifySingleQuery() {
 
 <%  for(let i = 0; i < starkInfo.customCommits.length; ++i) { -%>
     signal {maxNum} s0_vals_<%- starkInfo.customCommits[i].name %>_0GL[<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>];
+    s0_vals_<%- starkInfo.customCommits[i].name %>_0GL.maxNum = 0xFFFFFFFFFFFFFFFF;
     signal {maxNum} s0_vals_<%- starkInfo.customCommits[i].name %>_0_p[<%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>][1];
     for(var j = 0; j < <%- starkInfo.mapSectionsN[`${starkInfo.customCommits[i].name}0`] %>; j++) {
         s0_vals_<%- starkInfo.customCommits[i].name %>_0GL[j] <== LessThan64Bits()(s0_vals_<%- starkInfo.customCommits[i].name %>_0[j]);
@@ -969,6 +976,7 @@ template parallel VerifySingleQuery() {
 <% for (let s=1; s<starkStruct.steps.length; s++) { -%>
 <%  const bsqExp2 = 1 << (starkStruct.steps[s-1].nBits - starkStruct.steps[s].nBits); -%>
     signal {maxNum} s<%- s %>_valsGL[<%- bsqExp2 * 3 %>];
+    s<%- s %>_valsGL.maxNum = 0xFFFFFFFFFFFFFFFF;
     signal {maxNum} s<%- s %>_vals_p[<%- bsqExp2 %>][3];
     for(var c = 0; c < <%- bsqExp2 %>; c++) {
         for(var e = 0; e < 3; e++) {
@@ -1091,13 +1099,15 @@ template StarkVerifier() {
 <% } -%>
 
 <%  if(starkInfo.nPublics > 0) { -%>
-    signal {maxNum} publicsGL[<%- starkInfo.nPublics %>]; 
+    signal {maxNum} publicsGL[<%- starkInfo.nPublics %>];
+    publicsGL.maxNum = 0xFFFFFFFFFFFFFFFF;
     for(var i = 0; i < <%- starkInfo.nPublics %>; i++){
         publicsGL[i] <== LessThan64Bits()(publics[i]);
     }
 <%  } -%>
 
     signal {maxNum} evalsGL[<%- starkInfo.evMap.length %>][3];
+    evalsGL.maxNum = 0xFFFFFFFFFFFFFFFF;
     for(var i = 0; i < <%- starkInfo.evMap.length %>; i++){
         for(var j = 0; j < 3; j++) {
             evalsGL[i][j] <== LessThan64Bits()(evals[i][j]);
@@ -1106,6 +1116,7 @@ template StarkVerifier() {
 
 <%  if(starkInfo.airgroupValuesMap.length > 0) { -%>
     signal {maxNum} airgroupValuesGL[<%- starkInfo.airgroupValuesMap.length %>][3];
+    airgroupValuesGL.maxNum = 0xFFFFFFFFFFFFFFFF;
     for(var i = 0; i < <%- starkInfo.airgroupValuesMap.length %>; i++){
         for(var j = 0; j < 3; j++) {
             airgroupValuesGL[i][j] <== LessThan64Bits()(airgroupvalues[i][j]);
@@ -1114,6 +1125,7 @@ template StarkVerifier() {
 <%  } -%>
 
     signal {maxNum} finalPolGL[<%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>][3];
+    finalPolGL.maxNum = 0xFFFFFFFFFFFFFFFF;
     for(var i = 0; i < <%- 1 << starkStruct.steps[starkStruct.steps.length-1].nBits %>; i++){
         for(var j = 0; j < 3; j++) {
             finalPolGL[i][j] <== LessThan64Bits()(finalPol[i][j]);
