@@ -1597,7 +1597,7 @@ template <%- verifierName %>() {
     const requestedBatchSize = options.friQueriesBatchSize;
     const verifyQueriesBatchSize = requestedBatchSize !== undefined
         ? Math.min(starkStruct.nQueries, Math.max(1, Math.floor(requestedBatchSize)))
-        : Math.max(1, Math.ceil(starkStruct.nQueries / 32));
+        : Math.max(1, Math.ceil(starkStruct.nQueries / 8));
     const fullBatchCount = Math.floor(starkStruct.nQueries / verifyQueriesBatchSize);
     const lastBatchSize = starkStruct.nQueries % verifyQueriesBatchSize;
     const hasRemainder = lastBatchSize > 0;
