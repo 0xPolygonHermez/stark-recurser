@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "gencircom": "src/main_gencircom.js"
+  },
   "scripts": {
     "test:circuits": "mocha test/stark/**/*.test.js",
     "test:circuits:bn128": "mocha test/stark/bn128/**/*.test.js",

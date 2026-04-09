@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const version = require("../package").version;
 const fs = require("fs");
 const JSONbig = require('json-bigint')({ useNativeBigInt: true, alwaysParseAsBig: true });
