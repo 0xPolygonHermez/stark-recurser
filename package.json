@@ -41,14 +41,14 @@
     "json-bigint": "^1.0.0",
     "pilcom": "^0.0.24",
     "protobufjs": "^7.3.2",
-    "r1csfile": "^0.0.47"
+    "r1csfile": "^0.0.47",
+    "ejs": "^3.1.10"
   },
   "devDependencies": {
     "@iden3/bigarray": "^0.0.2",
     "chai": "^4.3.6",
     "chai-as-promised": "^7.1.1",
     "circom_tester": "^0.0.21",
-    "ejs": "^3.1.6",
     "ffjavascript": "^0.3.1",
     "logplease": "^1.2.15",
     "mocha": "^10.0.0",

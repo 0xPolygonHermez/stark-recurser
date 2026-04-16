@@ -6,11 +6,15 @@ const JSONbig = require('json-bigint')({ useNativeBigInt: true, alwaysParseAsBig
 
 const argv = require("yargs")
     .version(version)
-    .usage("node main_pil2circom.js -o <verifier.circom> -v <verification_key.json> -s <starkinfo.json> -i <verifierinfo.json> [--skipMain] [--enableInput] [--verkeyInput]")
+    .usage("node main_pil2circom.js -o <verifier.circom> -v <verification_key.json> -s <starkinfo.json> -i <verifierinfo.json> [--skipMain] [--enableInput] [--verkeyInput] [--inputChallenges]")
     .alias("s", "starkinfo")
     .alias("i", "verifierinfo")
     .alias("v", "verkey")
     .alias("o", "output")
+    .boolean("skipMain").default("skipMain", false)
+    .boolean("enableInput").default("enableInput", false)
+    .boolean("verkeyInput").default("verkeyInput", false)
+    .boolean("inputChallenges").default("inputChallenges", false)
     .argv;
 
 async function run() {
@@ -28,9 +32,8 @@ async function run() {
         skipMain: argv.skipMain || false,
         enableInput: argv.enableInput || false,
         verkeyInput: argv.verkeyInput || false,
+        inputChallenges: argv.inputChallenges || false,
     }
-
-    console.log("Options: ", options);
 
     let constRoot;
 

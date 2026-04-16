@@ -55,26 +55,31 @@ async function run() {
         }
     }
 
-    for(let i = 0; i < argv.verifierfile.length; ++i) {
-        if(typeof (argv.verifierfile[i]) !== "string") throw new Error("A valid verification file name must be provided!");
-        verifierFilenames.push(argv.verifierfile[i]);
+    if(argv.verifierfile) {
+        for(let i = 0; i < argv.verifierfile.length; ++i) {
+            if(typeof (argv.verifierfile[i]) !== "string") throw new Error("A valid verification file name must be provided!");
+            verifierFilenames.push(argv.verifierfile[i]);
+        }
     }
-    
-    for(let i = 0; i < argv.publics.length; ++i) {
-        if(typeof (argv.publics[i]) !== "string") throw new Error("A valid publics file name must be provided!");
-        const publicsInfo = JSON.parse(await fs.promises.readFile(argv.publics[i].trim(), "utf8"));
-        // TODO: VERIFY FORMAT
-        publics.push(publicsInfo);
+
+    if(argv.publics) {
+        for(let i = 0; i < argv.publics.length; ++i) {
+            if(typeof (argv.publics[i]) !== "string") throw new Error("A valid publics file name must be provided!");
+            const publicsInfo = JSON.parse(await fs.promises.readFile(argv.publics[i].trim(), "utf8"));
+            // TODO: VERIFY FORMAT
+            publics.push(publicsInfo);
+        }
     }
 
     let vadcopInfo;
-    if(argv.vadcopInfo) {
-        vadcopInfo = JSON.parse(await fs.promises.readFile(argv.vadcopInfo.trim(), "utf8"));
+    if(argv.vadcopinfo) {
+        vadcopInfo = JSON.parse(await fs.promises.readFile(argv.vadcopinfo.trim(), "utf8"));
     }
 
-    const options = {}
-    
-    //TODO: ADD OPTIONS
+    const options = {};
+    if (!isNaN(argv.airgroupId)) options.airgroupId = Number(argv.airgroupId);
+    if (argv.hasCompressor) options.hasCompressor = true;
+    if (argv.hasRecursion) options.hasRecursion = true;
 
     const circomVerifier = await genCircom(templateFile, starkInfos, vadcopInfo, verifierFilenames, basicVerificationKeys, aggVerificationKeys, publics, options);
     

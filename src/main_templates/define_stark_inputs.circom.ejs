@@ -24,7 +24,7 @@
 <%  if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>
     signal input <%- prefix_ %>s0_siblingsC[<%- starkInfo.starkStruct.nQueries %>][<%- Math.floor((parseInt(starkInfo.starkStruct.steps[0].nBits) - 1)/Math.log2(starkInfo.starkStruct.merkleTreeArity))+1 %>][<%- starkInfo.starkStruct.merkleTreeArity %>];
 <%  } else { -%>
-    signal input <%- prefix_ %>s0_siblingsC[<%- starkInfo.starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification  %>][<%- (starkInfo.starkStruct.merkleTreeArity - 1) * 4 %>];
+    signal input <%- prefix_ %>s0_siblingsC[<%- starkInfo.starkStruct.nQueries %>][<%- Math.ceil(starkInfo.starkStruct.steps[0].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification  %>][<%- (starkInfo.starkStruct.merkleTreeArity - 1) * 4 %>];
 <%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
     signal input <%- prefix_ %>s0_last_mt_levelsC[<%- starkInfo.starkStruct.merkleTreeArity**starkInfo.starkStruct.lastLevelVerification %>][4];
 <%  } -%>
@@ -69,7 +69,7 @@
 <%          if(starkInfo.starkStruct.verificationHashType === "BN128") { -%>    
     signal input <%- prefix_ %>s<%- s %>_siblings[<%- starkInfo.starkStruct.nQueries %>][<%- Math.floor((parseInt(starkInfo.starkStruct.steps[s].nBits) -1) /Math.log2(starkInfo.starkStruct.merkleTreeArity)) +1 %>][<%- starkInfo.starkStruct.merkleTreeArity %>];
 <%          } else { -%>
-    signal input <%- prefix_ %>s<%- s %>_siblings[<%- starkInfo.starkStruct.nQueries %>][<%- Math.ceil(starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification %>][<%- (starkInfo.starkStruct.merkleTreeArity - 1) * 4 %>];
+    signal input <%- prefix_ %>s<%- s %>_siblings[<%- starkInfo.starkStruct.nQueries %>][<%- Math.ceil(starkInfo.starkStruct.steps[s].nBits / Math.log2(starkInfo.starkStruct.merkleTreeArity)) - starkInfo.starkStruct.lastLevelVerification %>][<%- (starkInfo.starkStruct.merkleTreeArity - 1) * 4 %>];
 <%  if (starkInfo.starkStruct.lastLevelVerification > 0) { -%>
     signal input <%- prefix_ %>s<%- s %>_last_mt_levels[<%- starkInfo.starkStruct.merkleTreeArity**starkInfo.starkStruct.lastLevelVerification %>][4];
 <%         } -%>
